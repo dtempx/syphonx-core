@@ -1075,7 +1075,7 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                         }
                     }
     
-                    if (!item && select.required) {
+                    if (isEmpty(item?.value) && select.required) {
                         this.error("select-required", `Required select '${context?.name ? `${context.name}.${select.name}` : select.name}' not found`);
                     }
     
@@ -1120,7 +1120,7 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                             })
                         };
                     }
-                    else if (select.repeated && result.value instanceof Array) {
+                    else if (select.repeated && result.value instanceof Array && !select.collate) {
                         // select by values (this is common when using split)
                         subitem = {
                             nodes: [], // todo: translate result.nodes nodes to ids

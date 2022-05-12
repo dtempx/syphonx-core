@@ -38,5 +38,6 @@ const test = {
 describe("required/1", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
-    it("errors has expected value", () => expect(result.errors).to.eql([{ code: "required" }]));
+    it("not ok", () => expect(result.ok).to.be.false);
+    it("errors has expected value", () => expect(result.errors).to.eql([{ code: "select-required", message: "Required select 'd2' not found" }]));
 });

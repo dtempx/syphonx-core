@@ -9,10 +9,12 @@ const test = {
             "select": [
                 {
                     "name": "d1",
+                    "type": "boolean",
                     "$": [["div",["is","div"]]]
                 },
                 {
                     "name": "d2",
+                    "type": "boolean",
                     "$": [["div",["is","span"]]]
                 }
             ]

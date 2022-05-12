@@ -1,13 +1,12 @@
+node_modules
 *.js
 *.js.map
 *.d.ts
 *.log
 *.out
+*.txt
 .env
 .env.*
-node_modules
 .DS_Store
 Thumbs.db
-pricespy.json
-todo.txt
 private
