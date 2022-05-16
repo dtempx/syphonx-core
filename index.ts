@@ -7,7 +7,7 @@ export interface Break {
 
 export interface Click {
     $: SelectQuery[];
-    waitfor?: WaitFor;
+    waitfor?: WaitFor; // bypasses if no nodes selected
     snooze?: SnoozeInterval;
     required?: boolean;
     retry?: number;
@@ -109,7 +109,7 @@ export interface ExtractOptions {
     debug?: boolean;
 }
 
-export type ExtractErrorCode = "click-not-found" | "click-timeout" | "click-required" | "invalid-select" | "invalid-operator" | "invalid-operand" | "select-required" | "unknown-error";
+export type ExtractErrorCode = "click-timeout" | "click-required" | "invalid-select" | "invalid-operator" | "invalid-operand" | "select-required" | "unknown-error";
 export interface ExtractError {
     code: ExtractErrorCode;
     message: string;
@@ -148,6 +148,11 @@ interface QueryResolveParams {
 interface DataItem {
     nodes: number[];
     value: unknown;
+}
+
+interface DispatchResult {
+    break?: boolean;
+    yield?: boolean;
 }
 
 export async function extract({ url, actions, root, debug, nodes = false, params = {} }: ExtractOptions): Promise<ExtractResult> {
@@ -386,32 +391,38 @@ export async function extract({ url, actions, root, debug, nodes = false, params
     }
 
     function ltrim(text: string, pattern: string | RegExp = " "): string {
-        if (typeof pattern === "string") {
-            while (text.startsWith(pattern)) {
-                text = text.slice(pattern.length);
+        if (typeof text === "string") {
+            if (typeof pattern === "string") {
+                while (text.startsWith(pattern)) {
+                    text = text.slice(pattern.length);
+                }
             }
-        }
-        else {
-            const hits = pattern.exec(text) || [];
-            const hit = hits.find(hit => text.startsWith(hit));
-            if (hit) {
-                text = text.slice(0, -1 * hit.length);
+            else {
+                const hits = pattern.exec(text) || [];
+                let hit = hits.find(hit => text.startsWith(hit));
+                while (hit) {
+                    text = text.slice(hit.length);
+                    hit = hits.find(hit => text.startsWith(hit));
+                }
             }
         }
         return text;
     }
 
     function rtrim(text: string, pattern: string | RegExp = " "): string {
-        if (typeof pattern === "string") {
-            while (text.endsWith(pattern)) {
-                text = text.slice(0, -1 * pattern.length)
+        if (typeof text === "string") {
+            if (typeof pattern === "string") {
+                while (text.endsWith(pattern)) {
+                    text = text.slice(0, -1 * pattern.length)
+                }
             }
-        }
-        else {
-            const hits = pattern.exec(text) || [];
-            const hit = hits.find(hit => text.startsWith(hit));
-            if (hit) {
-                text = text.slice(hit.length);
+            else {
+                const hits = pattern.exec(text) || [];
+                let hit = hits.find(hit => text.endsWith(hit));
+                while (hit) {
+                    text = text.slice(0, -1 * hit.length);
+                    hit = hits.find(hit => text.endsWith(hit));
+                }
             }
         }
         return text;
@@ -530,7 +541,7 @@ export async function extract({ url, actions, root, debug, nodes = false, params
             this.params = params;
             this.domain = domain;
             this.origin = origin;
-            this.online = typeof jquery.ajax === "function";
+            this.online = typeof jquery.noConflict === "function";
             this.debug = debug;
             this.logs = [];
             this.errors = [];
@@ -540,61 +551,68 @@ export async function extract({ url, actions, root, debug, nodes = false, params
 
         break({ active, when }: Break): boolean {
             if (this.online && (active ?? true)) {
-                if (this.when(when)) {
-                    this.log("BREAK");
+                if (this.when(when, "BREAK")) {
+                    this.log(`BREAK ${when}`);
                     return true;
                 }
+                else {
+                    this.log(`BREAK BYPASSED ${when}`);
+                }
+            }
+            else {
+                this.log(`BREAK SKIPPED ${when}`);
             }
             return false;
         }
 
         async click({ $, waitfor, snooze, required, retry, active, when }: Click): Promise<void> {
             if (this.online && (active ?? true)) {
-                if (this.when(when)) {
-                    this.log(`CLICK ${$statements($)}`);
+                if (this.when(when, "CLICK")) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
                     if (snooze && (mode === "before" || mode === "before-and-after")) {
-                        await sleep(snooze[0] * 1000);
+                        const seconds = snooze[0];
+                        this.log(`CLICK SNOOZE BEFORE (${seconds}s) ${$statements($)}`);
+                        await sleep(seconds * 1000);
                     }
                     const result = this.query({ $ });
                     if (result && result.nodes.length > 0) {
+                        this.log(`CLICK ${$statements($)}`);
                         result.nodes[0].click();
                         if (waitfor) {
-                            const ok = await this.waitfor(waitfor);
+                            const ok = await this.waitfor(waitfor, "CLICK");
                             if (ok) {
                                 if (snooze && (mode === "after" || mode === "before-and-after")) {
-                                    await sleep(snooze[0] * 1000);
+                                    const seconds = snooze[0];
+                                    this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements($)}`);
+                                    await sleep(seconds * 1000);
                                 }
                             }
                             else {
-                                this.error("click-timeout", "Timeout waiting for click result.");
-                                if (required) {
-                                    this.error("click-required", "Unable to perform required click.");
-                                }
+                                this.error("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.$)}`);
                             }
                         }
                     }
                     else if (required) {
-                        this.error("click-not-found", "Required click target not found.");
+                        this.error("click-required", `Required click target not found. ${trunc($)}`);
                     }
                 }
                 else {
-                    this.log(`CLICK BYPASSED !when`);
+                    this.log(`CLICK BYPASSED ${$statements($)}`);
                 }
             }
             else {
-                this.log(`CLICK BYPASSED !active`);
+                this.log(`CLICK SKIPPED ${$statements($)}`);
             }
         }
 
-        async dispatch(action: Action): Promise<boolean> {
+        async dispatch(action: Action): Promise<DispatchResult> {
             if (action.hasOwnProperty("select")) {
                 const data = this.select((action as SelectAction).select);
                 this.data = merge(this.data, data);
             }
             else if (action.hasOwnProperty("break")) {
                 if (this.break((action as BreakAction).break)) {
-                    return true;
+                    return { break: true };
                 }
             }
             else if (action.hasOwnProperty("click")) {
@@ -612,12 +630,12 @@ export async function extract({ url, actions, root, debug, nodes = false, params
             else if (action.hasOwnProperty("waitfor")) {
                 await this.waitfor((action as WaitForAction).waitfor);
             }
-            return false;
+            return {};
         }
 
         async do({ $, active, when }: Do): Promise<void> {
             if (this.online && (active ?? true)) {
-                if (this.when(when)) {
+                if (this.when(when, "DO")) {
                     for (const query of $) {
                         const selector = query[0];
                         const ops = query.slice(1) as SelectQueryOp[];
@@ -631,6 +649,12 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                         }
                     }
                 }
+                else {
+                    this.log(`DO BYPASSED ${$statements($)}`);
+                }
+            }
+            else {
+                this.log(`DO SKIPPED ${$statements($)}`);
             }
         }
 
@@ -641,7 +665,10 @@ export async function extract({ url, actions, root, debug, nodes = false, params
 
         async execute(actions: Action[]): Promise<void> {
             for (const action of actions) {
-                await this.dispatch(action);
+                const result = await this.dispatch(action);
+                if (result.break) {
+                    break;
+                }
             }
         }
         
@@ -794,8 +821,8 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                 }
                 this.state._page = i;
                 for (const action of actions) {
-                    done = await this.dispatch(action);
-                    if (done) {
+                    const result = await this.dispatch(action);
+                    if (result.break) {
                         break;
                     }
                 }
@@ -1062,6 +1089,8 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                             item = this.selectResolveUnion(select, item, context, data);
                         }
                         else if (select.value) {
+                            item = this.selectResolveValue(select, data);
+                            /*
                             const obj = {
                                 data: merge(this.data, data),
                                 params: this.params,
@@ -1072,6 +1101,7 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                                 nodes: [],
                                 value: select.repeated ? [value] : value
                             };
+                            */
                         }
                     }
     
@@ -1198,23 +1228,47 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                     if (subselect.active ?? true) {
                         if (this.when(subselect.when)) {
                             this.log(`UNION ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
+                            if (subselect.pivot) {
+                                item = this.selectResolvePivot({ ...superselect, ...subselect }, item, context);
+                            }
+                            else if (subselect.$) {
+                                item = this.selectResolve({ ...superselect, ...subselect }, item, context);
+                            }
+                            else if (subselect.value) {
+                                item = this.selectResolveValue(subselect);
+                            }
+                            /*
                             if (!subselect.pivot) {
                                 item = this.selectResolve({ ...superselect, ...subselect }, item, context);
                             }
                             else {
                                 item = this.selectResolvePivot({ ...superselect, ...subselect }, item, context);
                             }
+                            */
                         }
                         else {
-                            this.log(`UNION ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length} BYPASSED !when`);
+                            this.log(`UNION BYPASSED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
                         }
                     }
                     else {
-                        this.log(`UNION ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length} BYPASSED !active`);
+                        this.log(`UNION SKIPPED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
                     }
                 }
             }
             return item;
+        }
+
+        selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
+            const obj = {
+                data: merge(this.data, data), // todo: seems sus to merge the data with the root data
+                params: this.params,
+                ...this.state
+            };
+            const value = coerceValue(expandTokens(select.value, obj), select.type || "string");
+            return {
+                nodes: [],
+                value: select.repeated ? [value] : value
+            };
         }
 
         async snooze(interval: Snooze): Promise<void> {
@@ -1267,9 +1321,9 @@ export async function extract({ url, actions, root, debug, nodes = false, params
             return true;
         }
 
-        async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor): Promise<boolean | undefined> {
+        async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor, context?: string): Promise<boolean | undefined> {
             if (this.online && (active ?? true)) {
-                if (this.when(when)) {
+                if (this.when(when, "WAITFOR")) {
                     if (timeout === undefined) {
                         timeout = 30;
                     }
@@ -1279,17 +1333,25 @@ export async function extract({ url, actions, root, debug, nodes = false, params
         
                     let pass = false;
                     if ($) {
-                        pass = await this.waitforQuery($, on, timeout, pattern);
+                        this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${trunc($)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        pass = await this.waitforQuery($, on, timeout, pattern, context);
                     }
                     else if (select) {
-                        pass = await this.waitforSelect(select, on, timeout, pattern);
+                        this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        pass = await this.waitforSelect(select, on, timeout, pattern, context);
                     }
                     return pass;
                 }
+                else {
+                    this.log(`${context ? `${context} ` : ""}WAITFOR BYPASSSED ${$statements($)}`);
+                }
+            }
+            else {
+                this.log(`${context ? `${context} ` : ""}WAITFOR SKIPPED ${$statements($)}`);
             }
         }
 
-        async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined): Promise<boolean> {
+        async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<boolean> {
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
@@ -1327,11 +1389,11 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                 }
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
-            this.log(`WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`);
+            this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`);
             return pass;
         }
 
-        async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined): Promise<boolean> {
+        async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<boolean> {
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
                     this.error("invalid-select", "waitfor select must all be internal, boolean, and not repeated");
@@ -1377,22 +1439,22 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            this.log(`WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`);
+            this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`);
             return pass;
         }
 
-        when(when: When | undefined): boolean {
+        when(when: When | undefined, context?: string): boolean {
             if (when && /^\{\!?_[a-z0-9_]+\}$/i.test(when)) {
                 const i = when.indexOf("_");
                 const key = when.slice(i, -1);
                 const negate = when.includes("!");
                 const value = this.state[key];
                 const result = negate ? !value : !!value;
-                this.log(`WHEN ${JSON.stringify(when)} -> ${JSON.stringify(value)} -> ${result}`);
+                this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ${JSON.stringify(value)} -> ${result}`);
                 return result;
             }
             else if (when !== undefined) {
-                this.log(`WHEN ${JSON.stringify(when)} -> invalid`);
+                this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> invalid`);
             }
             return true;
         }

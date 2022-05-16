@@ -19,7 +19,8 @@
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
-            "program": "${workspaceFolder}/online.js"
+            "program": "${workspaceFolder}/online.js",
+            "args": ["--debug"]
         },
         {
             "name": "Offline",
@@ -27,7 +28,8 @@
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
-            "program": "${workspaceFolder}/offline.js"
+            "program": "${workspaceFolder}/offline.js",
+            "args": ["--debug"]
         },
         {
             "name": "Run Tests",

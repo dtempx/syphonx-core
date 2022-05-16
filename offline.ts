@@ -19,7 +19,7 @@ const args = parseArgs({
 
 (async () => {
     try {
-        const script = await loadJSON(args[0] || "script.json");
+        const script = await loadJSON(args[0] || "test.json");
         const url = script.url || args.url;
         if (!url) {
             console.warn("no url specified");
