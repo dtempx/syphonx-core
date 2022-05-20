@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "SyphonX is a data-driven extraction tool that runs in any browser",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "license": "MIT",
@@ -12,7 +12,7 @@
     "build": "npx tsc",
     "test": "npx mocha --timeout 10000 test/**/*.js"
   },
-  "keywords": [],
+  "keywords": ["scrape"],
   "files": [
     "index.js",
     "index.map.js",
