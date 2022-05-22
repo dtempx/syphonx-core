@@ -43,7 +43,7 @@ export interface Select extends SelectTarget {
     name?: string; // if not defined then value is projected
     repeated?: boolean; // if repeated is true then an array is returned, othewise if type is string then strings will be newline concatenated otherwise if type is boolean then all values are and'ed otherwise the first value is taken, default is false
     required?: boolean; // default is false
-    type?: SelectType; // default is string
+    type?: SelectType; // default is "string" except when there is a sub-select in which case default is "object"
     union?: SelectTarget[];
 }
 
@@ -1125,6 +1125,9 @@ export async function extract({ url, actions, root, debug, nodes = false, params
 
         selectResolve(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
             let subitem: DataItem | null = null;
+            if (select.type === undefined) {
+                select.type = select.select ? "object" : "string";
+            }
             const result = this.query(select, context);
             if (result) {
                 if (select.type !== "object") {
