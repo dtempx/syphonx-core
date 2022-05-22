@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "SyphonX is a data-driven extraction tool that runs in any browser",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "license": "MIT",
