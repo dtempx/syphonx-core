@@ -3,13 +3,13 @@ import { syphonx, online } from "../common/index.js";
 
 const test = {
     url: "https://www.example.com/",
-    actions: [{
-        "select": [
-            {
-                "$": [["h1"]]
-            }
-        ]
-    }] as syphonx.Action[]
+    actions: [
+        {
+            "select": [
+                { "$": [["h1"]] }
+            ]
+        }
+    ] as syphonx.Action[]
 };
 
 describe("online/1", () => {

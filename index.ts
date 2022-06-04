@@ -7,7 +7,7 @@ export interface Break {
 
 export interface Click {
     $: SelectQuery[];
-    waitfor?: WaitFor; // bypasses if no nodes selected
+    waitfor?: WaitFor; // skip if no nodes selected
     snooze?: SnoozeInterval;
     required?: boolean;
     retry?: number;
@@ -57,6 +57,19 @@ export interface WaitFor {
     active?: boolean;
 }
 
+/*
+'domcontentloaded' - consider operation to be finished when the DOMContentLoaded event is fired.
+'load' - consider operation to be finished when the load event is fired.
+'networkidle' - consider operation to be finished when there are no network connections for at least 500 ms.
+*/
+export declare type YieldWaitFor = "load" | "domcontentloaded" | "networkidle";
+
+export interface Yield {
+    when?: When;
+    waitfor?: YieldWaitFor;
+    active?: boolean;
+}
+
 export type SelectType = "string" | "number" | "boolean" | "object";
 export type SelectQuery = [string, SelectQueryOp?];
 export type SelectQueryOp = [SelectQueryOperator, SelectQueryOperand?, SelectQueryOperand?, SelectQueryOperand?];
@@ -81,8 +94,9 @@ export type RepeatAction = { repeat: Action[] };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
 export type WaitForAction = { waitfor: WaitFor };
+export type YieldAction = { yield: Yield };
 
-export type Action = BreakAction | ClickAction | DoAction | RepeatAction | SelectAction | SnoozeAction | WaitForAction;
+export type Action = BreakAction | ClickAction | DoAction | RepeatAction | SelectAction | SnoozeAction | WaitForAction | YieldAction;
 
 export interface QueryParams {
     $?: SelectQuery[];
@@ -104,27 +118,46 @@ export interface ExtractOptions {
     actions: Action[];
     url?: string;
     params?: Record<string, unknown>;
+    state?: Record<string, unknown>; // new
+    step?: number; // new
     root?: unknown;
-    nodes?: boolean;
+    nodes?: boolean; // deprecated
     debug?: boolean;
 }
 
-export type ExtractErrorCode = "click-timeout" | "click-required" | "invalid-select" | "invalid-operator" | "invalid-operand" | "select-required" | "unknown-error";
+export interface ExtractState {
+    [key: string]: unknown;
+    url: string;
+    domain: string;
+    origin: string;
+    params: Record<string, unknown>;
+    data: any;
+    log: string[]; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
+    errors: ExtractError[];
+    debug: boolean;
+    yield?: YieldResult;
+}
+
+export interface ExtractResult extends Omit<ExtractState, "log"> {
+    ok: boolean;
+    online: boolean;
+    log?: string;
+    data: any; // deprecated
+}
+
 export interface ExtractError {
     code: ExtractErrorCode;
     message: string;
 }
 
-export interface ExtractResult {
-    url: string;
-    domain: string;
-    data: any;
-    online: boolean;
-    ok: boolean;
-    params?: Record<string, unknown>;
-    errors?: ExtractError[];
-    log?: string;
-}
+export type ExtractErrorCode = 
+    "click-timeout" |
+    "click-required" |
+    "invalid-select" |
+    "invalid-operator" |
+    "invalid-operand" |
+    "select-required" |
+    "unknown-error";
 
 export type JQueryResult = JQuery<any>;
 export type JQueryDelegate = Record<string, (...args: unknown[]) => JQuery<HTMLElement>>;
@@ -155,7 +188,18 @@ interface DispatchResult {
     yield?: boolean;
 }
 
-export async function extract({ url, actions, root, debug, nodes = false, params = {} }: ExtractOptions): Promise<ExtractResult> {
+export interface YieldResult {
+    step: number;
+    waitfor: YieldWaitFor;
+}
+
+const defaultState = {
+    params: {},
+    log: [],
+    errors: []
+};
+
+export async function extract({ actions, url, state, step, root, params, debug = false, nodes = false }: ExtractOptions): Promise<ExtractResult> {
 
     function collapseWhitespace(text: string, newlines = true): string | null {
         if (typeof text === "string" && text.trim().length === 0) {
@@ -517,36 +561,16 @@ export async function extract({ url, actions, root, debug, nodes = false, params
     }
 
     class ExtractContext {
-        actions: Action[];
         jquery: JQueryStatic;
-        url: string;
-        params?: Record<string, unknown>;
-        domain: string;
-        origin: string;
+        actions: Action[];
+        state: ExtractState;
         online: boolean;
-        debug: boolean;
-        logs: string[];
-        errors: ExtractError[];
-        data: unknown;
-        state: Record<string, unknown>;
     
-        constructor(jquery: JQueryStatic, url: string, actions: Action[], params: Record<string, unknown>, debug: boolean) {
-            const { domain, origin } = parseUrl(url);
-            if (!domain || !origin) {
-                throw new Error("Invalid url");
-            }
-            this.actions = actions;
+        constructor(jquery: JQueryStatic, url: string, actions: Action[], state: ExtractState) {
             this.jquery = jquery;
-            this.url = url;
-            this.params = params;
-            this.domain = domain;
-            this.origin = origin;
+            this.actions = actions;
+            this.state = state;
             this.online = typeof jquery.noConflict === "function";
-            this.debug = debug;
-            this.logs = [];
-            this.errors = [];
-            this.data = undefined;
-            this.state = {};
         }
 
         break({ active, when }: Break): boolean {
@@ -556,11 +580,11 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                     return true;
                 }
                 else {
-                    this.log(`BREAK BYPASSED ${when}`);
+                    this.log(`BREAK SKIPPED ${when}`);
                 }
             }
             else {
-                this.log(`BREAK SKIPPED ${when}`);
+                this.log(`BREAK BYPASSED ${when}`);
             }
             return false;
         }
@@ -597,22 +621,22 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                     }
                 }
                 else {
-                    this.log(`CLICK BYPASSED ${$statements($)}`);
+                    this.log(`CLICK SKIPPED ${$statements($)}`);
                 }
             }
             else {
-                this.log(`CLICK SKIPPED ${$statements($)}`);
+                this.log(`CLICK BYPASSED ${$statements($)}`);
             }
         }
 
-        async dispatch(action: Action): Promise<DispatchResult> {
+        async dispatch(action: Action, step: number): Promise<DispatchResult> {
             if (action.hasOwnProperty("select")) {
                 const data = this.select((action as SelectAction).select);
-                this.data = merge(this.data, data);
+                this.state.data = merge(this.state.data, data);
             }
             else if (action.hasOwnProperty("break")) {
                 if (this.break((action as BreakAction).break)) {
-                    return { break: true };
+                    return { break: true, yield: false };
                 }
             }
             else if (action.hasOwnProperty("click")) {
@@ -630,7 +654,14 @@ export async function extract({ url, actions, root, debug, nodes = false, params
             else if (action.hasOwnProperty("waitfor")) {
                 await this.waitfor((action as WaitForAction).waitfor);
             }
-            return {};
+            else if (action.hasOwnProperty("yield")) {
+                const waitfor = this.yield((action as YieldAction).yield || {});
+                if (waitfor) {
+                    this.state.yield = { step, waitfor };
+                    return { break: false, yield: true };
+                }
+            }
+            return { break: false, yield: false };
         }
 
         async do({ $, active, when }: Do): Promise<void> {
@@ -650,26 +681,32 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                     }
                 }
                 else {
-                    this.log(`DO BYPASSED ${$statements($)}`);
+                    this.log(`DO SKIPPED ${$statements($)}`);
                 }
             }
             else {
-                this.log(`DO SKIPPED ${$statements($)}`);
+                this.log(`DO BYPASSED ${$statements($)}`);
             }
         }
 
         error(code: ExtractErrorCode, message: string): void {
-            this.errors.push({ code, message });
+            this.state.errors.push({ code, message });
             this.log(`ERROR (${code}): ${message}`);
         }
 
-        async execute(actions: Action[]): Promise<void> {
+        async execute(actions: Action[], start = 1): Promise<void> {
             for (const action of actions) {
-                const result = await this.dispatch(action);
-                if (result.break) {
-                    break;
+                const step = actions.indexOf(action) + 1;
+                if (step >= start) {
+                    this.log(`step ${step}/${actions.length}`);
+                    const result = await this.dispatch(action, step);
+                    if (result.break || result.yield) {
+                        this.log(`break at step ${step}/${actions.length}`);
+                        return;
+                    }
                 }
             }
+            this.log(`${actions.length} steps complete`);
         }
         
         formatResult(result: QueryResult, type: SelectType, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
@@ -682,13 +719,13 @@ export async function extract({ url, actions, root, debug, nodes = false, params
             }
 
             if (type === "string" && result.value instanceof Array) {
-                result.value = result.value.map(value => formatStringValue(coerceValue(value, "string") as string, format, this.origin));
+                result.value = result.value.map(value => formatStringValue(coerceValue(value, "string") as string, format, this.state.origin));
                 if (regexp && !isEmpty(result.value)) {
                     result.valid = (result.value as string[]).every(value => regexp.test(value));
                 }
             }
             else if (type === "string") {
-                result.value = formatStringValue(coerceValue(result.value, "string") as string, format, this.origin);
+                result.value = formatStringValue(coerceValue(result.value, "string") as string, format, this.state.origin);
                 if (regexp && !isEmpty(result.value)) {
                     result.valid = regexp.test(result.value as string);
                 }
@@ -725,8 +762,8 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                 else if (type === "boolean") {
                     return value.trim().length > 0;
                 }
-                else if (format === "href" && typeof value === "string" && this.origin) {
-                    return combineUrl(this.origin, value);
+                else if (format === "href" && typeof value === "string" && this.state.origin) {
+                    return combineUrl(this.state.origin, value);
                 }
                 else if (format === "multiline") {
                     return collapseWhitespace(value, true);
@@ -746,8 +783,8 @@ export async function extract({ url, actions, root, debug, nodes = false, params
         }
 
         log(text: string): void {
-            if (this.debug) {
-                this.logs.push(text);
+            if (this.state.debug) {
+                this.state.log.push(text);
             }
         }
 
@@ -821,7 +858,8 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                 }
                 this.state._page = i;
                 for (const action of actions) {
-                    const result = await this.dispatch(action);
+                    const step = actions.indexOf(action) + 1;
+                    const result = await this.dispatch(action, step);
                     if (result.break) {
                         break;
                     }
@@ -1250,11 +1288,11 @@ export async function extract({ url, actions, root, debug, nodes = false, params
                             */
                         }
                         else {
-                            this.log(`UNION BYPASSED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
+                            this.log(`UNION SKIPPED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
                         }
                     }
                     else {
-                        this.log(`UNION SKIPPED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
+                        this.log(`UNION BYPASSED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
                     }
                 }
             }
@@ -1263,9 +1301,8 @@ export async function extract({ url, actions, root, debug, nodes = false, params
 
         selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
             const obj = {
-                data: merge(this.data, data), // todo: seems sus to merge the data with the root data
-                params: this.params,
-                ...this.state
+                ...this.state,
+                data: merge(this.state.data, data)
             };
             const value = coerceValue(expandTokens(select.value, obj), select.type || "string");
             return {
@@ -1461,19 +1498,54 @@ export async function extract({ url, actions, root, debug, nodes = false, params
             }
             return true;
         }
+
+        yield({ active, when, waitfor = "load" }: Yield): YieldWaitFor | undefined {
+            if (this.online && (active ?? true)) {
+                if (this.when(when, "YIELD")) {
+                    this.log(`YIELD ${when} -> ${waitfor}`);
+                    return waitfor;
+                }
+                else {
+                    this.log(`YIELD SKIPPED ${when}`);
+                }
+            }
+            else {
+                this.log(`YIELD BYPASSED ${when}`);
+            }
+            return undefined;
+        }
     }
-    
+
     if (!url) {
         url = window.location.href;
     }
+    const { domain, origin } = parseUrl(url);
+    if (!domain || !origin) {
+        throw new Error("Invalid url");
+    }
 
-    const obj = new ExtractContext((root as JQueryStatic) || $, url, actions, params, !!debug);
+    const obj = new ExtractContext(
+        (root as JQueryStatic) || $,
+        url || window.location.href,
+        actions,
+        {
+            params: {},
+            log: [],
+            errors: [],
+            data: null,
+            ...state,
+            url,
+            domain,
+            origin,
+            debug
+        });
+
     try {
-        await obj.execute(obj.actions);
+        await obj.execute(obj.actions, step);
     }
     catch (err) {
         if (err instanceof ExtractError) {
-            obj.errors.push(err);
+            obj.state.errors.push(err);
         }
         else {
             obj.error("unknown-error", err instanceof Error ? err.message : "Unknown error.");
@@ -1481,12 +1553,10 @@ export async function extract({ url, actions, root, debug, nodes = false, params
     }
 
     return {
-        url,
-        domain: obj.domain,
-        data: !nodes ? unwrapValue(obj.data) : obj.data,
+        ...obj.state,
+        ok: obj.state.errors.length === 0,
         online: obj.online,
-        ok: obj.errors.length === 0,
-        errors: obj.errors,
-        log: obj.debug ? obj.logs.join("\n") : undefined
+        log: obj.state.debug ? obj.state.log.join("\n") : undefined,
+        data: !nodes ? unwrapValue(obj.state.data) : obj.state.data // deprecated
     };
 }
