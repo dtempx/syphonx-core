@@ -20,7 +20,7 @@
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
             "program": "${workspaceFolder}/online.js",
-            "args": ["--debug"]
+            "args": ["--debug", "--show"]
         },
         {
             "name": "Offline",

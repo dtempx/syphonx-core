@@ -12,6 +12,7 @@ const args = parseArgs({
     optional: {
         0: "script file to load",
         url: "url to navigate to",
+        show: "shows browser window",
         debug: "enable debug mode"
     }
 });
@@ -19,6 +20,7 @@ const args = parseArgs({
 (async () => {
     try {
         const script = await loadJSON(args[0] || "test.json");
+        const headless = !args.show;
         const debug = !!args.debug;
         const url = script.url || args.url;
         if (!url) {
@@ -26,7 +28,7 @@ const args = parseArgs({
             process.exit(0);
         }
 
-        const page = await browser.open(url, false);
+        const page = await browser.open(url, headless);
         // https://stackoverflow.com/questions/46987516/inject-jquery-into-puppeteer-page
         await page.evaluate(__jquery);
         //await page.addScriptTag({ path: path.resolve(__dirname, "./node_modules/jquery/dist/jquery.slim.min.js") });

@@ -21,6 +21,12 @@ export interface Do {
     active?: boolean;
 }
 
+export interface Repeat {
+    actions: Action[];
+    limit?: number; // max # of repitions (default=100)
+    errors?: number; // error limit (default=1)
+}
+
 export interface SelectTarget {
     $?: SelectQuery[];
     pivot?: SelectTarget;
@@ -42,7 +48,7 @@ export interface SelectTarget {
 export interface Select extends SelectTarget {
     name?: string; // if not defined then value is projected
     repeated?: boolean; // if repeated is true then an array is returned, othewise if type is string then strings will be newline concatenated otherwise if type is boolean then all values are and'ed otherwise the first value is taken, default is false
-    required?: boolean; // default is false
+    required?: boolean; // indicates whether an error should result if no value selected, default is false
     type?: SelectType; // default is "string" except when there is a sub-select in which case default is "object"
     union?: SelectTarget[];
 }
@@ -53,6 +59,7 @@ export interface WaitFor {
     timeout?: number;
     on?: WaitForOn;
     pattern?: string; // waits for a specific text pattern if specified
+    required?: boolean; // indicates whether processing should stop with an error on timeout
     when?: When;
     active?: boolean;
 }
@@ -90,7 +97,7 @@ export type Snooze = [number, number];
 export type BreakAction = { break: Break };
 export type ClickAction = { click: Click };
 export type DoAction = { do: Do };
-export type RepeatAction = { repeat: Action[] };
+export type RepeatAction = { repeat: Repeat };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
 export type WaitForAction = { waitfor: WaitFor };
@@ -153,11 +160,13 @@ export interface ExtractError {
 export type ExtractErrorCode = 
     "click-timeout" |
     "click-required" |
+    "error-limit" |
     "invalid-select" |
     "invalid-operator" |
     "invalid-operand" |
     "select-required" |
-    "unknown-error";
+    "unknown-error" |
+    "waitfor-timeout";
 
 export type JQueryResult = JQuery<any>;
 export type JQueryDelegate = Record<string, (...args: unknown[]) => JQuery<HTMLElement>>;
@@ -183,10 +192,7 @@ interface DataItem {
     value: unknown;
 }
 
-interface DispatchResult {
-    break?: boolean;
-    yield?: boolean;
-}
+type DispatchResult = "break" | "yield" | "timeout" | "required" | null;
 
 export interface YieldResult {
     step: number;
@@ -294,7 +300,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
     }
 
     function formatStringValue(value: string, format: SelectFormat, origin: string): unknown {
-        if (format === "href" && typeof value === "string" && origin) {
+        if (format === "href" && typeof value === "string" && origin && !isAbsoluteUrl(value)) {
             return combineUrl(origin, value);
         }
         else if (format === "multiline") {
@@ -309,6 +315,10 @@ export async function extract({ actions, url, state, step, root, params, debug =
         else {
             return value;
         }
+    }
+
+    function isAbsoluteUrl(url: string): boolean {
+        return url.startsWith("http://") || url.startsWith("https://");
     }
 
     function isEmpty(obj: unknown): boolean {
@@ -589,7 +599,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return false;
         }
 
-        async click({ $, waitfor, snooze, required, retry, active, when }: Click): Promise<void> {
+        async click({ $, waitfor, snooze, required, retry, active, when }: Click): Promise<"timeout" | "not-found" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "CLICK")) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
@@ -601,23 +611,31 @@ export async function extract({ actions, url, state, step, root, params, debug =
                     const result = this.query({ $ });
                     if (result && result.nodes.length > 0) {
                         this.log(`CLICK ${$statements($)}`);
-                        result.nodes[0].click();
+                        const [node] = result.nodes;
+                        node.click();
                         if (waitfor) {
-                            const ok = await this.waitfor(waitfor, "CLICK");
-                            if (ok) {
+                            const code = await this.waitfor(waitfor, "CLICK");
+                            if (!code) {
                                 if (snooze && (mode === "after" || mode === "before-and-after")) {
                                     const seconds = snooze[0];
                                     this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements($)}`);
                                     await sleep(seconds * 1000);
                                 }
                             }
-                            else {
-                                this.error("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.$)}`);
+                            else if (code === "timeout") {
+                                this.error("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.$)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`);
+                                return "timeout";
+                            }
+                            else if (code === "invalid") {
+                                // error already recorded, do nothing more
                             }
                         }
                     }
-                    else if (required) {
-                        this.error("click-required", `Required click target not found. ${trunc($)}`);
+                    else {
+                        if (required) {
+                            this.error("click-required", `Required click target not found. ${trunc($)}`);
+                        }
+                        return "not-found";
                     }
                 }
                 else {
@@ -627,6 +645,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             else {
                 this.log(`CLICK BYPASSED ${$statements($)}`);
             }
+            return null;
         }
 
         async dispatch(action: Action, step: number): Promise<DispatchResult> {
@@ -636,11 +655,18 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
             else if (action.hasOwnProperty("break")) {
                 if (this.break((action as BreakAction).break)) {
-                    return { break: true, yield: false };
+                    return "break";
                 }
             }
             else if (action.hasOwnProperty("click")) {
-                await this.click((action as ClickAction).click);
+                const required = (action as ClickAction).click.required;
+                const code = await this.click((action as ClickAction).click);
+                if (code === "timeout" && required) {
+                    return "timeout";
+                }
+                else if (code === "not-found" && required) {
+                    return "required";
+                }
             }
             else if (action.hasOwnProperty("do")) {
                 await this.do((action as DoAction).do);
@@ -652,16 +678,20 @@ export async function extract({ actions, url, state, step, root, params, debug =
                 await this.snooze((action as SnoozeAction).snooze);
             }
             else if (action.hasOwnProperty("waitfor")) {
-                await this.waitfor((action as WaitForAction).waitfor);
+                const required = (action as WaitForAction).waitfor.required;
+                const code = await this.waitfor((action as WaitForAction).waitfor);
+                if (code === "timeout" && required) {
+                    return "timeout";
+                }
             }
             else if (action.hasOwnProperty("yield")) {
                 const waitfor = this.yield((action as YieldAction).yield || {});
                 if (waitfor) {
                     this.state.yield = { step, waitfor };
-                    return { break: false, yield: true };
+                    return "yield";
                 }
             }
-            return { break: false, yield: false };
+            return null;
         }
 
         async do({ $, active, when }: Do): Promise<void> {
@@ -699,14 +729,14 @@ export async function extract({ actions, url, state, step, root, params, debug =
                 const step = actions.indexOf(action) + 1;
                 if (step >= start) {
                     this.log(`step ${step}/${actions.length}`);
-                    const result = await this.dispatch(action, step);
-                    if (result.break || result.yield) {
-                        this.log(`break at step ${step}/${actions.length}`);
+                    const code = await this.dispatch(action, step);
+                    if (code) {
+                        this.log(`break at step ${step}/${actions.length}, code=${code}`);
                         return;
                     }
                 }
             }
-            this.log(`${actions.length} steps complete`);
+            this.log(`${actions.length} steps completed`);
         }
         
         formatResult(result: QueryResult, type: SelectType, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
@@ -847,24 +877,29 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        async repeat(actions: Action[]): Promise<void> {
+        async repeat({ actions, limit = 100, errors = 1 }: Repeat): Promise<void> {
+            let errorCount = 0;
+            let baselineErrorCount = this.state.errors.length;
             let i = 0;
-            let done = false;
-            while (!done) {
-                this.log(`REPEAT #${++i}`);
-                if (i >= 25) {
-                    this.log(`REPEAT MAX`);
-                    break;
-                }
+            while (i < limit) {
+                this.log(`REPEAT #${++i} (limit=${limit})`);
                 this.state._page = i;
                 for (const action of actions) {
                     const step = actions.indexOf(action) + 1;
-                    const result = await this.dispatch(action, step);
-                    if (result.break) {
+                    const code = await this.dispatch(action, step);
+                    if (code) {
+                        this.log(`REPEAT #${i} -> break at step ${step}/${actions.length}, code=${code}`);
                         break;
                     }
                 }
+                this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
+                errorCount = this.state.errors.length - baselineErrorCount;
+                if (errorCount >= errors) {
+                    this.error("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`);
+                    break;
+                }
             }
+            this.log(`REPEAT ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
         }
 
         resolveQuery(query: SelectQuery, type: SelectType, repeated: boolean, all: boolean, limit: number | null | undefined, format?: SelectFormat, pattern?: string, context?: SelectContext): QueryResult {
@@ -1361,7 +1396,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return true;
         }
 
-        async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor, context?: string): Promise<boolean | undefined> {
+        async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "WAITFOR")) {
                     if (timeout === undefined) {
@@ -1371,27 +1406,29 @@ export async function extract({ actions, url, state, step, root, params, debug =
                         timeout = Infinity;
                     }
         
-                    let pass = false;
+                    let code = null;
                     if ($) {
                         this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${trunc($)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        pass = await this.waitforQuery($, on, timeout, pattern, context);
+                        code = await this.waitforQuery($, on, timeout, pattern, context);
                     }
                     else if (select) {
                         this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        pass = await this.waitforSelect(select, on, timeout, pattern, context);
+                        code = await this.waitforSelect(select, on, timeout, pattern, context);
                     }
-                    return pass;
+                    return code;
                 }
                 else {
                     this.log(`${context ? `${context} ` : ""}WAITFOR BYPASSSED ${$statements($)}`);
+                    return null;
                 }
             }
             else {
                 this.log(`${context ? `${context} ` : ""}WAITFOR SKIPPED ${$statements($)}`);
+                return null;
             }
         }
 
-        async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<boolean> {
+        async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
@@ -1429,15 +1466,23 @@ export async function extract({ actions, url, state, step, root, params, debug =
                 }
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
-            this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`);
-            return pass;
+
+            const message = `${context ? `${context} ` : ""}WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            this.log(message);
+            if (pass) {
+                return null;
+            }
+            else {
+                this.error("waitfor-timeout", message);
+                return "timeout";
+            }
         }
 
-        async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<boolean> {
+        async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
                     this.error("invalid-select", "waitfor select must all be internal, boolean, and not repeated");
-                    return true;
+                    return "invalid";
                 }
             }
             const t0 = new Date().valueOf();
@@ -1479,8 +1524,15 @@ export async function extract({ actions, url, state, step, root, params, debug =
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`);
-            return pass;
+            const message = `${context ? `${context} ` : ""}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            this.log(message);
+            if (pass) {
+                return null;
+            }
+            else {
+                this.error("waitfor-timeout", message);
+                return "timeout";
+            }
         }
 
         when(when: When | undefined, context?: string): boolean {
