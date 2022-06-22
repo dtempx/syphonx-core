@@ -145,6 +145,7 @@ export interface ExtractState {
     yield?: YieldResult;
 }
 
+//todo: make log return a string[] so we dont' need Omit
 export interface ExtractResult extends Omit<ExtractState, "log"> {
     ok: boolean;
     online: boolean;
@@ -245,7 +246,18 @@ export async function extract({ actions, url, state, step, root, params, debug =
     }
 
     function combineUrl(url: string, path: string): string {
-        return `${rtrim(url, "/")}/${ltrim(path, "/")}`;
+        if (url && path) {
+            return `${rtrim(url, "/")}/${ltrim(path, "/")}`;
+        }
+        else if (url) {
+            return url;
+        }
+        else if (path) {
+            return path;
+        }
+        else {
+            return "";
+        }
     }
 
     function createRegExp(value: unknown): RegExp | undefined {
@@ -482,7 +494,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
         return text;
     }
 
-    function trunc(obj: unknown, max = 40): string {
+    function trunc(obj: unknown, max = 80): string {
         const text = JSON.stringify(obj);
         if (typeof text === "string")
             return text.length <= max ? text : `${text[0]}${text.slice(1, max)}…${text[text.length - 1]}`;
@@ -1608,7 +1620,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
         ...obj.state,
         ok: obj.state.errors.length === 0,
         online: obj.online,
-        log: obj.state.debug ? obj.state.log.join("\n") : undefined,
+        log: obj.state.debug ? obj.state.log.join("\n") : undefined, // todo return this as an array
         data: !nodes ? unwrapValue(obj.state.data) : obj.state.data // deprecated
     };
 }
