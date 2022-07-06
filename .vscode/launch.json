@@ -20,7 +20,7 @@
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
             "program": "${workspaceFolder}/online.js",
-            "args": ["--debug", "--show"]
+            "args": ["./test.json", "--debug", "--show"]
         },
         {
             "name": "Offline",
@@ -29,7 +29,7 @@
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
             "program": "${workspaceFolder}/offline.js",
-            "args": ["--debug"]
+            "args": ["./test.json", "./test.html", "--debug"]
         },
         {
             "name": "Run Tests",

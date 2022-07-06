@@ -15,12 +15,6 @@ export interface Click {
     active?: boolean;
 }
 
-export interface Do {
-    $: SelectQuery[];
-    when?: When;
-    active?: boolean;
-}
-
 export interface Repeat {
     actions: Action[];
     limit?: number; // max # of repitions (default=100)
@@ -53,6 +47,12 @@ export interface Select extends SelectTarget {
     union?: SelectTarget[];
 }
 
+export interface Transform {
+    $: SelectQuery[];
+    when?: When;
+    active?: boolean;
+}
+
 export interface WaitFor {
     $?: SelectQuery[];
     select?: Select[];
@@ -78,7 +78,7 @@ export interface Yield {
 }
 
 export type SelectType = "string" | "number" | "boolean" | "object";
-export type SelectQuery = [string, SelectQueryOp?];
+export type SelectQuery = [string, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?];
 export type SelectQueryOp = [SelectQueryOperator, SelectQueryOperand?, SelectQueryOperand?, SelectQueryOperand?];
 export type SelectQueryOperator = string;
 export type SelectQueryOperand = string | number | boolean | undefined;
@@ -96,14 +96,14 @@ export type Snooze = [number, number];
 
 export type BreakAction = { break: Break };
 export type ClickAction = { click: Click };
-export type DoAction = { do: Do };
 export type RepeatAction = { repeat: Repeat };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
+export type TransformAction = { transform: Transform[] };
 export type WaitForAction = { waitfor: WaitFor };
 export type YieldAction = { yield: Yield };
 
-export type Action = BreakAction | ClickAction | DoAction | RepeatAction | SelectAction | SnoozeAction | WaitForAction | YieldAction;
+export type Action = BreakAction | ClickAction | RepeatAction | SelectAction | SnoozeAction | TransformAction | WaitForAction | YieldAction;
 
 export interface QueryParams {
     $?: SelectQuery[];
@@ -150,6 +150,7 @@ export interface ExtractResult extends Omit<ExtractState, "log"> {
     ok: boolean;
     online: boolean;
     log?: string;
+    html?: string;
     data: any; // deprecated
 }
 
@@ -595,7 +596,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             this.online = typeof jquery.noConflict === "function";
         }
 
-        break({ active, when }: Break): boolean {
+        private break({ active, when }: Break): boolean {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "BREAK")) {
                     this.log(`BREAK ${when}`);
@@ -611,7 +612,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return false;
         }
 
-        async click({ $, waitfor, snooze, required, retry, active, when }: Click): Promise<"timeout" | "not-found" | null> {
+        private async click({ $, waitfor, snooze, required, retry, active, when }: Click): Promise<"timeout" | "not-found" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "CLICK")) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
@@ -660,7 +661,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return null;
         }
 
-        async dispatch(action: Action, step: number): Promise<DispatchResult> {
+        private async dispatch(action: Action, step: number): Promise<DispatchResult> {
             if (action.hasOwnProperty("select")) {
                 const data = this.select((action as SelectAction).select);
                 this.state.data = merge(this.state.data, data);
@@ -680,14 +681,14 @@ export async function extract({ actions, url, state, step, root, params, debug =
                     return "required";
                 }
             }
-            else if (action.hasOwnProperty("do")) {
-                await this.do((action as DoAction).do);
-            }
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
             }
             else if (action.hasOwnProperty("snooze")) {
                 await this.snooze((action as SnoozeAction).snooze);
+            }
+            else if (action.hasOwnProperty("transform")) {
+                await this.transform((action as TransformAction).transform);
             }
             else if (action.hasOwnProperty("waitfor")) {
                 const required = (action as WaitForAction).waitfor.required;
@@ -704,31 +705,6 @@ export async function extract({ actions, url, state, step, root, params, debug =
                 }
             }
             return null;
-        }
-
-        async do({ $, active, when }: Do): Promise<void> {
-            if (this.online && (active ?? true)) {
-                if (this.when(when, "DO")) {
-                    for (const query of $) {
-                        const selector = query[0];
-                        const ops = query.slice(1) as SelectQueryOp[];
-                        if (selector === "{window}" && ops[0][0] === "scrollBottom") {
-                            this.log(`DO ${$statement(query)}`);
-                            await $scrollToBottom();
-                        }
-                        else {
-                            this.log(`DO ${$statement(query)}`);
-                            this.resolveQuery(query, "string", false, false, null);
-                        }
-                    }
-                }
-                else {
-                    this.log(`DO SKIPPED ${$statements($)}`);
-                }
-            }
-            else {
-                this.log(`DO BYPASSED ${$statements($)}`);
-            }
         }
 
         error(code: ExtractErrorCode, message: string): void {
@@ -751,7 +727,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             this.log(`${actions.length} steps completed`);
         }
         
-        formatResult(result: QueryResult, type: SelectType, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
+        private formatResult(result: QueryResult, type: SelectType, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
             const regexp = createRegExp(pattern);
 
             // apply limit for repeated result
@@ -794,7 +770,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return result;
         }
 
-        formatValue(value: unknown, type: SelectType, format: SelectFormat): unknown {
+        private formatValue(value: unknown, type: SelectType, format: SelectFormat): unknown {
             type = type?.toLowerCase() as SelectType;
             format = format?.toLowerCase() as SelectFormat;
             if (typeof value === "string") {
@@ -820,17 +796,27 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return value;
         }
 
-        keypath(name: string | undefined, context: SelectContext | undefined): string {
+        html(): string {
+            if (this.online) {
+                return window.document.documentElement.outerHTML;
+            }
+            else {
+                const cheerio = this.jquery as unknown as CheerioAPI;
+                return cheerio.html();
+            }
+        }
+
+        private keypath(name: string | undefined, context: SelectContext | undefined): string {
             return context ? `${context.name}.${name || "."}` : `${name || ""}`;
         }
 
-        log(text: string): void {
+        private log(text: string): void {
             if (this.state.debug) {
                 this.state.log.push(text);
             }
         }
 
-        mergeQueryResult(source: QueryResult | undefined, target: QueryResult | undefined): QueryResult | undefined {
+        private mergeQueryResult(source: QueryResult | undefined, target: QueryResult | undefined): QueryResult | undefined {
             if (source && target) {
                 let nodes = source.nodes && target.nodes ? this.jquery([...source.nodes.toArray(), ...target.nodes.toArray()]) : target.nodes || source.nodes;
                 let value = undefined;
@@ -859,7 +845,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        query({ $, type = "string", repeated = false, all = false, format, pattern, limit }: QueryParams, context?: SelectContext): QueryResult | undefined {
+        private query({ $, type = "string", repeated = false, all = false, format, pattern, limit }: QueryParams, context?: SelectContext): QueryResult | undefined {
             if (limit === undefined && type === "string" && !repeated && !all) {
                 limit = 1;
             }
@@ -889,7 +875,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        async repeat({ actions, limit = 100, errors = 1 }: Repeat): Promise<void> {
+        private async repeat({ actions, limit = 100, errors = 1 }: Repeat): Promise<void> {
             let errorCount = 0;
             let baselineErrorCount = this.state.errors.length;
             let i = 0;
@@ -914,7 +900,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             this.log(`REPEAT ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
         }
 
-        resolveQuery(query: SelectQuery, type: SelectType, repeated: boolean, all: boolean, limit: number | null | undefined, format?: SelectFormat, pattern?: string, context?: SelectContext): QueryResult {
+        private resolveQuery(query: SelectQuery, type: SelectType, repeated: boolean, all: boolean, limit: number | null | undefined, format?: SelectFormat, pattern?: string, context?: SelectContext): QueryResult {
             const selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
 
@@ -956,7 +942,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }            
         }
 
-        resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: QueryResolveParams): QueryResult {
+        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: QueryResolveParams): QueryResult {
             const result: QueryResult = { nodes, value };
             const a = ops.slice(0);
             while (a.length > 0) {
@@ -978,6 +964,11 @@ export async function extract({ actions, url, state, step, root, params, debug =
                     else {
                         result.value = null;
                     }
+                }
+                else if (operator === "endsWith" && operands[0]) {
+                    const pattern = operands[0] as string;
+                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().endsWith(pattern)));
+                    result.value = this.text(result.nodes, format);
                 }
                 else if (operator === "extract") {
                     if (!this.validateOperands(operator, operands, ["string"], ["boolean"])) {
@@ -1042,6 +1033,9 @@ export async function extract({ actions, url, state, step, root, params, debug =
                         const cheerio = this.jquery as unknown as CheerioAPI;
                         result.value = result.nodes.toArray().map(element => cheerio.html(element as unknown as CheerioNode));
                     }
+                }
+                else if (operator === "html" && operands[0] === "inner") {
+                    result.value = result.nodes.html();
                 }
                 else if (operator === "last") {
                     result.nodes = this.jquery(result.nodes.toArray()[result.nodes.length - 1]);
@@ -1158,7 +1152,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return this.formatResult(result, type, all, limit, format, pattern);
         }
 
-        select(selects: Select[], context?: SelectContext): unknown {
+        private select(selects: Select[], context?: SelectContext): unknown {
             const data = {} as Record<string, DataItem | null>;
             for (const select of selects) {
                 if (select.active ?? true) {
@@ -1208,7 +1202,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return data;
         }
 
-        selectResolve(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
+        private selectResolve(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
             let subitem: DataItem | null = null;
             if (select.type === undefined) {
                 select.type = select.select ? "object" : "string";
@@ -1276,7 +1270,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return merge(item, subitem);
         }
 
-        selectResolvePivot(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
+        private selectResolvePivot(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
             const { pivot, ...superselect } = select;
             if (pivot) {
                 const result = this.query(select, context);
@@ -1309,7 +1303,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return item;
         }
 
-        selectResolveUnion(select: Select, item: DataItem | null, context: SelectContext | undefined, data: unknown): DataItem | null {
+        private selectResolveUnion(select: Select, item: DataItem | null, context: SelectContext | undefined, data: unknown): DataItem | null {
             const { union, ...superselect } = select;
             if (union) {
                 for (const subselect of union) {
@@ -1346,7 +1340,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return item;
         }
 
-        selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
+        private selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
             const obj = {
                 ...this.state,
                 data: merge(this.state.data, data)
@@ -1358,12 +1352,12 @@ export async function extract({ actions, url, state, step, root, params, debug =
             };
         }
 
-        async snooze(interval: Snooze): Promise<void> {
+        private async snooze(interval: Snooze): Promise<void> {
             this.log(`SNOOZE ${interval[0]}s`);
             await sleep(interval[0] * 1000);
         }
 
-        text(nodes: JQuery<HTMLElement>, format: SelectFormat | undefined): string[] {
+        private text(nodes: JQuery<HTMLElement>, format: SelectFormat | undefined): string[] {
             format = format?.toLowerCase() as SelectFormat;
             if (this.online && format === "innertext") {
                 return nodes.toArray().map(element => element.innerText);
@@ -1390,7 +1384,34 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        validateOperands(operator: SelectQueryOperator, operands: SelectQueryOperand[], required: Array<"string" | "number" | "boolean">, optional: Array<"string" | "number" | "boolean"> = []): boolean {
+        private async transform(transforms: Transform[]): Promise<void> {
+            for (const transform of transforms) {
+                if (transform.active ?? true) {
+                    if (this.when(transform.when, "TRANSFORM")) {
+                        for (const query of transform.$) {
+                            const selector = query[0];
+                            const ops = query.slice(1) as SelectQueryOp[];
+                            if (selector === "{window}" && ops[0][0] === "scrollBottom") {
+                                this.log(`TRANSFORM ${$statement(query)}`);
+                                await $scrollToBottom();
+                            }
+                            else {
+                                this.log(`TRANSFORM ${$statement(query)}`);
+                                this.resolveQuery(query, "string", false, false, null);
+                            }
+                        }
+                    }
+                    else {
+                        this.log(`TRANSFORM SKIPPED ${$statements(transform.$)}`);
+                    }
+                }
+                else {
+                    this.log(`TRANSFORM BYPASSED ${$statements(transform.$)}`);
+                }    
+            }
+        }
+
+        private validateOperands(operator: SelectQueryOperator, operands: SelectQueryOperand[], required: Array<"string" | "number" | "boolean">, optional: Array<"string" | "number" | "boolean"> = []): boolean {
             for (let i = 0; i < required.length; ++i) {
                 if (typeof operands[i] !== required[i]) {
                     this.error("invalid-operand", `'${operator}' operand #${i + 1} is invalid: "${operands[i]}" is not a ${required[i]}`);
@@ -1408,7 +1429,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return true;
         }
 
-        async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
+        private async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "WAITFOR")) {
                     if (timeout === undefined) {
@@ -1440,7 +1461,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
+        private async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
@@ -1490,7 +1511,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
+        private async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
                     this.error("invalid-select", "waitfor select must all be internal, boolean, and not repeated");
@@ -1547,7 +1568,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             }
         }
 
-        when(when: When | undefined, context?: string): boolean {
+        private when(when: When | undefined, context?: string): boolean {
             if (when && /^\{\!?_[a-z0-9_]+\}$/i.test(when)) {
                 const i = when.indexOf("_");
                 const key = when.slice(i, -1);
@@ -1563,7 +1584,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
             return true;
         }
 
-        yield({ active, when, waitfor = "load" }: Yield): YieldWaitFor | undefined {
+        private yield({ active, when, waitfor = "load" }: Yield): YieldWaitFor | undefined {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "YIELD")) {
                     this.log(`YIELD ${when} -> ${waitfor}`);
@@ -1621,6 +1642,7 @@ export async function extract({ actions, url, state, step, root, params, debug =
         ok: obj.state.errors.length === 0,
         online: obj.online,
         log: obj.state.debug ? obj.state.log.join("\n") : undefined, // todo return this as an array
+        html: obj.state.debug ? obj.html() : undefined,
         data: !nodes ? unwrapValue(obj.state.data) : obj.state.data // deprecated
     };
 }

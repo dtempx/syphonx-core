@@ -1,40 +1,55 @@
 import * as cheerio from "cheerio";
-//import * as fs from "fs";
-//import * as path from "path";
-//import { fileURLToPath } from "url";
+import * as fs from "fs";
 import { browser, loadJSON, parseArgs } from "./common/index.js";
 import * as syphonx from "./index.js";
 
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = path.dirname(__filename);
-//const __jquery = fs.readFileSync(path.resolve(__dirname, "./node_modules/jquery/dist/jquery.min.js"), "utf8");
-
 const args = parseArgs({
+    required: {
+        0: "script file to load"
+    },
     optional: {
-        0: "script file to load",
-        url: "url to navigate to",
-        debug: "enable debug mode"
+        1: "HTML file to load",
+        url: "URL to navigate to",
+        debug: "enable debug mode",
+        output: "determines output (data, html, log)"
+    },
+    validate: args => {
+        if (!args[1] && !args.url) {
+            return "Please specify either an HTML file or a URL.";
+        }
     }
 });
 
 (async () => {
     try {
-        const script = await loadJSON(args[0] || "test.json");
+        const script = await loadJSON(args[0]);
         const url = script.url || args.url;
         if (!url) {
-            console.warn("no url specified");
+            console.warn("Please specify a URL.");
             process.exit(0);
         }
-        const html = await browser.html(url, true);
+
+        const html = args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true);
         const root = cheerio.load(html);
         const debug = !!args.debug;
-        const { log, ...result } = await syphonx.extract({ ...script, url, root, debug });
-        
-        console.log(JSON.stringify(result, null, 2));
-        if (log) {
+        const result = await syphonx.extract({ ...script, url, root, debug });
+
+        const output = args.output ? args.output.split(",") : ["data", "log"];
+        if (output.includes("data")) {
+            console.log(JSON.stringify(result.data, null, 2));
             console.log();
-            console.log(log);
         }
+
+        if (result.log && output.includes("log")) {
+            console.log(result.log);
+            console.log();
+        }
+
+        if (result.html && output.includes("html")) {
+            console.log(result.html);
+            console.log();
+        }
+
         process.exit();
     }
     catch (err) {

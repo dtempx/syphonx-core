@@ -9,22 +9,25 @@ const __dirname = path.dirname(__filename);
 const __jquery = fs.readFileSync(path.resolve(__dirname, "./node_modules/jquery/dist/jquery.slim.min.js"), "utf8");
 
 const args = parseArgs({
+    required: {
+        0: "script file to load"
+    },
     optional: {
-        0: "script file to load",
-        url: "url to navigate to",
+        url: "URL to navigate to",
         show: "shows browser window",
-        debug: "enable debug mode"
+        debug: "enable debug mode",
+        output: "determines output (data, html, log)"
     }
 });
 
 (async () => {
     try {
-        const script = await loadJSON(args[0] || "test.json");
+        const script = await loadJSON(args[0]);
         const headless = !args.show;
         const debug = !!args.debug;
         const url = script.url || args.url;
         if (!url) {
-            console.warn("no url specified");
+            console.warn("Please specify a URL.");
             process.exit(0);
         }
 
@@ -34,13 +37,24 @@ const args = parseArgs({
         //await page.addScriptTag({ path: path.resolve(__dirname, "./node_modules/jquery/dist/jquery.slim.min.js") });
         //await page.addScriptTag({ url: "https://code.jquery.com/jquery-3.6.0.slim.min.js" });
         
-        const { log, ...result } = await page.evaluate(syphonx.extract, { ...script, url, debug });
+        const result = await page.evaluate(syphonx.extract, { ...script, url, debug });
 
-        console.log(JSON.stringify(result, null, 2));
-        if (log) {
-            console.log("\n");
-            console.log(log);
+        const output = args.output ? args.output.split(",") : ["data", "log"];
+        if (output.includes("data")) {
+            console.log(JSON.stringify(result.data, null, 2));
+            console.log();
         }
+
+        if (result.log && output.includes("log")) {
+            console.log(result.log);
+            console.log();
+        }
+
+        if (result.html && output.includes("html")) {
+            console.log(result.html);
+            console.log();
+        }
+
         process.exit();
     }
     catch (err) {
