@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { syphonx, online } from "../common/index.js";
+import { syphonx, online } from "../common.js";
 
 const test = {
     url: "https://www.example.com/",

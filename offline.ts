@@ -1,7 +1,5 @@
-import * as cheerio from "cheerio";
 import * as fs from "fs";
-import { browser, loadJSON, parseArgs } from "./common/index.js";
-import * as syphonx from "./index.js";
+import { browser, loadJSON, parseArgs, offline } from "./common/index.js";
 
 const args = parseArgs({
     required: {
@@ -29,10 +27,13 @@ const args = parseArgs({
             process.exit(0);
         }
 
-        const html = args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true);
-        const root = cheerio.load(html);
-        const debug = !!args.debug;
-        const result = await syphonx.extract({ ...script, url, root, debug });
+        const result = await offline({
+            ...script,
+            url,
+            html: args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true),
+            debug: !!args.debug,
+            includeDOMRefs: false
+        });
 
         const output = args.output ? args.output.split(",") : ["data", "log"];
         if (output.includes("data")) {

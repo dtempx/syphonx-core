@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { syphonx, offline } from "../common/index.js";
+import { syphonx, offline } from "../common.js";
 
 const test = {
     url: "https://www.example.com/",
@@ -24,7 +24,7 @@ const test = {
 
 describe("transform/1", () => {
     let result: syphonx.ExtractResult;
-    before(async () => result = await offline({ ...test, debug: true }));
+    before(async () => result = await offline(test));
     it("html has expected output", () => expect(result.html).to.contain(`<h3 class="alpha">Lorum:</h3>`));
     it("html has expected output", () => expect(result.html).to.contain(`<h3>Credat</h3>`));
     it("html has expected output", () => expect(result.html).to.contain(`<h3 class="alpha">Ipsum:</h3>`));
