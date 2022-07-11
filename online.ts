@@ -8,7 +8,7 @@ const args = parseArgs({
         url: "URL to navigate to",
         show: "shows browser window",
         debug: "enable debug mode",
-        output: "determines output (data, html, log)"
+        out: "determines output (data, html, log)"
     }
 });
 
@@ -21,29 +21,37 @@ const args = parseArgs({
             process.exit(0);
         }
 
+        const output = args.out ? args.out.split(",") : ["data"];
+        const debug = !!args.debug || output.includes("log");
+
         const result = await online({
             ...script,
             url,
             show: !!args.show,
-            debug: !!args.debug,
+            debug,
             includeDOMRefs: false,
             outputHTML: "post"
         });
 
-        const output = args.output ? args.output.split(",") : ["data", "log"];
         if (output.includes("data")) {
             console.log(JSON.stringify(result.data, null, 2));
             console.log();
         }
 
-        if (result.log && output.includes("log")) {
+        if (output.includes("log")) {
+            console.log(`status: ${result.status}`);
             console.log(result.log);
             console.log();
         }
 
-        if (result.html && output.includes("html")) {
+        if (output.includes("html")) {
             console.log(result.html);
             console.log();
+        }
+
+        if (!result.ok) {
+            console.error("ERRORS");
+            console.error(JSON.stringify(result.errors, null, 2));
         }
 
         process.exit();

@@ -1,7 +1,7 @@
 {
   "name": "syphonx-core",
   "version": "1.0.10",
-  "description": "SyphonX is a data-driven extraction tool that runs in any browser",
+  "description": "SyphonX is a no-code web-scraper that runs in any browser",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
   "repository": "github:dtempx/syphonx-core",

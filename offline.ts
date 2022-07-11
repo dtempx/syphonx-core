@@ -51,6 +51,11 @@ const args = parseArgs({
             console.log();
         }
 
+        if (!result.ok) {
+            console.error("ERRORS");
+            console.error(JSON.stringify(result.errors, null, 2));
+        }
+
         process.exit();
     }
     catch (err) {
