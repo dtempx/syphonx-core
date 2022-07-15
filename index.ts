@@ -1010,24 +1010,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         result.value = values;
                     }
                 }
-                else if (operator === "reject") {
-                    if (!this.validateOperands(operator, operands, ["string"])) {
-                        result.value = null;
-                        break;
-                    }
-                    const regexp = createRegExp(operands[0]);
-                    if (regexp && result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
-                        const elements = result.nodes.toArray();
-                        const values = result.value as string[];
-                        for (let i = result.value.length - 1; i >= 0; --i) {
-                            if (regexp.test(result.value[i])) {
-                                elements.splice(i, 1);
-                                values.splice(i, 1);
-                            }
-                        }
-                        result.nodes = this.jquery(elements);
-                        result.value = values;
-                    }
+                else if (operator === "blank") {
+                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length === 0));
+                    result.value = this.text(result.nodes, format);
                 }
                 else if (operator === "first") {
                     result.nodes = this.jquery(result.nodes.toArray()[0]);
@@ -1056,6 +1041,29 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     result.value = resolveQueryStringValue(result.value, text => ltrim(text, createRegExp(operands[0]) || operands[0] as string));
                     //todo: log
+                }
+                else if (operator === "nonblank") {
+                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length > 0));
+                    result.value = this.text(result.nodes, format);
+                }
+                else if (operator === "reject") {
+                    if (!this.validateOperands(operator, operands, ["string"])) {
+                        result.value = null;
+                        break;
+                    }
+                    const regexp = createRegExp(operands[0]);
+                    if (regexp && result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
+                        const elements = result.nodes.toArray();
+                        const values = result.value as string[];
+                        for (let i = result.value.length - 1; i >= 0; --i) {
+                            if (regexp.test(result.value[i])) {
+                                elements.splice(i, 1);
+                                values.splice(i, 1);
+                            }
+                        }
+                        result.nodes = this.jquery(elements);
+                        result.value = values;
+                    }
                 }
                 else if (operator === "replace") {
                     if (!this.validateOperands(operator, operands, ["string", "string"])) {
@@ -1128,10 +1136,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     result.value = resolveQueryStringValue(result.value, text => trim(text, createRegExp(operands[0]) || operands[0] as string));
                     //todo: log
-                }
-                else if (operator === ":not(:blank)") {
-                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length > 0));
-                    result.value = this.text(result.nodes, format);
                 }
                 // invoke any function within JQuery<T> that matches operator
                 else if (isInvocableFrom(result.nodes, operator)) {
