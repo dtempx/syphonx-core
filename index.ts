@@ -767,6 +767,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return result;
         }
 
+        /*
         private formatValue(value: unknown, type: SelectType, format: SelectFormat): unknown {
             type = type?.toLowerCase() as SelectType;
             format = format?.toLowerCase() as SelectFormat;
@@ -792,6 +793,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             return value;
         }
+        */
 
         private keypath(name: string | undefined, context: SelectContext | undefined): string {
             return context ? `${context.name}.${name || "."}` : `${name || ""}`;
@@ -989,7 +991,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     //todo: log
                 }
-                else if (operator === "filterText") {
+                else if (operator === "accept") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         result.value = null;
                         break;
@@ -1000,6 +1002,25 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         const values = result.value as string[];
                         for (let i = result.value.length - 1; i >= 0; --i) {
                             if (!regexp.test(result.value[i])) {
+                                elements.splice(i, 1);
+                                values.splice(i, 1);
+                            }
+                        }
+                        result.nodes = this.jquery(elements);
+                        result.value = values;
+                    }
+                }
+                else if (operator === "reject") {
+                    if (!this.validateOperands(operator, operands, ["string"])) {
+                        result.value = null;
+                        break;
+                    }
+                    const regexp = createRegExp(operands[0]);
+                    if (regexp && result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
+                        const elements = result.nodes.toArray();
+                        const values = result.value as string[];
+                        for (let i = result.value.length - 1; i >= 0; --i) {
+                            if (regexp.test(result.value[i])) {
                                 elements.splice(i, 1);
                                 values.splice(i, 1);
                             }
@@ -1094,7 +1115,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     result.value = result.nodes.toArray().map((element: Element) => 
                         Array.from(element.childNodes)
                             .filter(node => node.nodeType === 3) // 3 is a TEXT_NODE
-                            .map(node => node.textContent ?? (node as any).data) // dom has node.textContent, cheero has node.data
+                            .map(node => node.textContent ?? (node as any).data) // dom has node.textContent, cheerio has node.data
                             .join(" ")
                             .trim()
                             .replace(/[ ]{2,}/, " ")
