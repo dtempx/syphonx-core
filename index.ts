@@ -936,9 +936,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             const a = ops.slice(0);
             while (a.length > 0) {
                 const [operator, ...operands] = a.shift()!;
-                if (operator === "cut") {
+                if (operator === "blank") {
+                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length === 0));
+                    result.value = this.text(result.nodes, format);
+                }
+                else if (operator === "cut") {
                     if (!this.validateOperands(operator, operands, ["string", "number"], ["number"])) {
-                        result.value = null;
                         break;
                     }
                     const splitter = operands[0] as string;
@@ -961,13 +964,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (operator === "extract") {
                     if (!this.validateOperands(operator, operands, ["string"], ["boolean"])) {
-                        result.value = null;
                         break;
                     }
                     const regexp = createRegExp(operands[0]);
                     const keepUnmatchedItems = operands[1] as boolean;
                     if (!regexp) {
-                        result.value = null;
+                        this.error("invalid-operand", `Invalid regular expression for "extract"`);
                     }
                     else if (result.value instanceof Array && result.value.every(value => typeof value === "string")) {
                         const values = result.value.map(value => regexpExtract(value.trim(), regexp));
@@ -991,29 +993,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     //todo: log
                 }
-                else if (operator === "accept") {
-                    if (!this.validateOperands(operator, operands, ["string"])) {
-                        result.value = null;
-                        break;
-                    }
-                    const regexp = createRegExp(operands[0]);
-                    if (regexp && result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
-                        const elements = result.nodes.toArray();
-                        const values = result.value as string[];
-                        for (let i = result.value.length - 1; i >= 0; --i) {
-                            if (!regexp.test(result.value[i])) {
-                                elements.splice(i, 1);
-                                values.splice(i, 1);
-                            }
-                        }
-                        result.nodes = this.jquery(elements);
-                        result.value = values;
-                    }
-                }
-                else if (operator === "blank") {
-                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length === 0));
-                    result.value = this.text(result.nodes, format);
-                }
                 else if (operator === "first") {
                     result.nodes = this.jquery(result.nodes.toArray()[0]);
                     result.value = result.value instanceof Array ? result.value[0] : null;
@@ -1036,7 +1015,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (operator === "ltrim") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
-                        result.value = null;
                         break;
                     }
                     result.value = resolveQueryStringValue(result.value, text => ltrim(text, createRegExp(operands[0]) || operands[0] as string));
@@ -1048,11 +1026,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (operator === "reject") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
-                        result.value = null;
                         break;
                     }
                     const regexp = createRegExp(operands[0]);
-                    if (regexp && result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
+                    if (!regexp) {
+                        this.error("invalid-operand", `Invalid regular expression for "reject"`);
+                    }
+                    else if (result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
                         const elements = result.nodes.toArray();
                         const values = result.value as string[];
                         for (let i = result.value.length - 1; i >= 0; --i) {
@@ -1067,12 +1047,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (operator === "replace") {
                     if (!this.validateOperands(operator, operands, ["string", "string"])) {
-                        result.value = null;
                         break;
                     }
                     const regexp = createRegExp(operands[0]);
                     if (!regexp) {
-                        result.value = null;
+                        this.error("invalid-operand", `Invalid regular expression for "replace"`);
                     }
                     else if (result.value instanceof Array && result.value.every(value => typeof value === "string")) {
                         result.value = result.value.map(value => regexpReplace(value, regexp, operands[1] as string));
@@ -1080,14 +1059,31 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     else if (typeof result.value === "string") {
                         result.value = regexpReplace(result.value, regexp, operands[1] as string);
                     }
-                    else {
-                        result.value = null;
-                    }
                     //todo: log
+                }
+                else if (operator === "retain") {
+                    if (!this.validateOperands(operator, operands, ["string"])) {
+                        break;
+                    }
+                    const regexp = createRegExp(operands[0]);
+                    if (!regexp) {
+                        this.error("invalid-operand", `Invalid regular expression for "retain"`);
+                    }
+                    else if (result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
+                        const elements = result.nodes.toArray();
+                        const values = result.value as string[];
+                        for (let i = result.value.length - 1; i >= 0; --i) {
+                            if (!regexp.test(result.value[i])) {
+                                elements.splice(i, 1);
+                                values.splice(i, 1);
+                            }
+                        }
+                        result.nodes = this.jquery(elements);
+                        result.value = values;
+                    }
                 }
                 else if (operator === "rtrim") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
-                        result.value = null;
                         break;
                     }
                     result.value = resolveQueryStringValue(result.value, text => rtrim(text, createRegExp(operands[0]) || operands[0] as string));
@@ -1131,7 +1127,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (operator === "trim") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
-                        result.value = null;
                         break;
                     }
                     result.value = resolveQueryStringValue(result.value, text => trim(text, createRegExp(operands[0]) || operands[0] as string));
@@ -1428,7 +1423,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private validateOperands(operator: SelectQueryOperator, operands: SelectQueryOperand[], required: Array<"string" | "number" | "boolean">, optional: Array<"string" | "number" | "boolean"> = []): boolean {
             for (let i = 0; i < required.length; ++i) {
                 if (typeof operands[i] !== required[i]) {
-                    this.error("invalid-operand", `'${operator}' operand #${i + 1} is invalid: "${operands[i]}" is not a ${required[i]}`);
+                    this.error("invalid-operand", `Operand #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`);
                     return false;
                 }
             }
@@ -1436,7 +1431,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 const j = i + required.length;
                 //if (!isNullOrUndefined(operands[j]) && typeof operands[j] !== optional[i]) {
                 if (operands[j] !== undefined && operands[j] !== null && typeof operands[j] !== optional[i]) {
-                    this.error("invalid-operand", `'${operator}' operand #${j + 1} is invalid: "${operands[j]}" is not a ${optional[i]}`);
+                    this.error("invalid-operand", `Operand #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`);
                     return false;
                 }
             }

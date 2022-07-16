@@ -25,7 +25,7 @@ const test = {
                     "name": "a3",
                     "$": [["a:contains('test3')",["attr","href"]]],
                     "format": "href"
-                },
+                }
             ]
         }
     ] as syphonx.Action[]
