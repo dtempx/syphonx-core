@@ -48,7 +48,7 @@ export interface Select extends SelectTarget {
 }
 
 export interface Transform {
-    $: SelectQuery[];
+    $: SelectQuery;
     when?: When;
     active?: boolean;
 }
@@ -260,7 +260,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
     }
 
-    function evaluateExpression(expression: string, params: Record<string, unknown> = {}): unknown {
+    function evaluateFormula(expression: string, params: Record<string, unknown> = {}): unknown {
         const keys = Object.keys(params);
         const values = keys.map(key => params[key]);
         const f = new Function(...keys, `return ${expression}`);
@@ -568,12 +568,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     }
 
     class ExtractContext {
-        jquery: JQueryStatic;
+        jquery: JQueryStatic & CheerioAPI;
         state: ExtractState;
         online: boolean;
     
         constructor(state: ExtractState) {
-            this.jquery = (state.root as JQueryStatic) || $,
+            this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
             this.online = typeof this.jquery.noConflict === "function";
 
             state.params = state.params || {};
@@ -720,7 +720,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     ...args
                 } as Record<string, unknown>;
                 if (value.startsWith("{{") && value.endsWith("}}")) {
-                    return evaluateExpression(value.slice(2, -2).trim(), obj);
+                    return evaluateFormula(value.slice(2, -2).trim(), obj);
                 }
                 else {
                     return expandTokens(value, obj);
@@ -729,6 +729,19 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else {
                 return value;
             }
+        }
+
+        private evaluateEach(nodes: JQueryResult, value: string, delegate: (node: JQuery, content: string) => void): void {
+            for (const element of nodes.toArray()) {
+                const node = this.jquery(element);
+                const args = {
+                    text: node.text().trim(),
+                    innerHTML: node.html().trim(),
+                    outerHTML: this.online ? element.outerHTML.trim() : this.jquery(element).toString().trim()
+                };
+                const content = String(this.evaluate(value, undefined, args));
+                delegate(node, content);
+            }    
         }
 
         async execute(actions: Action[]): Promise<void> {
@@ -794,34 +807,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     
             return result;
         }
-
-        /*
-        private formatValue(value: unknown, type: SelectType, format: SelectFormat): unknown {
-            type = type?.toLowerCase() as SelectType;
-            format = format?.toLowerCase() as SelectFormat;
-            if (typeof value === "string") {
-                if (type === "number") {
-                    return parseNumber(value);
-                }
-                else if (type === "boolean") {
-                    return value.trim().length > 0;
-                }
-                else if (format === "href" && typeof value === "string" && this.state.origin) {
-                    return combineUrl(this.state.origin, value);
-                }
-                else if (format === "multiline") {
-                    return collapseWhitespace(value, true);
-                }
-                else if (format === "singleline") {
-                    return collapseWhitespace(value, false);
-                }
-                else if (format === "none") {
-                    return value;
-                }
-            }
-            return value;
-        }
-        */
 
         private keypath(name: string | undefined, context: SelectContext | undefined): string {
             return context ? `${context.name}.${name || "."}` : `${name || ""}`;
@@ -1021,25 +1006,16 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     //todo: log
                 }
-                else if (operator === "first") {
-                    result.nodes = this.jquery(result.nodes.toArray()[0]);
-                    result.value = result.value instanceof Array ? result.value[0] : null;
-                }
                 else if (operator === "html" && (operands[0] === "outer" || operands[0] === undefined)) {
                     if (this.online) {
-                        result.value = result.nodes.toArray().map(element => element.outerHTML);
+                        result.value = result.nodes.toArray().map(element => element.outerHTML.trim());
                     }
                     else {
-                        const cheerio = this.jquery as unknown as CheerioAPI;
-                        result.value = result.nodes.toArray().map(element => cheerio.html(element as unknown as CheerioNode));
+                        result.value = result.nodes.toArray().map(element => this.jquery.html(element).toString().trim());
                     }
                 }
                 else if (operator === "html" && operands[0] === "inner") {
-                    result.value = result.nodes.html();
-                }
-                else if (operator === "last") {
-                    result.nodes = this.jquery(result.nodes.toArray()[result.nodes.length - 1]);
-                    result.value = result.value instanceof Array ? result.value[result.value.length - 1] : null;
+                    result.value = result.nodes.html().trim();
                 }
                 else if (operator === "ltrim") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
@@ -1093,30 +1069,27 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    for (const node of result.nodes) {
-                        const element = this.jquery(node);
-                        const args = {
-                            html: element.html().trim(),
-                            text: element.text().trim()
-                        };
-                        const text = String(this.evaluate(operands[0] as string, undefined, args));
-                        element.text(text);
-                    }
+                    this.evaluateEach(result.nodes, operands[0] as string, (node, value) => {
+                        node.text(value);
+                    });
                     result.value = null;
                 }
                 else if (operator === "replaceInnerHTML") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    for (const node of result.nodes) {
-                        const element = this.jquery(node);
-                        const args = {
-                            html: element.html().trim(),
-                            text: element.text().trim()
-                        };
-                        const html = String(this.evaluate(operands[0] as string, undefined, args));
-                        element.html(html);
+                    this.evaluateEach(result.nodes, operands[0] as string, (node, value) => {
+                        node.html(value);
+                    });
+                    result.value = null;
+                }
+                else if (operator === "replaceWith") {
+                    if (!this.validateOperands(operator, operands, ["string"])) {
+                        break;
                     }
+                    this.evaluateEach(result.nodes, operands[0] as string, (node, value) => {
+                        node.replaceWith(value);
+                    });
                     result.value = null;
                 }
                 else if (operator === "retain") {
@@ -1190,6 +1163,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     result.value = resolveQueryStringValue(result.value, text => trim(text, createRegExp(operands[0]) || operands[0] as string));
                     //todo: log
                 }
+                else if (["each", "replaceAll"].includes(operator)) {
+                    this.error("invalid-operator", `Operator "${operator}" not supported`);
+                    this.break;
+                }
                 // invoke any function within JQuery<T> that matches operator
                 else if (isInvocableFrom(result.nodes, operator)) {
                     const delegate = result.nodes as unknown as JQueryDelegate;
@@ -1210,7 +1187,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                 }
                 else {
-                    this.error("invalid-operator", `'${operator}' not found`);
+                    this.error("invalid-operator", `Operator '${operator}' not found`);
                     break;
                 }
             }
@@ -1451,25 +1428,24 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             for (const transform of transforms) {
                 if (transform.active ?? true) {
                     if (this.when(transform.when, "TRANSFORM")) {
-                        for (const query of transform.$) {
-                            const selector = query[0];
-                            const ops = query.slice(1) as SelectQueryOp[];
-                            if (selector === "{window}" && ops[0][0] === "scrollBottom") {
-                                this.log(`TRANSFORM ${$statement(query)}`);
-                                await $scrollToBottom();
-                            }
-                            else {
-                                this.log(`TRANSFORM ${$statement(query)}`);
-                                this.resolveQuery(query, "string", false, false, null);
-                            }
+                        const query = transform.$;
+                        const selector = query[0];
+                        const ops = query.slice(1) as SelectQueryOp[];
+                        if (selector === "{window}" && ops[0][0] === "scrollBottom") {
+                            this.log(`TRANSFORM ${$statement(query)}`);
+                            await $scrollToBottom();
+                        }
+                        else {
+                            this.log(`TRANSFORM ${$statement(query)}`);
+                            this.resolveQuery(query, "string", false, false, null);
                         }
                     }
                     else {
-                        this.log(`TRANSFORM SKIPPED ${$statements(transform.$)}`);
+                        this.log(`TRANSFORM SKIPPED ${$statement(transform.$)}`);
                     }
                 }
                 else {
-                    this.log(`TRANSFORM BYPASSED ${$statements(transform.$)}`);
+                    this.log(`TRANSFORM BYPASSED ${$statement(transform.$)}`);
                 }    
             }
         }

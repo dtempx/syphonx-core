@@ -4,7 +4,6 @@ node_modules
 *.d.ts
 *.log
 *.out
-*.txt
 .env
 .env.*
 .DS_Store

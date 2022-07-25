@@ -3,7 +3,7 @@ import { syphonx, offline } from "../common.js";
 
 const test = {
     url: "https://www.example.com/",
-    html: `<div>red, orange, green, blue, indigo, violet</div>`,
+    html: "<div>red, orange, green, blue, indigo, violet</div>",
     actions: [
         {
             "select": [

@@ -1,0 +1,32 @@
+SyphonX works inside-out.
+Most if not all other web scrapers work from the outside-in.
+
+SyphonX is data-driven, not code-driven.
+With most other web scrapers you have to write code, which requires developers.
+With SyphonX you create a script which is more like a query where you describe the end result you want (not the procedure for getting it).
+So it's declarative, not imperitive.
+And as such it can be used by anyone, not just developers.
+Zero dependencies
+
+
+jQuery + Regex
+
+jQuery
+puppeteer
+cheerio
+
+## Features
+* No-code data extraction
+* Output data to JSON (flat or hierarchical)
+* Extract data from live website pages
+* Extract data from saved HTML
+* Similar: Scrapy, Apify, ParseHub, Octoparse, Portia, import.io
+
+https://bigdata-madesimple.com/top-20-web-crawler-tools-scrape-websites/
+https://aimultiple.com/web-crawler
+
+
+
+# Similar
+https://www.npmjs.com/package/apify
+https://www.npmjs.com/package/osmosis

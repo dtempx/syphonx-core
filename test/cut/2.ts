@@ -3,7 +3,7 @@ import { syphonx, offline } from "../common.js";
 
 const test = {
     url: "https://www.example.com/",
-    html: `<div>xyz</div>`,
+    html: "<div>xyz</div>",
     actions: [
         {
             "select": [

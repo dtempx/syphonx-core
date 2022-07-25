@@ -14,7 +14,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": [["li",["reject","/ta$/"],["remove"]]] }
+                { "$": ["li",["reject","/ta$/"],["remove"]] }
             ]
         },
         {

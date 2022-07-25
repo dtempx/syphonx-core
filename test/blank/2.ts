@@ -13,7 +13,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": [["li",["nonblank"],["addClass","ok"]]] }
+                { "$": ["li",["nonblank"],["addClass","ok"]] }
             ]
         },
         {

@@ -9,6 +9,7 @@ const test = {
         <h3><b>lorum</b><b>ipsum</b></h3>
         <h4>ABC</h4>
         <h5>in vino veritas</h5>
+        <h6>credat <b>judias</b> appella</h6>
     `,
     actions: [
         {
@@ -25,11 +26,12 @@ const test = {
         },
         {
             "transform": [
-                { "$": [["h1",["replaceInnerText","{{ text.split(' ').reduce((sum, value) => sum + parseInt(value), 0) }}"]]] },
-                { "$": [["h2",["replaceInnerHTML","{{ '<b>' + text.split(' ').reduce((sum, value) => sum + parseInt(value), 0) + '</b>' }}"]]] },
-                { "$": [["h3",["replaceInnerText","{text}"]]] },
-                { "$": [["h4",["replaceInnerText","{data.h1} {text} {data.h2}"]]] },
-                { "$": [["h5",["replaceInnerHTML","{{ html.replace('vino', 'VINO') }}"]]] }
+                { "$": ["h1",["replaceInnerText","{{ text.split(' ').reduce((sum, value) => sum + parseInt(value), 0) }}"]] },
+                { "$": ["h2",["replaceInnerHTML","{{ '<b>' + text.split(' ').reduce((sum, value) => sum + parseInt(value), 0) + '</b>' }}"]] },
+                { "$": ["h3",["replaceInnerText","{text}"]] },
+                { "$": ["h4",["replaceInnerText","{data.h1} {text} {data.h2}"]] },
+                { "$": ["h5",["replaceInnerHTML","{{ innerHTML.replace('vino', 'VINO') }}"]] },
+                { "$": ["h6",["replaceWith","<div>{innerHTML}</div>"]] }
             ]
         }
     ] as syphonx.Action[]
@@ -43,4 +45,5 @@ describe("transform/2", () => {
     it("html h3 has expected output", () => expect(result.html).to.contain(`<h3>lorum ipsum</h3>`));
     it("html h4 has expected output", () => expect(result.html).to.contain(`<h4>1 2 3 ABC 4 5 6</h4>`));
     it("html h5 has expected output", () => expect(result.html).to.contain(`<h5>in VINO veritas</h5>`));
+    it("html div has expected output", () => expect(result.html).to.contain(`<div>credat <b> judias </b> appella</div>`));
 });

@@ -14,9 +14,9 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": [["h3",["endsWith",":"],["addClass","alpha"]]] },
-                { "$": [["a",["wrap","<div></div>"]]] },
-                { "$": [["b",["addClass","omega"]]], "active": false }
+                { "$": ["h3",["endsWith",":"],["addClass","alpha"]] },
+                { "$": ["a",["wrap","<div></div>"]] },
+                { "$": ["b",["addClass","omega"]], "active": false }
             ]
         }
     ] as syphonx.Action[]

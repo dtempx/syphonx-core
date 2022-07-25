@@ -13,7 +13,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": [["li",["blank"],["remove"]]] }
+                { "$": ["li",["blank"],["remove"]] }
             ]
         },
         {
