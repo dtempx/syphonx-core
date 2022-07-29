@@ -260,9 +260,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
     }
 
-    function evaluateFormula(expression: string, params: Record<string, unknown> = {}): unknown {
-        const keys = Object.keys(params);
-        const values = keys.map(key => params[key]);
+    function evaluateFormula(expression: string, args: Record<string, unknown> = {}): unknown {
+        const keys = Object.keys(args);
+        const values = keys.map(key => args[key]);
         const fn = new Function(...keys, `return ${expression}`);
         const result = fn(...values);
         return result;
@@ -673,16 +673,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`ERROR (${code}): ${message}`);
         }
 
-        private evaluate(input: unknown, value?: unknown, data?: unknown): unknown {
+        private evaluate(input: unknown, params: Record<string, unknown> = {}): unknown {
             let result;
             if (typeof input === "string" && input.startsWith("{") && input.endsWith("}")) {
-                const obj = {
+                const { data, ...extra } = params;
+                const args = {
                     ...this.state.vars,
                     ...this.state,
                     data: removeDOMRefs(merge(this.state.data, data)),
-                    value
+                    ...extra
                 } as Record<string, unknown>;
-                result = evaluateFormula(input.slice(1, -1).trim(), obj);
+                result = evaluateFormula(input.slice(1, -1).trim(), args);
             }
             else {
                 result = input;
@@ -972,8 +973,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         elements: [] as any[],
                         values: [] as unknown[]
                     };
-                    for (let i = 0; i < input.elements.length; ++i) {
-                        const value = this.evaluate(operands[0], input.values[i]);
+                    const n = input.elements.length;
+                    for (let i = 0; i < n; ++i) {
+                        const value = this.evaluate(operands[0], { value: input.values[i], index: i, count: n });
                         if (value !== null && value !== undefined) {
                             output.elements.push(input.elements[i]);
                             output.values.push(value);
@@ -1028,7 +1030,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         break;
                     }
                     this.each(result, (node, value) => {
-                        const content = String(this.evaluate(operands[0], value));
+                        const content = String(this.evaluate(operands[0], { value }));
                         node.html(content);
                     });
                     result.value = null;
@@ -1038,7 +1040,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         break;
                     }
                     this.each(result, (node, value) => {
-                        const content = String(this.evaluate(operands[0], value));
+                        const content = String(this.evaluate(operands[0], { value }));
                         node.text(content);
                     });
                     result.value = null;
@@ -1048,7 +1050,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         break;
                     }
                     this.each(result, (node, value) => {
-                        const content = String(this.evaluate(operands[0], value));
+                        const content = String(this.evaluate(operands[0], { value }));
                         node.replaceWith(content);
                     });
                     result.value = null;
@@ -1326,7 +1328,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
-            const result = this.evaluate(select.value, undefined, data);
+            const result = this.evaluate(select.value, { data });
             const value = coerceValue(result, select.type || "string");
             return {
                 nodes: [],
@@ -1556,21 +1558,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 return result;
             }
             return true;
-            /*
-            if (when && /^\{\!?_[a-z0-9_]+\}$/i.test(when)) {
-                const i = when.indexOf("_");
-                const key = when.slice(i, -1);
-                const negate = when.includes("!");
-                const value = this.state.vars[key];
-                const result = negate ? !value : !!value;
-                this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ${JSON.stringify(value)} -> ${result}`);
-                return result;
-            }
-            else if (when !== undefined) {
-                this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> invalid`);
-            }
-            return true;
-            */
         }
 
         private yield({ active, when, timeout }: Yield): { timeout?: number } | undefined {

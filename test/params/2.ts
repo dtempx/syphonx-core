@@ -18,8 +18,8 @@ const actions = [
             {
                 "name": "_lang",
                 "$": [
-                    ["h3:contains('Name')",["replace","/(.*)/","en"]],
-                    ["h3:contains('Nom')",["replace","/(.*)/","it"]]
+                    ["h3:contains('Name')",["map","en"]],
+                    ["h3:contains('Nom')",["map","it"]]
                 ]
             },
             {
