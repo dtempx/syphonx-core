@@ -3,9 +3,7 @@ import { syphonx, offline } from "../common.js";
 
 const test = {
     url: "https://www.example.com/",
-    html: `
-        <div>lorum</div>
-    `,
+    html: "<div>lorum</div>",
     actions: [
         {
             "select": [
@@ -19,7 +17,7 @@ const test = {
                 },
                 {
                     "name": "a3",
-                    "value": "{data.a1} {data.a2}"
+                    "value": "{`${data.a1} ${data.a2}`}"
                 },
                 {
                     "name": "a4",

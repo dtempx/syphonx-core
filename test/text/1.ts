@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 
 const test = {
-    url: "https://www.example.com/",
     html: `
         <h1>Lorum Ipsum</h1>
         <p>

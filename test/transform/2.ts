@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 
 const test = {
-    url: "https://www.example.com/",
     html: `
         <h1>1 2 3</h1>
         <h2>4 5 6</h2>
@@ -26,12 +25,13 @@ const test = {
         },
         {
             "transform": [
-                { "$": ["h1",["replaceInnerText","{{ text.split(' ').reduce((sum, value) => sum + parseInt(value), 0) }}"]] },
-                { "$": ["h2",["replaceInnerHTML","{{ '<b>' + text.split(' ').reduce((sum, value) => sum + parseInt(value), 0) + '</b>' }}"]] },
-                { "$": ["h3",["replaceInnerText","{text}"]] },
-                { "$": ["h4",["replaceInnerText","{data.h1} {text} {data.h2}"]] },
-                { "$": ["h5",["replaceInnerHTML","{{ innerHTML.replace('vino', 'VINO') }}"]] },
-                { "$": ["h6",["replaceWith","<div>{innerHTML}</div>"]] }
+                { "$": ["h1",["replaceText","{value.split(' ').reduce((sum, text) => sum + parseInt(text), 0)}"]] },
+                { "$": ["h2",["replaceHTML","{'<b>' + value.split(' ').reduce((sum, text) => sum + parseInt(text), 0) + '</b>'}"]] },
+                { "$": ["h3",["replaceText","{value}"]] },
+                { "$": ["h4",["replaceText","{`${data.h1} ${value} ${data.h2}`}"]] },
+                { "$": ["h5",["html","inner"],["replaceHTML","{value.replace('vino', 'VINO')}"]] },
+                { "$": ["h6",["html","inner"],["replaceWith","{`<div>${value}</div>`}"]] }
+
             ]
         }
     ] as syphonx.Action[]

@@ -71,10 +71,10 @@ export interface Yield {
 }
 
 export type SelectType = "string" | "number" | "boolean" | "object";
-export type SelectQuery = [string, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?, SelectQueryOp?];
-export type SelectQueryOp = [SelectQueryOperator, SelectQueryOperand?, SelectQueryOperand?, SelectQueryOperand?];
+export type SelectQuery = [string, ...SelectQueryOp[]];
+export type SelectQueryOp = [string, ...unknown[]];
 export type SelectQueryOperator = string;
-export type SelectQueryOperand = string | number | boolean | undefined;
+export type SelectQueryOperand = unknown;
 export type SelectFormat = "href" | "multiline" | "singleline" | "innertext" | "textcontent" | "none";
 export type WaitForOn = "any" | "all" | "none";
 
@@ -263,37 +263,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     function evaluateFormula(expression: string, params: Record<string, unknown> = {}): unknown {
         const keys = Object.keys(params);
         const values = keys.map(key => params[key]);
-        const f = new Function(...keys, `return ${expression}`);
-        const result = f(...values);
+        const fn = new Function(...keys, `return ${expression}`);
+        const result = fn(...values);
         return result;
-    }
-
-    function expandTokens(input: unknown, obj: Record<string, unknown>, encode = false): unknown {
-        if (typeof input === "string") {
-            let result = input;
-            const tokens = Array.from(new Set(input.match(/{[a-z0-9._]+}/gi) || []));
-            result = result.replace(/\\\{/g, "{").replace(/\\\}/g, "}"); // replace escaped double-curly braces before expansion
-            for (const token of tokens) {
-                let value = resolveProperty(obj, token.slice(1, -1));
-                if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-                    // substitute token with primitive value
-                    result = result.replace(
-                        new RegExp(token, "gi"),
-                        encode ? encodeURIComponent(value.toString()) : value.toString(),
-                    );
-                }
-                else if (value === null) {
-                    return null; // if any value is null then entire result is null
-                }
-                else {
-                    result = result.replace(new RegExp(token, "gi"), ""); // substitute token with a blank value
-                }
-            }
-            return result;
-        }
-        else {
-            return input;
-        }
     }
 
     function formatStringValue(value: string, format: SelectFormat, origin: string): unknown {
@@ -388,13 +360,16 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         return undefined;
     }
     
-    function parseUrl(url: string): Partial<{ domain: string, origin: string }> {
-        const [protocol, , host] = url.split("/");
-        const a = host.split(":")[0].split(".").reverse();
-        return {
-            domain: a.length >= 3 && a[0].length === 2 && a[1].length === 2 ? `${a[2]}.${a[1]}.${a[0]}` : a.length >= 2 ? `${a[1]}.${a[0]}` : undefined,
-            origin: protocol && host ? `${protocol}//${host}` : undefined
-        };
+    function parseUrl(url: string): { domain?: string, origin?: string } {
+        if (/^https?:\/\//.test(url)) {
+            const [protocol, , host] = url.split("/");
+            const a = host.split(":")[0].split(".").reverse();
+            return {
+                domain: a.length >= 3 && a[0].length === 2 && a[1].length === 2 ? `${a[2]}.${a[1]}.${a[0]}` : a.length >= 2 ? `${a[1]}.${a[0]}` : undefined,
+                origin: protocol && host ? `${protocol}//${host}` : undefined
+            };    
+        }
+        return {};
     }
     
     function regexpExtract(text: string, regexp: RegExp): string | null {
@@ -434,28 +409,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         else {
             return obj;
         }
-    }
-
-    function resolveProperty(dictionary: Record<string, any>, key: string): any {
-        if (typeof key === "string") {
-            return key
-                .split(".")
-                .reduce(
-                    (result, prop) => (typeof result === "object" && result !== null ? result[prop] : undefined),
-                    dictionary,
-                );
-        }
-    }
-
-    function resolveQueryStringValue(value: unknown, delegate: (text: string) => string): unknown {
-        let result = null;
-        if (typeof value === "string") {
-            result = delegate(value);
-        }
-        else if (value instanceof Array && value.every(value => typeof value === "string")) {
-            result = value.map(value => delegate(value));
-        }
-        return result;
     }
 
     function sleep(ms: number): Promise<void> {
@@ -706,42 +659,35 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
+        each({ nodes, value }: QueryResult, callback: (node: JQuery, param: unknown) => void) {
+            const elements = nodes.toArray();
+            for (let i = 0; i < elements.length; ++i) {
+                const node = this.jquery(elements[i]);
+                const subvalue = value instanceof Array ? value[i] : value;
+                callback(node, subvalue);
+            }
+        }
+
         error(code: ExtractErrorCode, message: string): void {
             this.state.errors.push({ code, message });
             this.log(`ERROR (${code}): ${message}`);
         }
 
-        private evaluate(value: unknown, data?: unknown, args?: Record<string, unknown>): unknown {
-            if (typeof value === "string") {
+        private evaluate(input: unknown, value?: unknown, data?: unknown): unknown {
+            let result;
+            if (typeof input === "string" && input.startsWith("{") && input.endsWith("}")) {
                 const obj = {
                     ...this.state.vars,
                     ...this.state,
                     data: removeDOMRefs(merge(this.state.data, data)),
-                    ...args
+                    value
                 } as Record<string, unknown>;
-                if (value.startsWith("{{") && value.endsWith("}}")) {
-                    return evaluateFormula(value.slice(2, -2).trim(), obj);
-                }
-                else {
-                    return expandTokens(value, obj);
-                }
+                result = evaluateFormula(input.slice(1, -1).trim(), obj);
             }
             else {
-                return value;
+                result = input;
             }
-        }
-
-        private evaluateEach(nodes: JQueryResult, value: string, delegate: (node: JQuery, content: string) => void): void {
-            for (const element of nodes.toArray()) {
-                const node = this.jquery(element);
-                const args = {
-                    text: node.text().trim(),
-                    innerHTML: node.html().trim(),
-                    outerHTML: this.online ? element.outerHTML.trim() : this.jquery(element).toString().trim()
-                };
-                const content = String(this.evaluate(value, undefined, args));
-                delegate(node, content);
-            }    
+            return result;
         }
 
         async execute(actions: Action[]): Promise<void> {
@@ -903,7 +849,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private resolveQuery(query: SelectQuery, type: SelectType, repeated: boolean, all: boolean, limit: number | null | undefined, format?: SelectFormat, pattern?: string, context?: SelectContext): QueryResult {
-            const selector = query[0];
+            let selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
 
             let nodes: JQueryResult;
@@ -925,6 +871,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 value = null;
             }
             else {
+                selector = String(this.evaluate(selector));
                 nodes = this.jquery(selector, context?.nodes);
                 value = this.text(nodes, format);
             }
@@ -970,11 +917,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         result.value = null;
                     }
                 }
-                else if (operator === "endsWith" && operands[0]) {
-                    const pattern = operands[0] as string;
-                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().endsWith(pattern)));
-                    result.value = this.text(result.nodes, format);
-                }
                 else if (operator === "extract") {
                     if (!this.validateOperands(operator, operands, ["string"], ["boolean"])) {
                         break;
@@ -1015,14 +957,30 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                 }
                 else if (operator === "html" && operands[0] === "inner") {
-                    result.value = result.nodes.html().trim();
+                    result.value = result.nodes.toArray().map(element => this.jquery(element).html());
+                    //result.value = result.nodes.html().trim();
                 }
-                else if (operator === "ltrim") {
+                else if (operator === "map") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    result.value = resolveQueryStringValue(result.value, text => ltrim(text, createRegExp(operands[0]) || operands[0] as string));
-                    //todo: log
+                    const input = {
+                        elements: result.nodes.toArray(),
+                        values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
+                    };
+                    const output = {
+                        elements: [] as any[],
+                        values: [] as unknown[]
+                    };
+                    for (let i = 0; i < input.elements.length; ++i) {
+                        const value = this.evaluate(operands[0], input.values[i]);
+                        if (value !== null && value !== undefined) {
+                            output.elements.push(input.elements[i]);
+                            output.values.push(value);
+                        }
+                    }
+                    result.nodes = this.jquery(output.elements);
+                    result.value = output.values;
                 }
                 else if (operator === "nonblank") {
                     result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length > 0));
@@ -1065,21 +1023,23 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     //todo: log
                 }
-                else if (operator === "replaceInnerText") {
+                else if (operator === "replaceHTML") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    this.evaluateEach(result.nodes, operands[0] as string, (node, value) => {
-                        node.text(value);
+                    this.each(result, (node, value) => {
+                        const content = String(this.evaluate(operands[0], value));
+                        node.html(content);
                     });
                     result.value = null;
                 }
-                else if (operator === "replaceInnerHTML") {
+                else if (operator === "replaceText") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    this.evaluateEach(result.nodes, operands[0] as string, (node, value) => {
-                        node.html(value);
+                    this.each(result, (node, value) => {
+                        const content = String(this.evaluate(operands[0], value));
+                        node.text(content);
                     });
                     result.value = null;
                 }
@@ -1087,8 +1047,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    this.evaluateEach(result.nodes, operands[0] as string, (node, value) => {
-                        node.replaceWith(value);
+                    this.each(result, (node, value) => {
+                        const content = String(this.evaluate(operands[0], value));
+                        node.replaceWith(content);
                     });
                     result.value = null;
                 }
@@ -1113,13 +1074,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         result.value = values;
                     }
                 }
-                else if (operator === "rtrim") {
-                    if (!this.validateOperands(operator, operands, ["string"])) {
-                        break;
-                    }
-                    result.value = resolveQueryStringValue(result.value, text => rtrim(text, createRegExp(operands[0]) || operands[0] as string));
-                    //todo: log
-                }
                 else if (operator === "scrollBottom") {
                     if (this.online) {
                         const y = result.nodes.scrollTop()! + result.nodes.height()!;
@@ -1141,11 +1095,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                     }
                 }
-                else if (operator === "startsWith" && operands[0]) {
-                    const pattern = operands[0] as string;
-                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().startsWith(pattern)));
-                    result.value = this.text(result.nodes, format);
-                }
                 else if (operator === "text" && operands[0] === "inline") {
                     result.value = result.nodes.toArray().map((element: Element) => 
                         Array.from(element.childNodes)
@@ -1155,13 +1104,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             .trim()
                             .replace(/[ ]{2,}/, " ")
                     );
-                }
-                else if (operator === "trim") {
-                    if (!this.validateOperands(operator, operands, ["string"])) {
-                        break;
-                    }
-                    result.value = resolveQueryStringValue(result.value, text => trim(text, createRegExp(operands[0]) || operands[0] as string));
-                    //todo: log
                 }
                 else if (["each", "replaceAll"].includes(operator)) {
                     this.error("invalid-operator", `Operator "${operator}" not supported`);
@@ -1384,7 +1326,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
-            const result = this.evaluate(select.value, data);
+            const result = this.evaluate(select.value, undefined, data);
             const value = coerceValue(result, select.type || "string");
             return {
                 nodes: [],
@@ -1437,7 +1379,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                         else {
                             this.log(`TRANSFORM ${$statement(query)}`);
-                            this.resolveQuery(query, "string", false, false, null);
+                            this.resolveQuery(query, "string", true, true, null);
                         }
                     }
                     else {
@@ -1608,6 +1550,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private when(when: When | undefined, context?: string): boolean {
+            if (when) {
+                const result = !!this.evaluate(when);
+                this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ${result}`);
+                return result;
+            }
+            return true;
+            /*
             if (when && /^\{\!?_[a-z0-9_]+\}$/i.test(when)) {
                 const i = when.indexOf("_");
                 const key = when.slice(i, -1);
@@ -1621,6 +1570,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> invalid`);
             }
             return true;
+            */
         }
 
         private yield({ active, when, timeout }: Yield): { timeout?: number } | undefined {

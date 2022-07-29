@@ -1,6 +1,6 @@
 use javascript for all formula evaluation (allowing multiple formulas within same string and passthru for single formula)
 remove innerHTML and outerHTML variables to javascript evaluation, standarizing on upstream html method
-remove startsWith and endsWith methods
+remove startsWith, endsWith, trim, rtrim, ltrim
 add map method to allow javascript processsing in pipeline
 change !{_ready} to {!_ready}
 
@@ -10,7 +10,12 @@ consider using formulas in when conditions
 
 
 *** change all "transform" actions from [[]] to []
-*** removed: first, last
+*** removed: first, last, startsWith, endsWith, trim, rtrim, ltrim
+*** check all formulas are single expression
+*** check all when are like {!_ready}
+*** rename replaceInnerText to replaceText
+*** rename replaceInnerHTML to replaceHTML
+
 
 
 error TS5055: Cannot write file 'z:/work/syphonx/syphonx-core/index.d.ts' because it would overwrite input file.
