@@ -1,4 +1,4 @@
-import { CheerioAPI, Node as CheerioNode } from "cheerio";
+import { CheerioAPI } from "cheerio";
 
 export interface Break {
     when?: When;
@@ -305,6 +305,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
     }
 
+    function isFormula(value: unknown): boolean {
+        return typeof value === "string" && value.startsWith("{") && value.endsWith("}");
+    }
+
+    function isRegexp(value: unknown): boolean {
+        return typeof value === "string" && (value.startsWith("/") || value.startsWith("!/"));
+    }
+
     function isInvocableFrom(obj: unknown, method: string): boolean {
         return obj !== null && typeof obj === "object" && typeof (obj as Record<string, unknown>)[method] === "function";
     }
@@ -372,7 +380,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         return {};
     }
     
-    function regexpExtract(text: string, regexp: RegExp): string | null {
+    function regexpExtract(text: string, regexp: RegExp | string): string | null {
+        if (typeof regexp === "string") {
+            regexp = createRegExp(regexp)!;
+            if (!regexp) {
+                return null;
+            }
+        }
         const match = regexp.exec(text);
         return match ? match[1] : null;
     }
@@ -383,6 +397,27 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
         else {
             return text;
+        }
+    }
+
+    function regexpTest(text: string, pattern: string): boolean | null {
+        const negate = pattern.startsWith("!");
+        if (negate) {
+            pattern = pattern.slice(1); // remove negation operator from regexp
+        }
+        const regexp = createRegExp(pattern);
+        if (!regexp) {
+            return null;
+        }
+        let result = regexp?.test(text);
+        if (result === undefined) {
+            return null;
+        }
+        else if (negate) {
+            return !result;
+        }
+        else {
+            return result;
         }
     }
 
@@ -674,8 +709,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private evaluate(input: unknown, params: Record<string, unknown> = {}): unknown {
-            let result;
-            if (typeof input === "string" && input.startsWith("{") && input.endsWith("}")) {
+            if (isFormula(input)) {
                 const { data, ...extra } = params;
                 const args = {
                     ...this.state.vars,
@@ -683,12 +717,27 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     data: removeDOMRefs(merge(this.state.data, data)),
                     ...extra
                 } as Record<string, unknown>;
-                result = evaluateFormula(input.slice(1, -1).trim(), args);
+                const result = evaluateFormula((input as string).slice(1, -1).trim(), args);
+                return result;
+            }
+            else if (isRegexp(input)) {
+                const result = regexpExtract(params.value as string, input as string);
+                return result;
             }
             else {
-                result = input;
+                return input;
             }
-            return result;
+        }
+
+        private evaluateBoolean(input: unknown, params: Record<string, unknown> = {}): boolean | null {
+            if (isRegexp(input)) {
+                const result = regexpTest(params.value as string, input as string);
+                return result;
+            }
+            else {
+                const result = this.evaluate(input, params);
+                return typeof result === "boolean" ? result : null;
+            }
         }
 
         async execute(actions: Action[]): Promise<void> {
@@ -849,6 +898,19 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`REPEAT ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
         }
 
+        private resolveOperands(operands: unknown[], result: QueryResult): void {
+            for (let i = 0; i < operands.length; ++i) {
+                if (isFormula(operands[i]) || isRegexp(operands[i])) {
+                    this.each(result, (node, value) => {
+                        const resolvedValue = String(this.evaluate(operands[i], { value }));
+                        if (resolvedValue !== operands[i]) {
+                            operands[i] = resolvedValue;
+                        }
+                    });
+                }
+            }
+        }
+
         private resolveQuery(query: SelectQuery, type: SelectType, repeated: boolean, all: boolean, limit: number | null | undefined, format?: SelectFormat, pattern?: string, context?: SelectContext): QueryResult {
             let selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
@@ -949,6 +1011,51 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     //todo: log
                 }
+                else if (operator === "filter") {
+                    if (!this.validateOperands(operator, operands, ["string"])) {
+                        break;
+                    }
+                    const [operand] = operands as string[];
+                    if (isFormula(operand) || isRegexp(operand)) {
+                        const input = {
+                            elements: result.nodes.toArray(),
+                            values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
+                        };
+                        const output = {
+                            elements: [] as any[],
+                            values: [] as unknown[]
+                        };
+                        const n = input.elements.length;
+                        for (let i = 0; i < n; ++i) {
+                            const value = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
+                             if (value === true) {
+                                output.elements.push(input.elements[i]);
+                                output.values.push(value);
+                            }
+                        }
+                        result.nodes = this.jquery(output.elements);
+                        result.value = output.values;
+                    }
+                    else {
+                        //todo: duplicated code
+                        const delegate = result.nodes as unknown as JQueryDelegate;
+                        const obj = delegate[operator](...operands);
+                        if (isJQueryObject(obj)) {
+                            result.nodes = obj;
+                            result.value = this.text(result.nodes, format);
+                        }
+                        else if (repeated) {
+                            result.value = result.nodes.toArray().map(element => {
+                                const delegate = this.query(element) as unknown as JQueryDelegate;
+                                const obj = delegate[operator](...operands);
+                                return obj;
+                            });
+                        }
+                        else {
+                            result.value = obj;
+                        }
+                    }
+                }
                 else if (operator === "html" && (operands[0] === "outer" || operands[0] === undefined)) {
                     if (this.online) {
                         result.value = result.nodes.toArray().map(element => element.outerHTML.trim());
@@ -987,27 +1094,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 else if (operator === "nonblank") {
                     result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length > 0));
                     result.value = this.text(result.nodes, format);
-                }
-                else if (operator === "reject") {
-                    if (!this.validateOperands(operator, operands, ["string"])) {
-                        break;
-                    }
-                    const regexp = createRegExp(operands[0]);
-                    if (!regexp) {
-                        this.error("invalid-operand", `Invalid regular expression for "reject"`);
-                    }
-                    else if (result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
-                        const elements = result.nodes.toArray();
-                        const values = result.value as string[];
-                        for (let i = result.value.length - 1; i >= 0; --i) {
-                            if (regexp.test(result.value[i])) {
-                                elements.splice(i, 1);
-                                values.splice(i, 1);
-                            }
-                        }
-                        result.nodes = this.jquery(elements);
-                        result.value = values;
-                    }
                 }
                 else if (operator === "replace") {
                     if (!this.validateOperands(operator, operands, ["string", "string"])) {
@@ -1055,26 +1141,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     });
                     result.value = null;
                 }
-                else if (operator === "retain") {
-                    if (!this.validateOperands(operator, operands, ["string"])) {
+                else if (operator === "reverse") {
+                    if (!this.validateOperands(operator, operands, [], [])) {
                         break;
                     }
-                    const regexp = createRegExp(operands[0]);
-                    if (!regexp) {
-                        this.error("invalid-operand", `Invalid regular expression for "retain"`);
-                    }
-                    else if (result.value instanceof Array && result.value.length === result.nodes.length && result.value.every(value => typeof value === "string")) {
-                        const elements = result.nodes.toArray();
-                        const values = result.value as string[];
-                        for (let i = result.value.length - 1; i >= 0; --i) {
-                            if (!regexp.test(result.value[i])) {
-                                elements.splice(i, 1);
-                                values.splice(i, 1);
-                            }
-                        }
-                        result.nodes = this.jquery(elements);
-                        result.value = values;
-                    }
+                    result.nodes = this.jquery(result.nodes.toArray().reverse());
+                    result.value = this.text(result.nodes, format);
                 }
                 else if (operator === "scrollBottom") {
                     if (this.online) {
@@ -1107,12 +1179,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             .replace(/[ ]{2,}/, " ")
                     );
                 }
-                else if (["each", "replaceAll"].includes(operator)) {
+                else if (["appendTo", "each", "prependTo", "insertBefore", "insertAfter", "replaceAll"].includes(operator)) {
                     this.error("invalid-operator", `Operator "${operator}" not supported`);
                     this.break;
                 }
                 // invoke any function within JQuery<T> that matches operator
                 else if (isInvocableFrom(result.nodes, operator)) {
+                    this.resolveOperands(operands, result);
                     const delegate = result.nodes as unknown as JQueryDelegate;
                     const obj = delegate[operator](...operands);
                     if (isJQueryObject(obj)) {

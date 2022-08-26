@@ -34,6 +34,14 @@ const test = {
                 },
                 {
                     "name": "p2",
+                    "$": [["p",["text"]]]
+                },
+                {
+                    "name": "p3",
+                    "$": [["p",["html"],["text"]]]
+                },
+                {
+                    "name": "p4",
                     "$": [["p",["text","inline"]]]
                 },
                 {
@@ -92,7 +100,9 @@ describe("text/1", () => {
     before(async () => result = await offline(test));
     it("h1 has expected value", () => expect(result.data.h1).to.be.equal("Lorum Ipsum"));
     it("p1 has expected value", () => expect(result.data.p1).to.be.equal("Sed volutpat dolor lectus sit amet"));
-    it("p2 has expected value", () => expect(result.data.p2).to.be.equal("Sed volutpat sit amet"));
+    it("p2 has expected value", () => expect(result.data.p2).to.be.equal("Sed volutpat dolor lectus sit amet"));
+    it("p3 has expected value", () => expect(result.data.p3).to.be.equal("Sed volutpat dolor lectus sit amet"));
+    it("p4 has expected value", () => expect(result.data.p4).to.be.equal("Sed volutpat sit amet"));
     it("s1 has expected value", () => expect(result.data.s1).to.be.equal("Vestibulum Etiam vel imperdiet erat."));
     it("s2 has expected value", () => expect(result.data.s2).to.be.equal("Suspendisse\nPraesent sit amet pellentesque eros."));
     it("d1 has expected value", () => expect(result.data.d1).to.be.equal("Fogo de Chow"));

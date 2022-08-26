@@ -13,7 +13,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["li",["retain","/ta$/"],["remove"]] }
+                { "$": ["li",["filter","/ta$/"],["remove"]] }
             ]
         },
         {
@@ -27,7 +27,7 @@ const test = {
     ] as syphonx.Action[]
 };
 
-describe("retain/1", () => {
+describe("filter/1", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
     it("data has expected value", () => expect(result.data).to.eql(["alpha", "gamma"]));
