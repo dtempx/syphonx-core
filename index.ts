@@ -31,7 +31,8 @@ export interface SelectTarget {
         // if values are strings then results are concatenated with newlines
         // if values are booleans then results are and'ed together
         // otherwise the latest result takes precedence
-    limit?: number | null; // default=1 when repeated is false and all is false, set to null to override
+    hits?: number | null; // limits the number of query hits, default is unlimited or specify null for unlimited
+    limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited, specify null to force unlimited nodes
     format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
     pattern?: string; // validation pattern (only applies if type=string)
     collate?: boolean; // collate nodes to single result
@@ -106,6 +107,7 @@ export interface QueryParams {
     format?: SelectFormat;
     pattern?: string;
     limit?: number | null;
+    hits?: number | null;
 }
 
 export interface QueryResult {
@@ -858,9 +860,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private query({ $, type = "string", repeated = false, all = false, format, pattern, limit }: QueryParams, context?: SelectContext): QueryResult | undefined {
+        private query({ $, type = "string", repeated = false, all = false, format, pattern, limit, hits }: QueryParams, context?: SelectContext): QueryResult | undefined {
             if (limit === undefined && type === "string" && !repeated && !all) {
                 limit = 1;
+            }
+            if (hits === null || hits === undefined) {
+                hits = Infinity;
             }
             if ($ instanceof Array && $.every(query => query instanceof Array) && $[0].length > 0 && !!$[0][0]) {
                 let result: QueryResult | undefined = undefined;
@@ -870,6 +875,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         result = this.mergeQueryResult(result, subresult);
                         this.log(`${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${$.indexOf(query) + 1}/${$.length}${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, valid=${subresult.valid}` : ""}`);
                         if (!all && subresult.nodes.length > 0) {
+                            break;
+                        }
+                        else if (--hits <= 0) {
                             break;
                         }
                     }
