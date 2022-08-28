@@ -121,7 +121,19 @@ export type When = string;
 export type SnoozeMode = "before" | "after" | "before-and-after"; // default=before
 export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //seconds
 
-interface QueryResolveParams {
+interface ResolveQueryParams {
+    query: SelectQuery;
+    type: SelectType;
+    repeated: boolean;
+    all: boolean;
+    limit: number | null | undefined;
+    format?: SelectFormat;
+    pattern?: string;
+    context?: SelectContext;
+    result?: QueryResult;
+}
+
+interface ResolveQueryOpsParams {
     ops: SelectQueryOp[];
     nodes: JQueryResult;
     value: unknown;
@@ -170,17 +182,19 @@ export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
 export interface ExtractError {
     code: ExtractErrorCode;
     message: string;
+    key?: string;
 }
 
 export type ExtractErrorCode = 
     "click-timeout" |
     "click-required" |
     "error-limit" |
+    "eval-error" |
+    "fatal-error" |
     "invalid-select" |
     "invalid-operator" |
     "invalid-operand" |
     "select-required" |
-    "unknown-error" |
     "waitfor-timeout";
 
 export async function extract(state: ExtractState): Promise<ExtractState> {
@@ -546,19 +560,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return "(none)";
     }
 
-    class ExtractError {
-        code: ExtractErrorCode;
-        message: string;
-        constructor(code: ExtractErrorCode, message: string) {
-            this.code = code;
-            this.message = message;
-        }
-    }
-
     class ExtractContext {
         jquery: JQueryStatic & CheerioAPI;
         state: ExtractState;
         online: boolean;
+        //context: SelectContext; // todo: move the select context from a param passed down thru query
     
         constructor(state: ExtractState) {
             this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
@@ -695,16 +701,18 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         each({ nodes, value }: QueryResult, callback: (node: JQuery, param: unknown) => void) {
-            const elements = nodes.toArray();
-            for (let i = 0; i < elements.length; ++i) {
-                const node = this.jquery(elements[i]);
-                const subvalue = value instanceof Array ? value[i] : value;
-                callback(node, subvalue);
+            if (nodes) {
+                const elements = nodes.toArray();
+                for (let i = 0; i < elements.length; ++i) {
+                    const node = this.jquery(elements[i]);
+                    const subvalue = value instanceof Array ? value[i] : value;
+                    callback(node, subvalue);
+                }
             }
         }
 
-        error(code: ExtractErrorCode, message: string): void {
-            this.state.errors.push({ code, message });
+        error(code: ExtractErrorCode, message: string, key?: string): void {
+            this.state.errors.push({ code, message, key });
             this.log(`ERROR (${code}): ${message}`);
         }
 
@@ -717,8 +725,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     data: removeDOMRefs(merge(this.state.data, data)),
                     ...extra
                 } as Record<string, unknown>;
-                const result = evaluateFormula((input as string).slice(1, -1).trim(), args);
-                return result;
+
+                try {
+                    const result = evaluateFormula((input as string).slice(1, -1).trim(), args);
+                    return result;
+                }
+                catch (err) {
+                    this.error("eval-error", `Error evaluating formula "${input}": ${err instanceof Error ? err.message : JSON.stringify(err)}`); // todo: populate key with this.context.path
+                    throw new Error("Error evaluating formula");
+                }
             }
             else if (isRegexp(input)) {
                 const result = regexpExtract(params.value as string, input as string);
@@ -816,7 +831,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private mergeQueryResult(source: QueryResult | undefined, target: QueryResult | undefined): QueryResult | undefined {
             if (source && target) {
-                let nodes = source.nodes && target.nodes ? this.jquery([...source.nodes.toArray(), ...target.nodes.toArray()]) : target.nodes || source.nodes;
+                const nodes = source.nodes && target.nodes ? this.jquery([...source.nodes.toArray(), ...target.nodes.toArray()]) : target.nodes || source.nodes;
                 let value = undefined;
                 if (source.value instanceof Array && target.value instanceof Array) {
                     value = [...source.value, ...target.value];
@@ -850,11 +865,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             if ($ instanceof Array && $.every(query => query instanceof Array) && $[0].length > 0 && !!$[0][0]) {
                 let result: QueryResult | undefined = undefined;
                 for (const query of $) {
-                    const subresult = this.resolveQuery(query, type, repeated, all, limit, format, pattern, context);
-                    result = this.mergeQueryResult(result, subresult);
-                    this.log(`${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${$.indexOf(query) + 1}/${$.length}${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, valid=${subresult.valid}` : ""}`);
-                    if (!all && subresult.nodes.length > 0) {
-                        break;
+                    const subresult = this.resolveQuery({ query, type, repeated, all, limit, format, pattern, context, result });
+                    if (subresult) {
+                        result = this.mergeQueryResult(result, subresult);
+                        this.log(`${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${$.indexOf(query) + 1}/${$.length}${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, valid=${subresult.valid}` : ""}`);
+                        if (!all && subresult.nodes.length > 0) {
+                            break;
+                        }
                     }
                 }
 
@@ -911,7 +928,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQuery(query: SelectQuery, type: SelectType, repeated: boolean, all: boolean, limit: number | null | undefined, format?: SelectFormat, pattern?: string, context?: SelectContext): QueryResult {
+        private resolveQuery({ query, type, repeated, all, limit, format, pattern, context, result }: ResolveQueryParams): QueryResult | undefined {
             let selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
 
@@ -934,13 +951,25 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 value = null;
             }
             else {
-                selector = String(this.evaluate(selector));
-                nodes = this.jquery(selector, context?.nodes);
-                value = this.text(nodes, format);
+                try {
+                    selector = String(this.evaluate(selector));
+                    nodes = this.resolveQueryNodes(this.jquery(selector, context?.nodes), result?.nodes);
+                    value = this.text(nodes, format);
+                }
+                catch (err) {
+                    this.log(`Failed to resolve selector for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    return undefined;
+                }
             }
 
-            if (ops.length > 0) {
-                return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value });
+            if (ops.length > 0 && nodes.length > 0) {
+                try {
+                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value });
+                }
+                catch (err) {
+                    this.log(`Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    return undefined;
+                }
             }
             else if (type === "boolean") {
                 // if type is boolean then result is based on whether the query resulted in any hits
@@ -949,12 +978,26 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     value: !repeated ? nodes.length > 0 : [nodes.length > 0]
                 }
             }
-            else {
+            else if (nodes.length > 0) {
                 return this.formatResult({ nodes, value }, type, all, limit, format, pattern);
-            }            
+            }
+            else {
+                return undefined;
+            }
         }
 
-        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: QueryResolveParams): QueryResult {
+        private resolveQueryNodes(target: JQueryResult, result: JQueryResult | undefined) {
+            if (result) {
+                const source = result.toArray();
+                const nodes = target.toArray().filter(node => !source.includes(node));
+                return this.jquery(nodes);
+            }
+            else {
+                return target;
+            }
+        }
+
+        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: ResolveQueryOpsParams): QueryResult {
             const result: QueryResult = { nodes, value };
             const a = ops.slice(0);
             while (a.length > 0) {
@@ -1027,10 +1070,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         };
                         const n = input.elements.length;
                         for (let i = 0; i < n; ++i) {
-                            const value = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
-                             if (value === true) {
+                            const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
+                             if (hit === true) {
                                 output.elements.push(input.elements[i]);
-                                output.values.push(value);
+                                output.values.push(input.values[i]);
                             }
                         }
                         result.nodes = this.jquery(output.elements);
@@ -1179,6 +1222,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             .replace(/[ ]{2,}/, " ")
                     );
                 }
+                //else if (operator === "trimAll") {
+                    //todo: implement trimAll
+                //}
                 else if (["appendTo", "each", "prependTo", "insertBefore", "insertAfter", "replaceAll"].includes(operator)) {
                     this.error("invalid-operator", `Operator "${operator}" not supported`);
                     this.break;
@@ -1245,7 +1291,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
     
                     if (isEmpty(item?.value) && select.required) {
-                        this.error("select-required", `Required select '${context?.name ? `${context.name}.${select.name}` : select.name}' not found`);
+                        //todo: add path when this.context.path is available
+                        this.error("select-required", `Required select '${context?.name ? `${context.name}.${select.name}` : select.name}' not found`, select.name);
                     }
     
                     if (select.name?.startsWith("_") && item) {
@@ -1454,7 +1501,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                         else {
                             this.log(`TRANSFORM ${$statement(query)}`);
-                            this.resolveQuery(query, "string", true, true, null);
+                            try {
+                                this.resolveQuery({ query, type: "string", repeated: true, all: true, limit: null });
+                            }
+                            catch (err) {
+                                this.log(`TRANSFORM ERROR ${$statement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                            }
                         }
                     }
                     else {
@@ -1626,9 +1678,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private when(when: When | undefined, context?: string): boolean {
             if (when) {
-                const result = !!this.evaluate(when);
-                this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ${result}`);
-                return result;
+                try {
+                    const result = !!this.evaluate(when);
+                    this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ${result}`);
+                    return result;
+                }
+                catch (err) {
+                    this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ERROR ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    return false;
+                }
             }
             return true;
         }
@@ -1658,12 +1716,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         await obj.execute(obj.state.actions);
     }
     catch (err) {
-        if (err instanceof ExtractError) {
-            obj.state.errors.push(err);
-        }
-        else {
-            obj.error("unknown-error", err instanceof Error ? err.message : "Unknown error.");
-        }
+        obj.error("fatal-error", err instanceof Error ? err.message : JSON.stringify(err));
     }
     return obj.state;
 }
