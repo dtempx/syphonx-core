@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "SyphonX is a light weight, no-code web-scraper that runs in any browser",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
@@ -37,7 +37,7 @@
     "cheerio": "^1.0.0-rc.10",
     "jquery": "^3.6.0",
     "mocha": "^9.2.2",
-    "puppeteer": "^16.2.0",
+    "puppeteer": "^17.0.0",
     "strip-json-comments": "^4.0.0",
     "typescript": "^4.6.2",
     "word-wrap": "^1.2.3"

@@ -861,25 +861,32 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private query({ $, type = "string", repeated = false, all = false, format, pattern, limit, hits }: QueryParams, context?: SelectContext): QueryResult | undefined {
-            if (limit === undefined && type === "string" && !repeated && !all) {
-                limit = 1;
-            }
-            if (hits === null || hits === undefined) {
-                hits = Infinity;
-            }
             if ($ instanceof Array && $.every(query => query instanceof Array) && $[0].length > 0 && !!$[0][0]) {
+                if (limit === undefined && type === "string" && !repeated && !all) {
+                    limit = 1;
+                }
+                if (hits === null || hits === undefined) {
+                    hits = $.length;
+                }
+                this.log(`QUERY ${$statements($)}`); // todo: log this.context.path when available
+                let hit = 0;
                 let result: QueryResult | undefined = undefined;
                 for (const query of $) {
                     const subresult = this.resolveQuery({ query, type, repeated, all, limit, format, pattern, context, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
-                        this.log(`${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${$.indexOf(query) + 1}/${$.length}${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, valid=${subresult.valid}` : ""}`);
+                        this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
                         if (!all && subresult.nodes.length > 0) {
+                            this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (first hit)`);
                             break;
                         }
-                        else if (--hits <= 0) {
+                        else if (++hit === hits) {
+                            this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (${hits} hits)`);
                             break;
                         }
+                    }
+                    else {
+                        this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> (none) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}` : ""}`);
                     }
                 }
 
