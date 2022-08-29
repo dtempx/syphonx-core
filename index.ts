@@ -876,17 +876,19 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
                         this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
-                        if (!all && subresult.nodes.length > 0) {
-                            this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (first hit)`);
-                            break;
-                        }
-                        else if (++hit === hits) {
-                            this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (${hits} hits)`);
-                            break;
+                        if (subresult.nodes.length > 0) {
+                            if (!all) {
+                                this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (first hit)`);
+                                break;
+                            }
+                            if (++hit === hits) {
+                                this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (${hits} hits)`);
+                                break;
+                            }
                         }
                     }
                     else {
-                        this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> (none) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}` : ""}`);
+                        this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
                     }
                 }
 
@@ -1731,7 +1733,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         await obj.execute(obj.state.actions);
     }
     catch (err) {
-        obj.error("fatal-error", err instanceof Error ? err.message : JSON.stringify(err));
+        obj.error("fatal-error", err instanceof Error ? `${err.message}\n${err.stack}` : JSON.stringify(err));
     }
     return obj.state;
 }
