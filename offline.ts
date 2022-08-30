@@ -8,8 +8,7 @@ const args = parseArgs({
     optional: {
         1: "HTML file to load",
         url: "URL to navigate to",
-        debug: "enable debug mode",
-        output: "determines output (data, html, log)"
+        out: "determines output (data, html, log)"
     },
     validate: args => {
         if (!args[1] && !args.url) {
@@ -20,6 +19,7 @@ const args = parseArgs({
 
 (async () => {
     try {
+        const out = args.output ? args.output.split(",") : ["data", "log"];
         const script = await loadJSON(args[0]);
         const url = script.url || args.url;
         if (!url) {
@@ -31,22 +31,21 @@ const args = parseArgs({
             ...script,
             url,
             html: args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true),
-            debug: !!args.debug,
+            debug: out.includes("log"),
             includeDOMRefs: false
         });
 
-        const output = args.output ? args.output.split(",") : ["data", "log"];
-        if (output.includes("data")) {
+        if (out.includes("data")) {
             console.log(JSON.stringify(result.data, null, 2));
             console.log();
         }
 
-        if (result.log && output.includes("log")) {
+        if (result.log && out.includes("log")) {
             console.log(result.log);
             console.log();
         }
 
-        if (result.html && output.includes("html")) {
+        if (result.html && out.includes("html")) {
             console.log(result.html);
             console.log();
         }

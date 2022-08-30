@@ -7,13 +7,13 @@ const args = parseArgs({
     optional: {
         url: "URL to navigate to",
         show: "shows browser window",
-        debug: "enable debug mode",
         out: "determines output (data, html, log)"
     }
 });
 
 (async () => {
     try {
+        const out = args.out ? args.out.split(",") : ["data"];
         const script = await loadJSON(args[0]);
         const url = script.url || args.url;
         if (!url) {
@@ -21,30 +21,27 @@ const args = parseArgs({
             process.exit(0);
         }
 
-        const output = args.out ? args.out.split(",") : ["data"];
-        const debug = !!args.debug || output.includes("log");
-
         const result = await online({
             ...script,
             url,
             show: !!args.show,
-            debug,
+            debug: out.includes("log"),
             includeDOMRefs: false,
             outputHTML: "post"
         });
 
-        if (output.includes("data")) {
+        if (out.includes("data")) {
             console.log(JSON.stringify(result.data, null, 2));
             console.log();
         }
 
-        if (output.includes("log")) {
+        if (out.includes("log")) {
             console.log(`status: ${result.status}`);
             console.log(result.log);
             console.log();
         }
 
-        if (output.includes("html")) {
+        if (out.includes("html")) {
             console.log(result.html);
             console.log();
         }

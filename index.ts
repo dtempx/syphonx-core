@@ -1517,9 +1517,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             await $scrollToBottom();
                         }
                         else {
-                            this.log(`TRANSFORM ${$statement(query)}`);
                             try {
-                                this.resolveQuery({ query, type: "string", repeated: true, all: true, limit: null });
+                                const result = this.resolveQuery({ query, type: "string", repeated: true, all: true, limit: null });
+                                this.log(`TRANSFORM ${$statement(query)} -> (${result?.nodes?.length || 0} nodes)`);
                             }
                             catch (err) {
                                 this.log(`TRANSFORM ERROR ${$statement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
