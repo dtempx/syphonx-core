@@ -32,4 +32,6 @@ describe("params/1", () => {
     it("params.p1 has expected value", () => expect(result.params.p1).to.be.equal("1"));
     it("params.p2 has expected value", () => expect(result.params.p2).to.be.equal("2"));
     it("params.p3 has expected value", () => expect(result.params.p3).to.be.equal("3"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

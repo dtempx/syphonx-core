@@ -29,4 +29,6 @@ describe("extract/1", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
     it("colors has expected value", () => expect(result.data.colors).to.eql(["red", "green", "blue"]));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

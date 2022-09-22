@@ -1,0 +1,10 @@
+{
+    "url": "https://www.example.com/",
+    "actions": [
+        {
+            "select": [
+                { "$": [["h1"]] }
+            ]
+        }
+    ]
+}

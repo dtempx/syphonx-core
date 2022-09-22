@@ -24,4 +24,6 @@ describe("general/3", () => {
     before(async () => result = await offline(test));
     it("t1 has expected value", () => expect(result.data.t1).to.equal("hello"));
     it("t2 has expected value", () => expect(result.data.t2).to.be.null);
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

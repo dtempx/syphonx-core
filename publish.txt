@@ -1,4 +1,0 @@
-yarn upgrade puppeteer --latest
-yarn build
-yarn test
-npm publish

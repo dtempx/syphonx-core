@@ -29,4 +29,6 @@ describe("transform/1", () => {
     it("html2 has expected output", () => expect(result.html.replace(/>\s*</g, "><")).to.contain(`<h3 class="alpha">Ipsum:</h3><p>Judias</p>`));
     it("html3 has expected output", () => expect(result.html).to.contain(`<div><a href="#">Vino</a></div>`));
     it("html4 has expected output", () => expect(result.html).to.contain(`<b>Veritas</b>`));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

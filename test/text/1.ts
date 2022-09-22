@@ -113,4 +113,6 @@ describe("text/1", () => {
     it("q2 has expected value", () => expect(result.data.q2).to.be.equal("In vino veritas"));
     it("q3 has expected value", () => expect(result.data.q3).to.be.equal("In vino veritas"));
     it("q4 has expected value", () => expect(result.data.q4).to.be.equal("  In  vino  veritas  "));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

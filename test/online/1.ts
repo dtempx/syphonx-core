@@ -19,5 +19,6 @@ describe("online/1", () => {
     it("result.domain has expected value", () => expect(result.domain).to.be.equal("example.com"));
     it("result.data has expected value", () => expect(result.data).to.be.equal("Example Domain"));
     it("result.online is true", () => expect(result.online).to.be.true);
-    it("result.errors is empty", () => expect(result.errors).to.be.empty);
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

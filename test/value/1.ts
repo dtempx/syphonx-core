@@ -35,4 +35,6 @@ describe("value/1", () => {
     it("a2 has expected value", () => expect(result.data.a2).to.be.equal("ipsum"));
     it("a3 has expected value", () => expect(result.data.a3).to.be.equal("lorum ipsum"));
     it("a4 has expected value", () => expect(result.data.a4).to.be.equal("https://www.example.com/"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

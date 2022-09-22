@@ -19,13 +19,9 @@ const args = parseArgs({
 
 (async () => {
     try {
-        const out = args.output ? args.output.split(",") : ["data", "log"];
+        const out = args.output ? args.output.split(",") : ["data"];
         const script = await loadJSON(args[0]);
         const url = script.url || args.url;
-        if (!url) {
-            console.warn("Please specify a URL.");
-            process.exit(0);
-        }
 
         const result = await offline({
             ...script,

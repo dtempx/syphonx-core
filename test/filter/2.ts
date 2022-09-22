@@ -31,4 +31,6 @@ describe("filter/2", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
     it("data has expected value", () => expect(result.data).to.eql(["beta", "delta"]));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

@@ -50,6 +50,8 @@ describe("params/2/en", () => {
     before(async () => result = await offline({ params, actions, html: content.en }));
     it("_lang has expected value", () => expect(result.vars._lang).to.be.equal("en"));
     it("name has expected value", () => expect(result.data.name).to.be.equal("John Doe"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });
 
 describe("params/2/it", () => {
@@ -57,4 +59,6 @@ describe("params/2/it", () => {
     before(async () => result = await offline({ params, actions, html: content.it }));
     it("_lang has expected value", () => expect(result.vars._lang).to.be.equal("it"));
     it("name has expected value", () => expect(result.data.name).to.be.equal("Mario Rossi"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

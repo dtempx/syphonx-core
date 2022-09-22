@@ -75,4 +75,6 @@ describe("hits/1", () => {
     it("p2 has expected value", () => expect(result.data.p2).to.equal("Lorum\nIpsum\nDolor\nQui\nDolorem"));
     it("p3 has expected value", () => expect(result.data.p3).to.equal("Lorum\nIpsum\nDolor\nQui\nDolorem\nPlatea"));
     it("pn has expected value", () => expect(result.data.pn).to.equal("Lorum\nIpsum\nDolor\nQui\nDolorem\nPlatea"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

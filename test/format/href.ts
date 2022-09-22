@@ -37,4 +37,6 @@ describe("format/href", () => {
     it("a1 has expected value", () => expect(result.data.a1).to.be.equal("https://www.iana.org/domains/reserved"));
     it("a2 has expected value", () => expect(result.data.a2).to.be.equal("https://www.example.com/a"));
     it("a3 has expected value", () => expect(result.data.a3).to.be.equal("https://www.example.com/b"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

@@ -51,4 +51,6 @@ describe("defaults/2", () => {
             "href": "https://www.example.com/3"
         }
     ]));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

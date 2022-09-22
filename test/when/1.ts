@@ -37,4 +37,6 @@ describe("when/1", () => {
     it("a2 has expected value", () => expect(result.data.a2).to.be.null);
     it("_ok in vars", () => expect(result.vars._ok).to.be.true);
     it("_ok not in data", () => expect(result.data._ok).to.be.undefined);
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

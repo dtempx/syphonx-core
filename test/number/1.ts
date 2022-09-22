@@ -29,4 +29,6 @@ describe("number/1", () => {
     before(async () => result = await offline(test));
     it("a1 has expected value", () => expect(result.data.a1).to.be.eql(123.45));
     it("a2 has expected value", () => expect(result.data.a2).to.be.eql(9.99));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

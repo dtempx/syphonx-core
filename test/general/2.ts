@@ -26,4 +26,6 @@ describe("general/2", () => {
     before(async () => result = await offline(test));
     it("d1 has expected value", () => expect(result.data.d1).to.be.true);
     it("d2 has expected value", () => expect(result.data.d2).to.be.false);
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

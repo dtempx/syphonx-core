@@ -42,4 +42,6 @@ describe("hits/2", () => {
     before(async () => result = await offline(test));
     it("p1 has expected value", () => expect(result.data.p1).to.equal("Lorum"));
     it("p2 has expected value", () => expect(result.data.p2).to.equal("Lorum\nIpsum"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

@@ -46,4 +46,6 @@ describe("when/3", () => {
     it("a2 has expected value in obj", () => expect(result.data.obj.a2).to.be.null);
     it("_ok in vars", () => expect(result.vars._ok).to.be.true);
     it("_ok not in obj", () => expect(result.data.obj._ok).to.be.undefined);
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

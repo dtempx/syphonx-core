@@ -52,4 +52,6 @@ describe("pivot/2", () => {
         { name: "jkl", group: "222" },
         { name: "mno\npqr", group: "333" }
     ]));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

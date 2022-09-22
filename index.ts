@@ -352,7 +352,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         else if (isObject(source) && isObject(target)) {
             //return { ...(source as {}), ...(target as {}) } as T;
             const obj = {} as Record<string, unknown>;
-            const keys = Array.from(new Set([...Object.keys(source), ...Object.keys(target)]));
+            const keys = Array.from(new Set([...Object.keys(source as {}), ...Object.keys(target as {})]));
             for (const key of keys) {
                 obj[key] = merge((source  as Record<string, unknown>)[key], (target as Record<string, unknown>)[key]);
             }
@@ -550,6 +550,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     }
 
     function $statement(query: SelectQuery): string {
+        const valid = query instanceof Array && query.length > 0 && typeof query[0] === "string" && query.slice(1).every(op => op instanceof Array);
+        if (!valid) {
+            return `INVALID: ${JSON.stringify(query)}`;
+        }
         const selector = query[0];
         const ops = query.slice(1) as SelectQueryOp[];
         return [`$("${selector}")`, ...ops.map(op => `${op[0]}(${op.slice(1).map(param => JSON.stringify(param)).join(", ")})`)].join(".");
@@ -911,21 +915,27 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             let errorCount = 0;
             let baselineErrorCount = this.state.errors.length;
             let i = 0;
+            let code = undefined;
             while (i < limit) {
                 this.log(`REPEAT #${++i} (limit=${limit})`);
                 this.state.vars._page = i;
                 for (const action of actions) {
                     const step = actions.indexOf(action) + 1;
-                    const code = await this.dispatch(action, step);
+                    code = await this.dispatch(action, step);
                     if (code) {
                         this.log(`REPEAT #${i} -> break at step ${step}/${actions.length}, code=${code}`);
                         break;
                     }
                 }
-                this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
-                errorCount = this.state.errors.length - baselineErrorCount;
-                if (errorCount >= errors) {
-                    this.error("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`);
+                if (!code) {
+                    this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
+                    errorCount = this.state.errors.length - baselineErrorCount;
+                    if (errorCount >= errors) {
+                        this.error("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`);
+                        break;
+                    }
+                }
+                else {
                     break;
                 }
             }
@@ -974,7 +984,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     value = this.text(nodes, format);
                 }
                 catch (err) {
-                    this.log(`Failed to resolve selector for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    this.error("eval-error", `Failed to resolve selector for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
                     return undefined;
                 }
             }
@@ -984,7 +994,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value });
                 }
                 catch (err) {
-                    this.log(`Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    this.error("eval-error", `Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
                     return undefined;
                 }
             }
@@ -1016,6 +1026,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: ResolveQueryOpsParams): QueryResult {
             const result: QueryResult = { nodes, value };
+
+            const valid = ops instanceof Array && ops.every(op => op instanceof Array && op.length > 0 && typeof op[0] === "string");
+            if (!valid) {
+                this.error("invalid-operator", `INVALID: ${JSON.stringify(ops)}`);
+                return result;
+            }
+    
             const a = ops.slice(0);
             while (a.length > 0) {
                 const [operator, ...operands] = a.shift()!;
@@ -1071,50 +1088,28 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     //todo: log
                 }
-                else if (operator === "filter") {
+                else if (operator === "filter" && (isFormula(operands[0]) || isRegexp(operands[0]))) {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    const [operand] = operands as string[];
-                    if (isFormula(operand) || isRegexp(operand)) {
-                        const input = {
-                            elements: result.nodes.toArray(),
-                            values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
-                        };
-                        const output = {
-                            elements: [] as any[],
-                            values: [] as unknown[]
-                        };
-                        const n = input.elements.length;
-                        for (let i = 0; i < n; ++i) {
-                            const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
-                             if (hit === true) {
-                                output.elements.push(input.elements[i]);
-                                output.values.push(input.values[i]);
-                            }
-                        }
-                        result.nodes = this.jquery(output.elements);
-                        result.value = output.values;
-                    }
-                    else {
-                        //todo: duplicated code
-                        const delegate = result.nodes as unknown as JQueryDelegate;
-                        const obj = delegate[operator](...operands);
-                        if (isJQueryObject(obj)) {
-                            result.nodes = obj;
-                            result.value = this.text(result.nodes, format);
-                        }
-                        else if (repeated) {
-                            result.value = result.nodes.toArray().map(element => {
-                                const delegate = this.query(element) as unknown as JQueryDelegate;
-                                const obj = delegate[operator](...operands);
-                                return obj;
-                            });
-                        }
-                        else {
-                            result.value = obj;
+                    const input = {
+                        elements: result.nodes.toArray(),
+                        values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
+                    };
+                    const output = {
+                        elements: [] as any[],
+                        values: [] as unknown[]
+                    };
+                    const n = input.elements.length;
+                    for (let i = 0; i < n; ++i) {
+                        const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
+                            if (hit === true) {
+                            output.elements.push(input.elements[i]);
+                            output.values.push(input.values[i]);
                         }
                     }
+                    result.nodes = this.jquery(output.elements);
+                    result.value = output.values;
                 }
                 else if (operator === "html" && (operands[0] === "outer" || operands[0] === undefined)) {
                     if (this.online) {
@@ -1257,7 +1252,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     else if (repeated) {
                         result.value = result.nodes.toArray().map(element => {
-                            const delegate = this.query(element) as unknown as JQueryDelegate;
+                            const delegate = this.jquery(element) as unknown as JQueryDelegate;
                             const obj = delegate[operator](...operands);
                             return obj;
                         });
@@ -1554,7 +1549,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return true;
         }
 
-        private async waitfor({ $, select, timeout, on = "any", pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
+        private async waitfor({ $, select, timeout, on = "any", required, pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "WAITFOR")) {
                     if (timeout === undefined) {
@@ -1567,11 +1562,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     let code = null;
                     if ($) {
                         this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${trunc($)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        code = await this.waitforQuery($, on, timeout, pattern, context);
+                        code = await this.waitforQuery($, on, timeout, required, pattern, context);
                     }
                     else if (select) {
                         this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        code = await this.waitforSelect(select, on, timeout, pattern, context);
+                        code = await this.waitforSelect(select, on, timeout, required, pattern, context);
                     }
                     return code;
                 }
@@ -1586,7 +1581,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
+        private async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
@@ -1630,13 +1625,16 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             if (pass) {
                 return null;
             }
-            else {
+            else if (required) {
                 this.error("waitfor-timeout", message);
                 return "timeout";
             }
+            else {
+                return null;
+            }
         }
 
-        private async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
+        private async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
                     this.error("invalid-select", "waitfor select must all be internal, boolean, and not repeated");
@@ -1687,9 +1685,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             if (pass) {
                 return null;
             }
-            else {
+            else if (required) {
                 this.error("waitfor-timeout", message);
                 return "timeout";
+            }
+            else {
+                return null;
             }
         }
 

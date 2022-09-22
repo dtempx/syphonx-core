@@ -20,4 +20,6 @@ describe("defaults/1", () => {
     before(async () => result = await offline(test));
     it("result has expected type", () => expect(result.data).to.be.a.string);
     it("result has expected value", () => expect(result.data).to.be.equal("hello"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

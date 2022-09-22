@@ -1,3 +1,8 @@
+test debug mode and log output
+test waitfor with required=false (default) with timeout not resulting in error
+test waitfor with required=true with timeout resulting in error
+test selectors with no hits are returned as null
+
 test default of limit=1 for non-repeated strings
 test overriding limit for non-repeated strings
 test limit slices both value and nodes
@@ -5,7 +10,6 @@ test required-not-found errors and returning null as expected
 test null value returned from non-matching regexp
 test empty query doesn't fail and produces null result
 test invalid-operator error with garbage operator name
-
 
 test [".",["text","inline"]]  <div>foo<span>bar</span>baz</div> -> foobaz
 test [".",["extract","(foo)",null,true]]  -> keeps or removes unmatched items
@@ -16,5 +20,3 @@ test [".",["cut",",",0]]
 
 test overriting a result for repeated=false
 test union a result for repeated=true
-
-test required!!

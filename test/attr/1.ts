@@ -47,4 +47,6 @@ describe("attr/1", () => {
     it("a3 has expected value", () => expect(result.data.a3).to.be.equal("https://www.example.com/foo"));
     it("i1 has expected value", () => expect(result.data.i1).to.be.equal("/baz"));
     it("i2 has expected value", () => expect(result.data.i2).to.be.equal("https://www.example.com/baz"));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });

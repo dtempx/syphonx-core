@@ -22,4 +22,6 @@ describe("transform/6", () => {
     before(async () => result = await offline(test));
     it("html has expected output", () => expect(result.html).to.contain(`<h2>Lorum</h2>`));
     it("html has expected output", () => expect(result.html).to.contain(`<h3>:Consectetur</h3>`));
+    it("ok is true", () => expect(result.ok).to.be.true);
+    it("no errors", () => expect(result.errors).to.be.empty);
 });
