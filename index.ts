@@ -535,17 +535,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return "unknown";
     }
 
-    function $scrollToBottom(): Promise<void> {
+    function $scrollToBottom(delay = 100, max = 100): Promise<number> {
+        let n = 0;
         return new Promise(resolve => {
-            let totalHeight = 0;
             const timer = setInterval(() => {
                 window.scrollBy(0, window.innerHeight);
-                totalHeight += window.innerHeight;
-                if (totalHeight >= document.body.scrollHeight - window.innerHeight) {
+                n += 1;
+                if ((window.scrollY >= document.body.scrollHeight - window.innerHeight) || (--max < 1)) {
                     clearInterval(timer);
-                    resolve();
+                    resolve(n);
                 }
-            }, 100);
+            }, delay);
         });
     }
 
@@ -1526,10 +1526,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (this.when(transform.when, "TRANSFORM")) {
                         const query = transform.$;
                         const selector = query[0];
-                        const ops = query.slice(1) as SelectQueryOp[];
-                        if (selector === "{window}" && ops[0][0] === "scrollBottom") {
-                            this.log(`TRANSFORM ${$statement(query)}`);
-                            await $scrollToBottom();
+                        const [operands] = query.slice(1) as SelectQueryOp[];
+                        if (selector === "{window}" && operands[0] === "scrollBottom") {
+                            const delay = typeof operands[1] === "number" ? operands[1] : undefined;
+                            const max = typeof operands[2] === "number" ? operands[2] : undefined;
+                            const pagedowns = await $scrollToBottom(delay, max);
+                            this.log(`TRANSFORM ${$statement(query)} (${pagedowns}x)`);
                         }
                         else {
                             try {
