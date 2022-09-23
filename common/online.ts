@@ -25,6 +25,7 @@ interface OnlineOptions {
     actions: syphonx.Action[];
     url: string;
     params?: Record<string, unknown>;
+    vars?: Record<string, unknown>;
     show?: boolean;
     debug?: boolean;
     timeout?: number;
@@ -36,6 +37,8 @@ interface OnlineOptions {
 export async function online({ show = false, includeDOMRefs = false, outputHTML = "pre", browserOptions, timeout, ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
     if (!options.url)
         throw new Error("url not specified");
+    if (!options.vars)
+        options.vars = {};
 
     let browser: puppeteer.Browser | undefined = undefined;
     let page: puppeteer.Page | undefined = undefined;
@@ -80,6 +83,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         //await page.addScriptTag({ path: require.resolve("jquery") });
 
         await page.goto(options.url, { waitUntil: "load", timeout });
+        options.vars._http_status = status;
         await page.evaluate(__jquery);
 
         let html = "";
@@ -90,6 +94,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         while (state.yield) {
             await page.waitForNavigation({ waitUntil: "load", timeout: state.yield.timeout || timeout });
             state.yield === undefined;
+            state.vars._http_status = status;
             state = await page.evaluate(syphonx.extract, state as any);
         }
 

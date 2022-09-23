@@ -38,6 +38,7 @@ const args = parseArgs({
         if (out.includes("log")) {
             console.log(`status: ${result.status}`);
             console.log(result.log);
+            console.log(JSON.stringify(result.vars));
             console.log();
         }
 

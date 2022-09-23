@@ -577,10 +577,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.online = typeof this.jquery.noConflict === "function";
 
             state.params = state.params || {};
-            state.vars = state.vars || { _iteration: 0 };
             state.errors = state.errors || [];
             state.debug = state.debug || false;
             state.log = state.log || "";
+            state.vars = state.vars || {};
+            state.vars._iteration = 0;
 
             if (this.online) {
                 state.url = window.location.href;
