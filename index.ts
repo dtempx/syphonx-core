@@ -71,7 +71,7 @@ export interface Yield {
     active?: boolean;
 }
 
-export type SelectType = "string" | "number" | "boolean" | "object";
+export type SelectType = "string" | "number" | "boolean" | "object"; // document how formatResult works and coerceValue converts different values to the target type
 export type SelectQuery = [string, ...SelectQueryOp[]];
 export type SelectQueryOp = [string, ...unknown[]];
 export type SelectQueryOperator = string;
@@ -125,10 +125,10 @@ export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //
 
 interface ResolveQueryParams {
     query: SelectQuery;
-    type: SelectType;
     repeated: boolean;
     all: boolean;
     limit: number | null | undefined;
+    type?: SelectType;
     format?: SelectFormat;
     pattern?: string;
     context?: SelectContext;
@@ -139,7 +139,7 @@ interface ResolveQueryOpsParams {
     ops: SelectQueryOp[];
     nodes: JQueryResult;
     value: unknown;
-    type: SelectType;
+    type?: SelectType;
     repeated: boolean;
     all: boolean;
     limit?: number | null;
@@ -231,7 +231,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return typeof value === "number" ? value : typeof value === "string" ? parseNumber(value) : null;
         }
         else if (type === "boolean") {
-            return typeof value === "boolean" ? value : typeof value === "string" ? value.trim().length > 0 : null;
+            return typeof value === "boolean" ? value : typeof value === "string" ? value.trim().length > 0 : typeof value === "number" && !isNaN(value) ? value !== 0 : null;
         }
         else {
             return null;
@@ -782,8 +782,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`${actions.length} steps completed`);
         }
         
-        private formatResult(result: QueryResult, type: SelectType, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
+        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
             const regexp = createRegExp(pattern);
+
+            // if type not specified then default to the value's primitive type or to a string
+            if (!type) {
+                const defaultType = result.value instanceof Array ? typeof result.value[0] : typeof result.value;
+                type = ["string", "number", "boolean"].includes(defaultType) ? defaultType as SelectType : "string";
+            }
 
             // apply limit for repeated result
             if (limit !== undefined && limit !== null && result.value instanceof Array) {
@@ -821,7 +827,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else if (type === "number") {
                 result.value = coerceValue(result.value, "number");
             }
-    
+
             return result;
         }
 
@@ -864,7 +870,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private query({ $, type = "string", repeated = false, all = false, format, pattern, limit, hits }: QueryParams, context?: SelectContext): QueryResult | undefined {
+        private query({ $, type, repeated = false, all = false, format, pattern, limit, hits }: QueryParams, context?: SelectContext): QueryResult | undefined {
             if ($ instanceof Array && $.every(query => query instanceof Array) && $[0].length > 0 && !!$[0][0]) {
                 if (limit === undefined && type === "string" && !repeated && !all) {
                     limit = 1;
@@ -900,7 +906,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (repeated && !(result.value instanceof Array)) {
                         result.value = [result.value];
                     }
-                    else if (!repeated && result.value instanceof Array && type === "string") {
+                    else if (!repeated && result.value instanceof Array && result.value.every(value => typeof value === "string")) {
                         result.value = result.value.length > 0 ? result.value.join(format === "singleline" ? " " : "\n") : null; // concatenate strings
                     }
                     else if (!repeated && result.value instanceof Array) {
@@ -1092,24 +1098,33 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
-                    const input = {
-                        elements: result.nodes.toArray(),
-                        values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
-                    };
-                    const output = {
-                        elements: [] as any[],
-                        values: [] as unknown[]
-                    };
-                    const n = input.elements.length;
-                    for (let i = 0; i < n; ++i) {
-                        const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
-                            if (hit === true) {
-                            output.elements.push(input.elements[i]);
-                            output.values.push(input.values[i]);
+                    if (result.value instanceof Array) {
+                        const input = {
+                            elements: result.nodes.toArray(),
+                            values: result.value
+                        };
+                        const output = {
+                            elements: [] as any[],
+                            values: [] as unknown[]
+                        };
+                        const n = input.elements.length;
+                        for (let i = 0; i < n; ++i) {
+                            const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
+                            if (hit) {
+                                output.elements.push(input.elements[i]);
+                                output.values.push(input.values[i]);
+                            }
+                        }
+                        result.nodes = this.jquery(output.elements);
+                        result.value = output.values;
+                    }
+                    else {
+                        const hit = this.evaluateBoolean(operands[0], { value: result.value });
+                        if (!hit) {
+                            result.nodes = this.jquery([]);
+                            result.value = null;
                         }
                     }
-                    result.nodes = this.jquery(output.elements);
-                    result.value = output.values;
                 }
                 else if (operator === "html" && (operands[0] === "outer" || operands[0] === undefined)) {
                     if (this.online) {
@@ -1209,6 +1224,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         this.log(`scrollBottom ${result.nodes.scrollTop()} ${result.nodes.height()} ${y}`)
                         window.scrollTo(0, y);
                     }
+                }
+                else if (operator === "size") {
+                    result.value = result.nodes.length;
                 }
                 else if (operator === "split") {
                     const bypass = operands[0] === undefined && result.value instanceof Array;
@@ -1323,8 +1341,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private selectResolve(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
             let subitem: DataItem | null = null;
-            if (select.type === undefined) {
-                select.type = select.select ? "object" : "string";
+            // if select type is unspecified then default to "object" if there is a subselect
+            if (select.type === undefined && select.select) {
+                select.type = "object";
             }
             const result = this.query(select, context);
             if (result) {
@@ -1513,7 +1532,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                         else {
                             try {
-                                const result = this.resolveQuery({ query, type: "string", repeated: true, all: true, limit: null });
+                                const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
                                 this.log(`TRANSFORM ${$statement(query)} -> (${result?.nodes?.length || 0} nodes)`);
                             }
                             catch (err) {

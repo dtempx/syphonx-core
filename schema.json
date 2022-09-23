@@ -1,0 +1,184 @@
+{
+    "title": "SyphonX",
+    "type": "object",
+    "properties": {
+        "actions": { "$ref": "#/definitions/actions" },
+        "url": { "type": "string" }
+    },
+    "definitions": {
+        "actions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "break": { "$ref": "#definitions/break-action" },
+                    "click": { "$ref": "#definitions/click-action" },
+                    "repeat": { "$ref": "#definitions/repeat-action" },
+                    "select": { "$ref": "#definitions/select-action" },
+                    "snooze": { "$ref": "#definitions/snooze-action" },
+                    "transform": { "$ref": "#definitions/transform-action" },
+                    "waitfor": { "$ref": "#definitions/waitfor-action" },
+                    "yield": { "$ref": "#definitions/yield-action" }
+                }
+            }
+        },
+        "break-action": {
+            "type": "object",
+            "properties": {
+                "active": { "type": "boolean" },
+                "when": { "$ref": "#definitions/when" }
+            }
+        },
+        "click-action": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "snooze": {},
+                "required": {
+                    "type": "boolean"
+                },
+                "retry": {
+                    "type": "number"
+                },
+                "waitfor": {},
+                "when": {},
+                "$": { "$ref": "#definitions/$$" }
+            },
+            "required": ["$"]
+        },
+        "pivot": {
+            "type": "object",
+            "properties": {
+
+            }
+        },
+        "repeat-action": {
+            "type": "object",
+            "properties": {
+                "actions": {},
+                "limit": {
+                    "type": ["number", "null"]
+                },
+                "errors": {}
+            },
+            "required": ["actions"]
+        },
+        "select": {
+            "type": "object",
+            "allOf": [{ "$ref": "#definitions/select-target" }],
+            "properties": {
+                "name": { "type": ["string", "null"] },
+                "repeated": { "type": "boolean" },
+                "type": { "$ref": "#definitions/select-type" },
+                "union": {}
+            }
+        },
+        "select-action": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "allOf": [{ "$ref": "#definitions/select" }]
+            }
+        },
+        "select-format": {
+            "type": "string",
+            "enum": [
+                "href",
+                "multiline",
+                "singleline",
+                "innertext",
+                "textcontent",
+                "none"
+            ]
+        },
+        "select-target": {
+            "type": "object",
+            "properties": {
+                "active": { "type": "boolean" },
+                "all": { "type": "boolean" },
+                "collate": { "type": "boolean" },
+                "format": { "$ref": "#definitions/select-format" },
+                "hits": { "type": "number" },
+                "limit": { "type": ["number", "null"] },
+                "pattern": { "type": "string" },
+                "pivot": { "$ref": "#definitions/pivot" },
+                "select": {
+                    "type": "array",
+                    "items": [{ "$ref": "#definitions/select" }],
+                    "minItems": 1
+                },
+                "value": {},
+                "when": { "$ref": "#definitions/when" },
+                "$": { "$ref": "#definitions/$$" }
+            }
+        },
+        "select-type": {
+            "type": "string",
+            "enum": [
+                "boolean",
+                "number",
+                "object",
+                "string"
+            ]
+        },
+        "$": {
+            "type": "array"
+        },
+        "$$": {
+            "type": "array",
+            "items": [{ "$ref": "#definitions/$" }]
+        },
+        "snooze-action": {
+            "type": "array",
+            "items": [{ "type": "number" }],
+            "minItems": 1,
+            "maxItems": 2
+        },
+        "transform-action": {
+            "type": "object",
+            "properties": {
+                "active": { "type": "boolean" },
+                "when": { "$ref": "#definitions/when" },
+                "$": { "$ref": "#definitions/$" }
+            },
+            "required": ["$"]
+        },
+        "waitfor-action": {
+            "type": "object",
+            "properties": {
+                "active": { "type": "boolean" },
+                "on": {
+                    "type": "string",
+                    "enum": [
+                        "any",
+                        "all",
+                        "none"
+                    ]
+                },
+                "pattern": { "type": "string" },
+                "required": { "type": "boolean" },
+                "select": {
+                    "type": "array",
+                    "items": [{ "$ref": "#definitions/select" }],
+                    "minItems": 1
+                },
+                "timeout": { "type": "number" },
+                "when": { "$ref": "#definitions/when" },
+                "$": { "$ref": "#definitions/$$" }
+            }
+        },
+        "yield-action": {
+            "type": "object",
+            "properties": {
+                "active": { "type": "boolean" },
+                "timeout": { "type": "number" },
+                "when": { "$ref": "#definitions/when" }
+            }
+        },
+        "when": { "type": "string" }
+    }
+}

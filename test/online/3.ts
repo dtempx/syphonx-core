@@ -3,11 +3,21 @@ import { syphonx, online } from "../common.js";
 
 const test = {
     url: "https://infinite-scroll.com/demo/masonry",
+    //debug: true,
+    //show: true,
     actions: [
         {
             "repeat": {
                 "limit": 8,
                 "actions": [
+                    {
+                        "select": [
+                            {
+                                "name": "_size",
+                                "$": [["img.image-grid__image",["size"]]]
+                            }
+                        ]
+                    },
                     {
                         "transform": [
                             { "$": ["{window}",["scrollBottom"]] }
@@ -17,17 +27,17 @@ const test = {
                         "waitfor": {
                             "select": [
                                 {
-                                    "name": "_last",
+                                    "name": "_more",
                                     "type": "boolean",
-                                    "$": [[".infinite-scroll-last",["attr","style"],["filter","/display: block;/"]]]
+                                    "$": [["img.image-grid__image",["size"],["filter","{ value > _size }"]]]
                                 }
                             ],
-                            "timeout": 5
+                            "timeout": 2
                         }
                     },
                     {
                         "break": {
-                            "when": "{_last}"
+                            "when": "{!_more}"
                         }
                     }
                 ]
@@ -39,7 +49,7 @@ const test = {
                     "name": "images",
                     "type": "string",
                     "repeated": true,
-                    "$": [["img",["attr","src"]]]
+                    "$": [["img.image-grid__image",["attr","src"]]]
                 }
                 
             ]

@@ -3,6 +3,8 @@ test waitfor with required=false (default) with timeout not resulting in error
 test waitfor with required=true with timeout resulting in error
 test selectors with no hits are returned as null
 
+test all the different cases in how formatResult and coerceValue works
+
 test default of limit=1 for non-repeated strings
 test overriding limit for non-repeated strings
 test limit slices both value and nodes
