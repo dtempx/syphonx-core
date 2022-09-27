@@ -1,4 +1,3 @@
-/*
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 
@@ -28,7 +27,7 @@ const test = {
                     "repeated": true,
                     "$": [["ul > li"]],
                     "pivot": {
-                        "$": [[".",["closest","section"],["find","{`div > p:eq(${ pivot.index })`}"]]],
+                        "$": [[".",["closest","section"],["find","{`div > p:eq(${pivot})`}"]]],
                         "select": [
                             {
                                 "name": "name",
@@ -40,7 +39,6 @@ const test = {
                             }
                         ]
                     }
-
                 }
             ]
         }
@@ -58,4 +56,3 @@ describe("pivot/3", () => {
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });
-*/

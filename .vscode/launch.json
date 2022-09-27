@@ -6,34 +6,37 @@
     "configurations": [
         {
             "name": "Launch Program",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
+            "env": { "DEBUG": "1" },
             "program": "${file}",
-            "args": ["--debug"]
+            "args": []
         },
         {
             "name": "Online",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
+            //"env": { "DEBUG": "1" },
             "program": "${workspaceFolder}/online.js",
             "args": ["./test.json", "--debug", "--show"]
         },
         {
             "name": "Offline",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
+            //"env": { "DEBUG": "1" },
             "program": "${workspaceFolder}/offline.js",
-            "args": ["./test.json", "./test.html", "--debug"]
+            "args": ["./test.json", "./test.html"]
         },
         {
             "name": "Run Tests",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
@@ -41,6 +44,7 @@
             "internalConsoleOptions": "openOnSessionStart",
             "outputCapture": "std", // WORKAROUND https://github.com/microsoft/vscode/issues/19750
             "cwd": "${workspaceFolder}",
+            //"env": { "DEBUG": "1" },
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/test/**/*.js",
@@ -51,7 +55,7 @@
         },
         {
             "name": "Run Selected Test",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
@@ -59,6 +63,7 @@
             "internalConsoleOptions": "openOnSessionStart",
             "outputCapture": "std", // WORKAROUND https://github.com/microsoft/vscode/issues/19750
             "cwd": "${workspaceFolder}",
+            "env": { "DEBUG": "1" },
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/test/**/*.js",

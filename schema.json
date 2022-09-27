@@ -13,6 +13,7 @@
                 "type": "object",
                 "properties": {
                     "break": { "$ref": "#definitions/break-action" },
+                    "each": { "$ref": "#definitions/each-action" },
                     "click": { "$ref": "#definitions/click-action" },
                     "repeat": { "$ref": "#definitions/repeat-action" },
                     "select": { "$ref": "#definitions/select-action" },
@@ -33,9 +34,7 @@
         "click-action": {
             "type": "object",
             "properties": {
-                "active": {
-                    "type": "boolean"
-                },
+                "active": { "type": "boolean" },
                 "snooze": {},
                 "required": {
                     "type": "boolean"
@@ -48,6 +47,17 @@
                 "$": { "$ref": "#definitions/$$" }
             },
             "required": ["$"]
+        },
+        "each-action": {
+            "type": "object",
+            "properties": {
+                "$": { "$ref": "#definitions/$$" },
+                "actions": {},
+                "active": { "type": "boolean" },
+                "context": { "$ref": "#definitions/break-action" },
+                "when": {}
+            },
+            "required": ["actions"]
         },
         "pivot": {
             "type": "object",
@@ -65,6 +75,10 @@
                 "errors": {}
             },
             "required": ["actions"]
+        },
+        "context": {
+            "type": ["string", "null"],
+            "description": "Sets context of selector query, or specify null for global context. (default=1)"
         },
         "select": {
             "type": "object",
@@ -101,6 +115,7 @@
                 "active": { "type": "boolean" },
                 "all": { "type": "boolean" },
                 "collate": { "type": "boolean" },
+                "context": { "$ref": "#definitions/break-action" },
                 "format": { "$ref": "#definitions/select-format" },
                 "hits": { "type": "number" },
                 "limit": { "type": ["number", "null"] },

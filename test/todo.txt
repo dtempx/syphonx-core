@@ -1,3 +1,5 @@
+test ["^1"], ["^2"], ...
+
 test debug mode and log output
 test waitfor with required=false (default) with timeout not resulting in error
 test waitfor with required=true with timeout resulting in error
