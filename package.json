@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "SyphonX is a light weight, no-code web-scraper that runs in any browser",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",

@@ -959,16 +959,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private nodeKeys(nodes: JQueryResult | undefined): string[] {
-            const keys = [];
-            if (nodes) {
-                for (const node of nodes) {
-                    const key = this.nodeKey(node);
-                    if (key) {
-                        keys.push(key);
-                    }
-                }
+            if (typeof nodes === "object" && typeof nodes.toArray === "function") {
+                return nodes.toArray().map(node => this.nodeKey(node));
             }
-            return keys;
+            else {
+                return [];
+            }
         }
 
         private pokeContext(context: Omit<SelectContext, 'parent' | 'name'>): void {
