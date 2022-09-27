@@ -29,16 +29,16 @@ describe("errors/2", () => {
     it("not ok", () => expect(result.ok).to.be.false);
     it("errors is of expected length", () => expect(result.errors).to.have.lengthOf(2));
     it("a1 has expected value", () => expect(result.data.a1).to.be.null);    
-    it("a2 has expected value", () => expect(result.data.a1).to.be.null);
-    it("a2 has expected error", () => expect(result.errors).to.include.deep.members([
+    it("a2 has expected value", () => expect(result.data.a2).to.be.equal("Lorum:"));
+    it("has expected errors", () => expect(result.errors).to.include.deep.members([
         {
             code: "eval-error",
-            key: undefined,
+            key: "a1",
             message: `Error evaluating formula "{xyz.endsWith(':')}": xyz is not defined`
         },
         {
             code: "eval-error",
-            key: undefined,
+            key: "a1",
             message: `Failed to resolve operation for "$("div").filter("{xyz.endsWith(':')}")": Error evaluating formula`
         }
     ]));

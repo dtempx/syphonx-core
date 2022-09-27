@@ -1,4 +1,18 @@
+use __ prefix for all internal vars
+
+refactor context to into a private var
+    reconsider _page and _step vars
+    reconsider keypath()
+
+add an each action that queries and dispatches to subactions
+
+
+refactor to a visitor pattern for selection, preverification, and re-entry
+populate nodes in result for dom tracking (see todos: translate result.nodes nodes to ids)
+
+
 what is the difference between `"limit": null` and `"all": true`?
 consider adding support for capturing HTML tables
 fetching non-existant attr causes error Cannot read properties of undefined (reading 'length')
 refactor context so we can report output path at every step in the log output (reconsider context.name and keypath and when context.name is undefined)
+

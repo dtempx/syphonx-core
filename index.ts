@@ -35,7 +35,7 @@ export interface SelectTarget {
     limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited, specify null to force unlimited nodes
     format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
     pattern?: string; // validation pattern (only applies if type=string)
-    collate?: boolean; // collate nodes to single result
+    collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
     when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
     active?: boolean;
 }
@@ -80,9 +80,13 @@ export type SelectFormat = "href" | "multiline" | "singleline" | "innertext" | "
 export type WaitForOn = "any" | "all" | "none";
 
 export interface SelectContext {
-    name: string;
-    nodes: JQueryResult;
-    value: unknown;
+    name?: string;
+    nodes?: JQueryResult;
+    value?: unknown;
+    index?: number;
+    pivot?: number;
+    union?: number;
+    subselect?: boolean;
     parent?: SelectContext;
 }
 
@@ -131,7 +135,6 @@ interface ResolveQueryParams {
     type?: SelectType;
     format?: SelectFormat;
     pattern?: string;
-    context?: SelectContext;
     result?: QueryResult;
 }
 
@@ -148,7 +151,7 @@ interface ResolveQueryOpsParams {
 }
 
 interface DataItem {
-    nodes: number[];
+    nodes: string[];
     value: unknown;
 }
 
@@ -509,11 +512,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     }
 
     function trunc(obj: unknown, max = 80): string {
-        const text = JSON.stringify(obj);
-        if (typeof text === "string")
-            return text.length <= max ? text : `${text[0]}${text.slice(1, max)}…${text[text.length - 1]}`;
-        else
-            return "";
+        if (obj) {
+            const text = JSON.stringify(obj);
+            if (typeof text === "string")
+                return text.length <= max ? text : `${text[0]}${text.slice(1, max)}…${text[text.length - 1]}`;
+        }
+        return "";
     }
 
     function typeName(obj: unknown): string {
@@ -570,7 +574,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         jquery: JQueryStatic & CheerioAPI;
         state: ExtractState;
         online: boolean;
-        //context: SelectContext; // todo: move the select context from a param passed down thru query
     
         constructor(state: ExtractState) {
             this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
@@ -580,8 +583,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             state.errors = state.errors || [];
             state.debug = state.debug || false;
             state.log = state.log || "";
-            state.vars = state.vars || {};
-            state.vars._iteration = 0;
+            state.vars = {
+                __instance: 0,
+                __context: [],
+                ...state.vars
+            };
 
             if (this.online) {
                 state.url = window.location.href;
@@ -658,6 +664,47 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
+        private context(): SelectContext {
+            const stack = this.state.vars.__context as SelectContext[];
+            let j = stack.length - 1;
+            const context = { ...stack[j] };
+            let subcontext = context;
+            while (--j >= 0) {
+                subcontext.parent = { ...stack[j] };
+                subcontext = subcontext.parent;
+            }
+            return context;
+        }
+
+        private contextKey(): string {
+            const stack = this.state.vars.__context as SelectContext[];
+            let key = "";
+            for (const { name, index } of stack) {
+                if (name) {
+                    if (key) {
+                        key += ".";
+                    }
+                    key += name;
+                    if (index !== undefined) {
+                        key += `[${index}]`;
+                    }
+                }
+            }
+            if (stack.length > 0) {
+                const [top] = stack.slice(-1);
+                if (top.pivot !== undefined) {
+                    key += ` PIVOT(${top.pivot})`;
+                }
+                else if (top.union !== undefined) {
+                    key += ` UNION(${top.union})`;
+                }
+                else if (top.subselect !== undefined) {
+                    key += " SUBSELECT";
+                }
+            }
+            return key;
+        }
+
         private async dispatch(action: Action, step: number): Promise<DispatchResult> {
             if (action.hasOwnProperty("select")) {
                 const data = this.select((action as SelectAction).select);
@@ -707,7 +754,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
-        each({ nodes, value }: QueryResult, callback: (node: JQuery, param: unknown) => void) {
+        private each({ nodes, value }: QueryResult, callback: (node: JQuery, param: unknown) => void) {
             if (nodes) {
                 const elements = nodes.toArray();
                 for (let i = 0; i < elements.length; ++i) {
@@ -718,17 +765,22 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        error(code: ExtractErrorCode, message: string, key?: string): void {
+        error(code: ExtractErrorCode, message: string): void {
+            const key = this.contextKey();
             this.state.errors.push({ code, message, key });
-            this.log(`ERROR (${code}): ${message}`);
+            const text = `ERROR ${key ? `${key}:` : ""}${message} [${code}]`
+            this.log(text);
+            //console.error(text); // DEBUG
         }
 
         private evaluate(input: unknown, params: Record<string, unknown> = {}): unknown {
             if (isFormula(input)) {
                 const { data, ...extra } = params;
+                const context = this.context();
                 const args = {
                     ...this.state.vars,
                     ...this.state,
+                    ...context,
                     data: removeDOMRefs(merge(this.state.data, data)),
                     ...extra
                 } as Record<string, unknown>;
@@ -738,7 +790,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     return result;
                 }
                 catch (err) {
-                    this.error("eval-error", `Error evaluating formula "${input}": ${err instanceof Error ? err.message : JSON.stringify(err)}`); // todo: populate key with this.context.path
+                    this.error("eval-error", `Error evaluating formula "${input}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
                     throw new Error("Error evaluating formula");
                 }
             }
@@ -832,14 +884,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return result;
         }
 
-        private keypath(name: string | undefined, context: SelectContext | undefined): string {
-            return context ? `${context.name}.${name || "."}` : `${name || ""}`;
-        }
-
         log(text: string): void {
             if (this.state.debug) {
                 this.state.log += text + "\n";
             }
+            //console.log(text); // DEBUG
         }
 
         private mergeQueryResult(source: QueryResult | undefined, target: QueryResult | undefined): QueryResult | undefined {
@@ -871,7 +920,60 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private query({ $, type, repeated = false, all = false, format, pattern, limit, hits }: QueryParams, context?: SelectContext): QueryResult | undefined {
+        private nodeKey(node: JQueryResult | undefined): string {
+            if (node) {
+                const elements = this.jquery(node.length > 1 ? node[0] : node).parents().addBack().not("html").toArray();
+                const key = elements.map(element =>  `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${element.className ? `.${element.className.replace(/ /g, ".")}` : ""}`).join(" ");
+                return key;    
+            }
+            else {
+                return "";
+            }
+        }
+
+        private nodeKeys(nodes: JQueryResult | undefined): string[] {
+            const keys = [];
+            if (nodes) {
+                for (const node of nodes) {
+                    const key = this.nodeKey(node);
+                    if (key) {
+                        keys.push(key);
+                    }
+                }
+            }
+            return keys;
+        }
+
+        private pokeContext(context: Omit<SelectContext, 'parent' | 'name'>): void {
+            const stack = this.state.vars.__context as SelectContext[];
+            const i = stack.length - 1;
+            if (i >= 0) {
+                stack[i] = { ...stack[i], ...context };
+            }
+            if (context.nodes) {
+                this.log(`--> ${this.contextKey()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)}`);
+            }
+        }
+
+        private popContext(): void {
+            const stack = this.state.vars.__context as SelectContext[];
+            const [top] = stack.slice(-1);
+            this.log(`<<< ${this.contextKey()} [${this.nodeKey(top?.nodes)}] ${stack.length - 1}`);
+            stack.pop();
+        }
+
+        private pushContext(context: Omit<SelectContext, 'parent'>): void {
+            const stack = this.state.vars.__context as SelectContext[];
+            const [top] = stack.slice(-1);
+            stack.push({
+                nodes: top?.nodes,
+                value: top?.value,
+                ...context
+            });
+            this.log(`>>> ${this.contextKey()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)} ${stack.length}`);
+        }
+
+        private query({ $, type, repeated = false, all = false, format, pattern, limit, hits }: QueryParams): QueryResult | undefined {
             if ($ instanceof Array && $.every(query => query instanceof Array) && $[0].length > 0 && !!$[0][0]) {
                 if (limit === undefined && type === "string" && !repeated && !all) {
                     limit = 1;
@@ -879,27 +981,26 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 if (hits === null || hits === undefined) {
                     hits = $.length;
                 }
-                this.log(`QUERY ${$statements($)}`); // todo: log this.context.path when available
                 let hit = 0;
                 let result: QueryResult | undefined = undefined;
                 for (const query of $) {
-                    const subresult = this.resolveQuery({ query, type, repeated, all, limit, format, pattern, context, result });
+                    const subresult = this.resolveQuery({ query, type, repeated, all, limit, format, pattern, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
-                        this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
+                        this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
                         if (subresult.nodes.length > 0) {
                             if (!all) {
-                                this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (first hit)`);
+                                this.log(`[${$.indexOf(query) + 1}/${$.length}] STOP (first hit)`);
                                 break;
                             }
                             if (++hit === hits) {
-                                this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} STOP (${hits} hits)`);
+                                this.log(`[${$.indexOf(query) + 1}/${$.length}] STOP (${hits} hits)`);
                                 break;
                             }
                         }
                     }
                     else {
-                        this.log(`QUERY #${$.indexOf(query) + 1}/${$.length} ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
+                        this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
                     }
                 }
 
@@ -962,19 +1063,22 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQuery({ query, type, repeated, all, limit, format, pattern, context, result }: ResolveQueryParams): QueryResult | undefined {
+        private resolveQuery({ query, type, repeated, all, limit, format, pattern, result }: ResolveQueryParams): QueryResult | undefined {
             let selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
+            const context = this.context();
 
             let nodes: JQueryResult;
             let value: unknown;
             if (selector === "." && context) {
                 nodes = this.jquery(context.nodes);
                 value = context.value;
+                this.log(`QUERY $(".", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
             }
             else if (selector === ".." && context?.parent) {
                 nodes = this.jquery(context.parent.nodes);
                 value = context.parent.value;
+                this.log(`QUERY $("..", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
             }
             else if (selector === "{window}") {
                 nodes = this.online ? this.jquery(window) : this.jquery();
@@ -986,9 +1090,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             else {
                 try {
-                    selector = String(this.evaluate(selector));
-                    nodes = this.resolveQueryNodes(this.jquery(selector, context?.nodes), result?.nodes);
+                    const _selector = String(this.evaluate(selector));
+                    nodes = this.resolveQueryNodes(this.jquery(_selector, context?.nodes), result?.nodes);
                     value = this.text(nodes, format);
+                    if (selector !== _selector) {
+                        this.log(`EVALUATE "${selector}" >>> "${_selector}"`);
+                    }
+                    this.log(`QUERY $("${_selector}", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
                 }
                 catch (err) {
                     this.error("eval-error", `Failed to resolve selector for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
@@ -1033,13 +1141,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: ResolveQueryOpsParams): QueryResult {
             const result: QueryResult = { nodes, value };
-
-            const valid = ops instanceof Array && ops.every(op => op instanceof Array && op.length > 0 && typeof op[0] === "string");
-            if (!valid) {
-                this.error("invalid-operator", `INVALID: ${JSON.stringify(ops)}`);
+            if (!this.validateOperators(ops)) {
                 return result;
             }
-    
+
             const a = ops.slice(0);
             while (a.length > 0) {
                 const [operator, ...operands] = a.shift()!;
@@ -1093,7 +1198,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     else {
                         result.value = null;
                     }
-                    //todo: log
                 }
                 else if (operator === "filter" && (isFormula(operands[0]) || isRegexp(operands[0]))) {
                     if (!this.validateOperands(operator, operands, ["string"])) {
@@ -1137,7 +1241,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (operator === "html" && operands[0] === "inner") {
                     result.value = result.nodes.toArray().map(element => this.jquery(element).html());
-                    //result.value = result.nodes.html().trim();
                 }
                 else if (operator === "map") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
@@ -1180,7 +1283,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     else if (typeof result.value === "string") {
                         result.value = regexpReplace(result.value, regexp, operands[1] as string);
                     }
-                    //todo: log
                 }
                 else if (operator === "replaceHTML") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
@@ -1253,14 +1355,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             .replace(/[ ]{2,}/, " ")
                     );
                 }
-                //else if (operator === "trimAll") {
-                    //todo: implement trimAll
-                //}
                 else if (["appendTo", "each", "prependTo", "insertBefore", "insertAfter", "replaceAll"].includes(operator)) {
                     this.error("invalid-operator", `Operator "${operator}" not supported`);
                     this.break;
                 }
-                // invoke any function within JQuery<T> that matches operator
                 else if (isInvocableFrom(result.nodes, operator)) {
                     this.resolveOperands(operands, result);
                     const delegate = result.nodes as unknown as JQueryDelegate;
@@ -1288,44 +1386,40 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return this.formatResult(result, type, all, limit, format, pattern);
         }
 
-        private select(selects: Select[], context?: SelectContext): unknown {
+        private select(selects: Select[], pivot = false): unknown {
             const data = {} as Record<string, DataItem | null>;
             for (const select of selects) {
                 if (select.active ?? true) {
+                    this.validateSelect(select);
                     let item: DataItem | null = null;
                     if (this.when(select.when)) {
                         if (select.pivot) {
-                            item = this.selectResolvePivot(select, item, context);
+                            item = this.selectResolvePivot(select, item);
                         }
-                        else if (select.union) {
-                            item = this.selectResolveUnion(select, item, context, data);
-                        }
-                        else if (select.$) {
-                            item = this.selectResolve(select, item, context);
-                        }
-                        else if (select.value) {
-                            item = this.selectResolveValue(select, data);
-                            /*
-                            const obj = {
-                                data: merge(this.data, data),
-                                params: this.params,
-                                ...this.state.vars,
-                                ...this.state
-                            };
-                            const value = coerceValue(expandTokens(select.value, obj), select.type || "string");
-                            item = {
-                                nodes: [],
-                                value: select.repeated ? [value] : value
-                            };
-                            */
+                        else {
+                            if (!pivot) {
+                                this.pushContext({ name: select.name });
+                            }
+
+                            if (select.union) {
+                                item = this.selectResolveUnion(select, item, data);
+                            }                        
+                            else if (select.$) {
+                                item = this.selectResolveSelector(select, item);
+                            }
+                            else if (select.value) {
+                                item = this.selectResolveValue(select, data);
+                            }
+    
+                            if (!pivot) {
+                                if (isEmpty(item?.value) && select.required) {
+                                    this.error("select-required", `Required select '${this.contextKey()}' not found`);
+                                }    
+                                this.popContext();
+                            }
                         }
                     }
-    
-                    if (isEmpty(item?.value) && select.required) {
-                        //todo: add path when this.context.path is available
-                        this.error("select-required", `Required select '${context?.name ? `${context.name}.${select.name}` : select.name}' not found`, select.name);
-                    }
-    
+
                     if (select.name?.startsWith("_") && item) {
                         this.state.vars[select.name] = item.value;
                     }
@@ -1340,139 +1434,131 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return data;
         }
 
-        private selectResolve(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
+        private selectResolvePivot(select: Select, item: DataItem | null): DataItem | null {
+            const { pivot, ...superselect } = select;
+            if (pivot) {
+                const result = this.query(select);
+                if (result && result.nodes && result.nodes.length > 0) {
+                    this.pushContext({
+                        name: select.name,
+                        nodes: result.nodes,
+                        value: result.value
+                    });
+                    const elements = result.nodes.toArray();
+                    for (const element of elements) {
+                        const nodes = this.jquery(element);
+                        this.pushContext({
+                            nodes: this.jquery(element),
+                            value: this.text(nodes, select.format),
+                            pivot: elements.indexOf(element)
+                        });
+                        item = this.selectResolveSelector({ ...superselect, ...pivot }, item, true);
+                        this.log(`PIVOT ${this.contextKey()} -> ${typeName(item?.value)}`);
+                        this.popContext();
+                    }
+                    if (isEmpty(item?.value) && select.required) {
+                        this.error("select-required", `Required select '${this.contextKey()}' not found`);
+                    }
+                    this.popContext();
+                }
+                else {
+                    this.log(`PIVOT ${this.contextKey()} EMPTY`);
+                }
+            }
+            return item;
+        }
+
+        private selectResolveSelector(select: Select, item: DataItem | null, pivot = false): DataItem | null {
             let subitem: DataItem | null = null;
             // if select type is unspecified then default to "object" if there is a subselect
             if (select.type === undefined && select.select) {
                 select.type = "object";
             }
-            const result = this.query(select, context);
+            const result = this.query(select);
             if (result) {
                 if (select.type !== "object") {
                     subitem = {
-                        nodes: [], // todo: translate result.nodes nodes to ids
+                        nodes: this.nodeKeys(result.nodes),
                         value: result.value
                     };
                 }
                 else if (select.select) {
+                    this.pushContext({ subselect: true });
                     const n = result.value instanceof Array ? result.value.length : 0;
                     if (select.repeated && result.nodes.length === n && !select.collate) {
                         // select by nodes
                         subitem = {
-                            nodes: [], // todo: translate result.nodes nodes to ids
-                            value: result.nodes.toArray().map((node, i) => {
-                                const subcontext = {
-                                    name: context?.name ? `${context.name}.${select.name}[${i}]` : `${select.name}[${i}]`,
+                            nodes: this.nodeKeys(result.nodes),
+                            value: result.nodes.toArray().map((node, index) => {
+                                this.pokeContext({
                                     nodes: this.jquery(node),
-                                    value: result.value instanceof Array ? result.value[i] : result.value,
-                                    parent: context
-                                };
-                                return this.select(select.select!, subcontext);
+                                    value: result.value instanceof Array ? result.value[index] : result.value,
+                                    index
+                                });
+                                return this.select(select.select!, pivot);
                             })
                         };
                     }
                     else if (select.repeated && result.value instanceof Array && !select.collate) {
                         // select by values (this is common when using split)
                         subitem = {
-                            nodes: [], // todo: translate result.nodes nodes to ids
-                            value: result.value.map((value, i) => {
-                                const subcontext = {
-                                    name: context?.name ? `${context.name}.${select.name}[${i}]` : `${select.name}[${i}]`,
-                                    //nodes: this.jquery(result.nodes[0]),
+                            nodes: this.nodeKeys(result.nodes),
+                            value: result.value.map((value, index) => {
+                                this.pokeContext({
                                     nodes: result.nodes,
                                     value,
-                                    parent: context
-                                };
-                                return this.select(select.select!, subcontext);
+                                    index
+                                });
+                                return this.select(select.select!, pivot);
                             })
                         };
                     }
                     else {
-                        const subcontext = {
-                            name: context?.name ? `${context.name}.${select.name}` : select.name!,
-                            //nodes: this.jquery(result.nodes[0]),
+                        this.pokeContext({
                             nodes: result.nodes,
                             value: result.value,
-                            parent: context
-                        };
+                        });
                         // if collate is true force all to true for each subselect so all node values are included with each subselect
                         const subselect = select.collate ? select.select.map(obj => ({ ...obj, all: true })) : select.select;
-                        const value = this.select(subselect, subcontext);
+                        const value = this.select(subselect, pivot);
                         subitem = {
-                            nodes: [], // todo: translate result.nodes nodes to ids
+                            nodes: this.nodeKeys(result.nodes),
                             value: select.repeated ? [value] : value
                         };
                     }
+                    this.popContext();
                 }
             }
-            this.log(`SELECT ${this.keypath(select.name, context)} -> ${$statements(select.$)} -> ${subitem ? trunc(subitem.value) : "(none)"}${item ? ` merge(${typeName(item?.value)}, ${typeName(subitem?.value)})` : ""}`);
+            this.log(`SELECT ${this.contextKey()} -> ${$statements(select.$)} -> ${subitem ? trunc(subitem.value) : "(none)"}${item ? ` merge(${typeName(item?.value)}, ${typeName(subitem?.value)})` : ""}`);
             return merge(item, subitem);
         }
 
-        private selectResolvePivot(select: Select, item: DataItem | null, context: SelectContext | undefined): DataItem | null {
-            const { pivot, ...superselect } = select;
-            if (pivot) {
-                const result = this.query(select, context);
-                if (result && result.nodes && result.nodes.length > 0) {
-                    const parent: SelectContext = {
-                        name: context?.name ? `${context.name}.${select.name}` : select.name!,
-                        nodes: result.nodes,
-                        value: result.value,
-                        parent: context
-                    };
-                    const elements = result.nodes.toArray();
-                    for (const element of elements) {
-                        const i = elements.indexOf(element);
-                        const nodes = this.jquery(element);
-                        const value = this.text(nodes, select.format);
-                        const subcontext = {
-                            name: context?.name ? `${context.name}.${select.name}[${i}]` : `${select.name}[${i}]`,
-                            nodes,
-                            value,
-                            parent
-                        };
-                        item = this.selectResolve({ ...superselect, ...pivot }, item, subcontext);
-                        this.log(`PIVOT ${subcontext.name} -> ${typeName(item?.value)}`);
-                    }
-                }
-                else {
-                    this.log(`PIVOT ${this.keypath(select.name, context)} EMPTY`);
-                }
-            }
-            return item;
-        }
-
-        private selectResolveUnion(select: Select, item: DataItem | null, context: SelectContext | undefined, data: unknown): DataItem | null {
+        private selectResolveUnion(select: Select, item: DataItem | null, data: unknown): DataItem | null {
             const { union, ...superselect } = select;
             if (union) {
                 for (const subselect of union) {
                     if (subselect.active ?? true) {
                         if (this.when(subselect.when)) {
-                            this.log(`UNION ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
+                            this.pokeContext({
+                                union: union.indexOf(subselect)
+                            });
+                            this.log(`UNION ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
                             if (subselect.pivot) {
-                                item = this.selectResolvePivot({ ...superselect, ...subselect }, item, context);
+                                item = this.selectResolvePivot({ ...superselect, ...subselect }, item);
                             }
                             else if (subselect.$) {
-                                item = this.selectResolve({ ...superselect, ...subselect }, item, context);
+                                item = this.selectResolveSelector({ ...superselect, ...subselect }, item);
                             }
                             else if (subselect.value) {
                                 item = this.selectResolveValue(subselect);
                             }
-                            /*
-                            if (!subselect.pivot) {
-                                item = this.selectResolve({ ...superselect, ...subselect }, item, context);
-                            }
-                            else {
-                                item = this.selectResolvePivot({ ...superselect, ...subselect }, item, context);
-                            }
-                            */
                         }
                         else {
-                            this.log(`UNION SKIPPED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
+                            this.log(`UNION SKIPPED ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
                         }
                     }
                     else {
-                        this.log(`UNION BYPASSED ${this.keypath(select.name, context)} ${union.indexOf(subselect) + 1}/${union.length}`);
+                        this.log(`UNION BYPASSED ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
                     }
                 }
             }
@@ -1562,13 +1648,31 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             for (let i = 0; i < optional.length; ++i) {
                 const j = i + required.length;
-                //if (!isNullOrUndefined(operands[j]) && typeof operands[j] !== optional[i]) {
                 if (operands[j] !== undefined && operands[j] !== null && typeof operands[j] !== optional[i]) {
                     this.error("invalid-operand", `Operand #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`);
                     return false;
                 }
             }
             return true;
+        }
+
+        private validateOperators(ops: SelectQueryOp[]): boolean {
+            const valid = ops instanceof Array && ops.every(op => op instanceof Array && op.length > 0 && typeof op[0] === "string");
+            if (!valid) {
+                this.error("invalid-operator", `Invalid operator in: ${JSON.stringify(ops)}`);
+            }
+            return valid;
+        }
+
+        private validateSelect(select: Select): boolean {
+            const n = (select.$ ? 1 : 0) + (select.union ? 1 : 0) + (select.value ? 1 : 0);
+            if (n !== 1) {
+                this.error("invalid-select", `Select requires one of "$", "union", or "value"`);
+                return false;
+            }
+            else {
+                return true;
+            }
         }
 
         private async waitfor({ $, select, timeout, on = "any", required, pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
@@ -1748,9 +1852,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
     }
 
+    if (typeof state?.vars?.__instance === "number") {
+        state.vars.__instance += 1;
+    }
     const obj = new ExtractContext(state);
-    (obj.state.vars._iteration as number) += 1;
-    obj.log(`ITERATION #${obj.state.vars._iteration}${obj.online ? ` ${window.location.href}` : ""}`);
+    obj.log(`INSTANCE #${obj.state.vars.__instance}${obj.online ? ` ${window.location.href}` : ""}`);
 
     try {
         await obj.execute(obj.state.actions);

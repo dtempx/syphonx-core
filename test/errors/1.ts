@@ -7,6 +7,7 @@ const test = {
         {
             "select": [
                 {
+                    "name": "a1",
                     "$": [["div",["p:first"]]]
                 }
             ]
@@ -21,7 +22,7 @@ describe("errors/1", () => {
     it("errors is of expected length", () => expect(result.errors).to.have.lengthOf(1));
     it("errors has expected value", () => expect(result.errors).to.eql([{
         code: "invalid-operator",
-        key: undefined,
+        key: "a1",
         message: "Operator 'p:first' not found"
     }]));
 });
