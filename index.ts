@@ -551,6 +551,22 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return "unknown";
     }
 
+    function $merge(source: JQuery<HTMLElement>, target: JQuery<HTMLElement>): void {
+        for (const targetAttr of target[0].attributes) {
+            const sourceAttr = Array.from(source[0].attributes).find(attr => attr.name === targetAttr.name);
+            if (sourceAttr && targetAttr.name === "class") {
+                const value = Array.from(new Set([
+                    ...sourceAttr.value.split(" "),
+                    ...targetAttr.value.split(" ")
+                ])).join(" ");
+                source.attr("class", value);
+            }
+            else if (!sourceAttr) {
+                source.attr(targetAttr.name, targetAttr.value);
+            }
+        }
+    }
+
     function $scrollToBottom(delay = 100, max = 100): Promise<number> {
         let n = 0;
         return new Promise(resolve => {
@@ -1350,6 +1366,23 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     });
                     result.value = null;
                 }
+                else if (operator === "replaceTag") {
+                    if (!this.validateOperands(operator, operands, ["string"], ["boolean"])) {
+                        break;
+                    }
+                    const newTag = String(this.evaluate(operands[0], { value: operands[0] }));
+                    const keepProps = operands[1] as boolean ?? true;
+                    this.eachNode(result, node => {
+                        // adapted from https://stackoverflow.com/questions/918792/use-jquery-to-change-an-html-tag
+                        const newNode = this.jquery(newTag);
+                        if (keepProps) {
+                            $merge(newNode, node);
+                        }
+                        node.wrapAll(newNode);
+                        node.contents().unwrap();
+                    });
+                    result.value = null;
+                }
                 else if (operator === "replaceText") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
@@ -1529,7 +1562,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             nodes: this.jquery(element),
                             value: this.text(nodes, select.format),
                             pivot: elements.indexOf(element)
-                        }, undefined);
+                        }, select.context);
                         item = this.selectResolveSelector({ ...superselect, ...pivot }, item, true);
                         this.log(`PIVOT ${this.contextKey()} -> ${typeName(item?.value)}`);
                         this.popContext();
@@ -1746,7 +1779,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private validateSelect(select: Select): boolean {
             const n = (select.$ ? 1 : 0) + (select.union ? 1 : 0) + (select.value ? 1 : 0);
             if (n !== 1) {
-                this.error("invalid-select", `Select requires one of "$", "union", or "value"`);
+                this.error("invalid-select", "Select requires one of '$', 'union', or 'value'");
                 return false;
             }
             else {

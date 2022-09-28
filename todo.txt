@@ -1,3 +1,5 @@
+BUG: key is empty for invalid-select error "Select requires one of"
+
 use __ prefix for all internal vars
 
 refactor context to into a private var
