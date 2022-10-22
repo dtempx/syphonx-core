@@ -164,6 +164,7 @@ export type ExtractErrorCode =
     "click-required" |
     "error-limit" |
     "eval-error" |
+    "external-error" |
     "fatal-error" |
     "invalid-select" |
     "invalid-operator" |

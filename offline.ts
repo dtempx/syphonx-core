@@ -22,11 +22,12 @@ const args = parseArgs({
         const out = args.output ? args.output.split(",") : ["data"];
         const script = await loadJSON(args[0]);
         const url = script.url || args.url;
+        const html = args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true);
 
         const result = await offline({
             ...script,
             url,
-            html: args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true),
+            html,
             debug: out.includes("log"),
             includeDOMRefs: false
         });

@@ -1,3 +1,8 @@
+remove whitespace after an opening tag and before a closing tag { data.replace(/>\s*/g, ">").replace(/\s*</g, "<") }
+
+extractSync function for offline use only
+use a packager like parcel to create the extract function so we can decompose the index.ts file and add unit tests
+
 BUG: key is empty for invalid-select error "Select requires one of"
 
 use __ prefix for all internal vars
