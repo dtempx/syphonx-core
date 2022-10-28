@@ -1,0 +1,21 @@
+{
+    "actions": [
+        {
+            "transform": [
+                { "$": ["a,span,font,strong",["replaceWith","{value.trim()}"]] },
+                { "$": ["div",["replaceWith","{`${value.trim()}<br>`}"]] },
+                { "$": ["p",["html","inner"],["replaceWith","{`<p>${value.trim()}</p>`}"]] },
+                { "$": ["td > p",["unwrap","td"]] },
+                { "$": ["tr > p",["unwrap","tr"]] },
+                { "$": ["tbody > p",["unwrap","tbody"]] },
+                { "$": ["table > p",["unwrap","table"]] }
+            ]
+        },
+        {
+            "select": [{
+                "$": [["main",["html","inner"]]],
+                "all": true
+            }]
+        }
+    ]
+}
