@@ -45,7 +45,7 @@ describe("transform/2", () => {
     it("html h3 has expected output", () => expect(result.html).to.contain(`<h3>lorum ipsum</h3>`));
     it("html h4 has expected output", () => expect(result.html).to.contain(`<h4>1 2 3 ABC 4 5 6</h4>`));
     it("html h5 has expected output", () => expect(result.html).to.contain(`<h5>in VINO veritas</h5>`));
-    it("html div has expected output", () => expect(result.html).to.contain(`<div>credat <b> judias </b> appella</div>`));
+    it("html div has expected output", () => expect(result.html).to.contain(`<div>credat <b>judias</b> appella</div>`));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

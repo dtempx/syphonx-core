@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { browser, loadJSON, parseArgs, offline } from "./common/index.js";
+import { browser, evaluateFormula, loadJSON, offline, parseArgs } from "./common/index.js";
 
 const args = parseArgs({
     required: {
@@ -26,7 +26,7 @@ const args = parseArgs({
 
         const result = await offline({
             ...script,
-            url,
+            url: evaluateFormula(`\`${url}\``, script.params),
             html,
             debug: out.includes("log"),
             includeDOMRefs: false

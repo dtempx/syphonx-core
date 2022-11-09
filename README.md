@@ -1,3 +1,1 @@
-# SyphonX
-
-SyphonX is a data-driven extraction tool that runs in any browser.
+This is the core runtime for the SyphonX web/HTML data extractor, embeddable in any crawling infrastructure.

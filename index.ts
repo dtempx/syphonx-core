@@ -117,6 +117,7 @@ export interface QueryResult {
     nodes: JQueryResult;
     value: unknown;
     valid?: boolean;
+    formatted?: boolean;
 }
 
 export type JQueryResult = JQuery<any>;
@@ -151,6 +152,7 @@ export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
     status: number;
     online: boolean;
     html: string;
+    originalUrl?: string;
 }
 
 export interface ExtractError {
@@ -298,6 +300,20 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         const fn = new Function(...keys, `return ${expression}`);
         const result = fn(...values);
         return result;
+    }
+
+    function formatHTML(value: unknown): unknown {
+        if (typeof value === "string") {
+            return value
+                .replace(/(<[a-z0-9:._-]+>)[ ]*/gi, "$1") // remove all spaces that immediately follow an opening tag
+                .replace(/[ ]*<\//g, "</"); // remove all spaces that immediately precede a closing tag
+        }
+        else if (value instanceof Array && value.every(obj => typeof obj === "string")) {
+            return value.map(obj => formatHTML(obj));
+        }
+        else {
+            return value;
+        }
     }
 
     function formatStringValue(value: string, format: SelectFormat, origin: string): unknown {
@@ -893,13 +909,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
 
             if (type === "string" && result.value instanceof Array) {
-                result.value = result.value.map(value => formatStringValue(coerceValue(value, "string") as string, format, this.state.origin));
+                if (!result.formatted) {
+                    result.value = result.value.map(value => formatStringValue(coerceValue(value, "string") as string, format, this.state.origin));
+                }
                 if (regexp && !isEmpty(result.value)) {
                     result.valid = (result.value as string[]).every(value => regexp.test(value));
                 }
             }
             else if (type === "string") {
-                result.value = formatStringValue(coerceValue(result.value, "string") as string, format, this.state.origin);
+                if (!result.formatted) {
+                    result.value = formatStringValue(coerceValue(result.value, "string") as string, format, this.state.origin);
+                }
                 if (regexp && !isEmpty(result.value)) {
                     result.valid = regexp.test(result.value as string);
                 }
@@ -967,7 +987,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private nodeKey(node: JQueryResult | undefined): string {
             if (node) {
                 const elements = this.jquery(node.length > 1 ? node[0] : node).parents().addBack().not("html").toArray();
-                const key = elements.map(element =>  `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${element.className ? `.${element.className.replace(/ /g, ".")}` : ""}`).join(" ");
+                const key = elements.map(element =>  `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${typeof element.className === "string" ? `.${element.className.replace(/ /g, ".")}` : ""}`).join(" ");
                 return key;    
             }
             else {
@@ -1311,9 +1331,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     else {
                         result.value = result.nodes.toArray().map(element => this.jquery.html(element).toString().trim());
                     }
+                    if (typeof operands[1] === "boolean" ? operands[1] : true) {
+                        result.value = formatHTML(result.value);
+                        result.formatted = true;
+                    }
                 }
                 else if (operator === "html" && operands[0] === "inner") {
                     result.value = result.nodes.toArray().map(element => this.jquery(element).html());
+                    if (typeof operands[1] === "boolean" ? operands[1] : true) {
+                        result.value = formatHTML(result.value);
+                        result.formatted = true;
+                    }
                 }
                 else if (operator === "map") {
                     if (!this.validateOperands(operator, operands, ["string"])) {
@@ -1444,6 +1472,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             .trim()
                             .replace(/[ ]{2,}/, " ")
                     );
+                    result.formatted = false;
                 }
                 else if (["appendTo", "each", "prependTo", "insertBefore", "insertAfter", "replaceAll"].includes(operator)) {
                     this.error("invalid-operator", `Operator "${operator}" not supported`);
@@ -1456,6 +1485,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (isJQueryObject(obj)) {
                         result.nodes = obj;
                         result.value = this.text(result.nodes, format);
+                        result.formatted = false;
                     }
                     else if (repeated) {
                         result.value = result.nodes.toArray().map(element => {
@@ -1463,9 +1493,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             const obj = delegate[operator](...operands);
                             return obj;
                         });
+                        result.formatted = false;
                     }
                     else {
                         result.value = obj;
+                        result.formatted = false;
                     }
                 }
                 else {

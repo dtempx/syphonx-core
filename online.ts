@@ -1,4 +1,4 @@
-import { loadJSON, parseArgs, online } from "./common/index.js";
+import { evaluateFormula, loadJSON, online, parseArgs } from "./common/index.js";
 
 const args = parseArgs({
     required: {
@@ -15,7 +15,7 @@ const args = parseArgs({
     try {
         const out = args.out ? args.out.split(",") : ["data"];
         const script = await loadJSON(args[0]);
-        const url = script.url || args.url;
+        let url = script.url || args.url;
         if (!url) {
             console.warn("Please specify a URL.");
             process.exit(0);
@@ -23,7 +23,7 @@ const args = parseArgs({
 
         const result = await online({
             ...script,
-            url,
+            url: evaluateFormula(`\`${url}\``, script.params),
             show: !!args.show,
             debug: out.includes("log"),
             includeDOMRefs: false,

@@ -1,3 +1,25 @@
+export function evaluateFormula(expression: string, args: Record<string, unknown> = {}): unknown {
+    const keys = Object.keys(args);
+    const values = keys.map(key => args[key]);
+    const fn = new Function(...keys, `return ${expression}`);
+    const result = fn(...values);
+    return result;
+}
+
+export function formatHTML(value: unknown): unknown {
+    if (typeof value === "string") {
+        return value
+            .replace(/(<[a-z0-9:._-]+>)[ ]*/gi, "$1") // remove all spaces that immediately follow an opening tag
+            .replace(/[ ]*<\//g, "</"); // remove all spaces that immediately precede a closing tag
+    }
+    else if (value instanceof Array && value.every(obj => typeof obj === "string")) {
+        return value.map(obj => formatHTML(obj));
+    }
+    else {
+        return value;
+    }
+}
+
 export function isObject(obj: unknown): boolean {
     return typeof obj === "object" && obj !== null && !(obj instanceof Array) && !(obj instanceof Date);
 }

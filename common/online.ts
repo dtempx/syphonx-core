@@ -3,7 +3,7 @@ import * as syphonx from "../index.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { removeDOMRefs } from "./utilities.js";
+import { evaluateFormula, removeDOMRefs } from "./utilities.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,11 +35,12 @@ interface OnlineOptions {
 }
 
 export async function online({ show = false, includeDOMRefs = false, outputHTML = "pre", browserOptions, timeout, ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
-    if (!options.url)
+    if (!options.url || typeof options.url !== "string")
         throw new Error("url not specified");
     if (!options.vars)
         options.vars = {};
 
+    const originalUrl = evaluateFormula(`\`${options.url}\``, options.params) as string;
     let browser: puppeteer.Browser | undefined = undefined;
     let page: puppeteer.Page | undefined = undefined;
     try {
@@ -60,7 +61,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
 
         let status = 0;
         await page.on("response", response => {
-            if (response.url() === options.url) {
+            if (response.url() === originalUrl) {
                 status = response.status();
             }
         });
@@ -72,7 +73,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             const result = await response.text();
             return result;
         });
-        await page.goto(options.url);
+        await page.goto(url);
         await page.evaluate(jquery);
         */
 
@@ -82,7 +83,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         //await page.addScriptTag({ url: "https://code.jquery.com/jquery-3.6.0.slim.min.js" });
         //await page.addScriptTag({ path: require.resolve("jquery") });
 
-        await page.goto(options.url, { waitUntil: "load", timeout });
+        await page.goto(originalUrl, { waitUntil: "load", timeout });
         options.vars._http_status = status;
         await page.evaluate(__jquery);
 
@@ -108,6 +109,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             url,
             domain,
             origin,
+            originalUrl,
             html,
             online: true,
             data: includeDOMRefs ? state.data : removeDOMRefs(state.data)
