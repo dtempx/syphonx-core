@@ -42,6 +42,7 @@ describe("required/1", () => {
     it("errors has expected value", () => expect(result.errors).to.eql([{
         code: "select-required",
         key: "d2",
-        message: "Required select 'd2' not found"
+        message: "Required select 'd2' not found",
+        level: 0
     }]));
 });

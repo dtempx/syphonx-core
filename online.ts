@@ -2,7 +2,7 @@ import { evaluateFormula, loadJSON, online, parseArgs } from "./common/index.js"
 
 const args = parseArgs({
     required: {
-        0: "script file to load"
+        0: "template file to load"
     },
     optional: {
         url: "URL to navigate to",
@@ -14,16 +14,16 @@ const args = parseArgs({
 (async () => {
     try {
         const out = args.out ? args.out.split(",") : ["data"];
-        const script = await loadJSON(args[0]);
-        let url = script.url || args.url;
+        const template = await loadJSON(args[0]);
+        let url = template.url || args.url;
         if (!url) {
             console.warn("Please specify a URL.");
             process.exit(0);
         }
 
         const result = await online({
-            ...script,
-            url: evaluateFormula(`\`${url}\``, script.params),
+            ...template,
+            url: evaluateFormula(`\`${url}\``, template.params),
             show: !!args.show,
             debug: out.includes("log"),
             includeDOMRefs: false,

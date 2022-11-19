@@ -23,6 +23,16 @@ export interface Each {
     active?: boolean;
 }
 
+export interface Error {
+    message: string;
+    code?: ExtractErrorCode; // default is "custom-error"
+    level?: number; // indicates error level, 0 is non-retryable, 1 or above is retryable (default=1)
+    stop?: boolean; // stops processing, default is false if level is 0 or not specified, otherwise true
+    $?: SelectQuery[];
+    when?: When;
+    active?: boolean;
+}
+
 export interface Repeat {
     actions: Action[];
     limit?: number; // max # of repitions (default=100)
@@ -93,6 +103,7 @@ export type Snooze = [number, number];
 export type BreakAction = { break: Break };
 export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
+export type ErrorAction = { error: Error };
 export type RepeatAction = { repeat: Repeat };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
@@ -100,7 +111,17 @@ export type TransformAction = { transform: Transform[] };
 export type WaitForAction = { waitfor: WaitFor };
 export type YieldAction = { yield: Yield };
 
-export type Action = BreakAction | ClickAction | EachAction | RepeatAction | SelectAction | SnoozeAction | TransformAction | WaitForAction | YieldAction;
+export type Action =
+      BreakAction
+    | ClickAction
+    | EachAction
+    | ErrorAction
+    | RepeatAction
+    | SelectAction
+    | SnoozeAction
+    | TransformAction
+    | WaitForAction
+    | YieldAction;
 
 export interface QueryParams {
     $?: SelectQuery[];
@@ -158,12 +179,14 @@ export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
 export interface ExtractError {
     code: ExtractErrorCode;
     message: string;
+    level: number;
     key?: string;
 }
 
 export type ExtractErrorCode = 
     "click-timeout" |
     "click-required" |
+    "custom-error" |
     "error-limit" |
     "eval-error" |
     "external-error" |
@@ -217,7 +240,6 @@ interface SelectContext {
 }
 
 export async function extract(state: ExtractState): Promise<ExtractState> {
-    const _debug = typeof process === "object" && typeof process?.env === "object" && !!process.env.DEBUG;
 
     function collapseWhitespace(text: string, newlines = true): string | null {
         if (typeof text === "string" && text.trim().length === 0) {
@@ -428,7 +450,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         return {};
     }
     
-    function regexpExtract(text: string, regexp: RegExp | string): string | null {
+    function regexpExtract(text: string, regexp: RegExp | string, trim = true): string | null {
         if (typeof regexp === "string") {
             regexp = createRegExp(regexp)!;
             if (!regexp) {
@@ -436,7 +458,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
         const match = regexp.exec(text);
-        return match ? match[1] : null;
+        const result = match ? match[1] : null;
+        if (trim && result) {
+            return result.trim();
+        }
+        else {
+            return result;
+        }
     }
 
     function regexpReplace(text: string, regexp: RegExp, replace: string): string {
@@ -546,7 +574,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             if (typeof text === "string")
                 return text.length <= max ? text : `${text[0]}${text.slice(1, max)}…${text[text.length - 1]}`;
         }
-        return "";
+        return "(empty)";
     }
 
     function typeName(obj: unknown): string {
@@ -619,6 +647,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         jquery: JQueryStatic & CheerioAPI;
         state: ExtractState;
         online: boolean;
+        lastLogLine = "";
+        lastLogLength = 0;
+        lastLogLineCount = 1;
     
         constructor(state: ExtractState) {
             this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
@@ -626,7 +657,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
             state.params = state.params || {};
             state.errors = state.errors || [];
-            state.debug = state.debug || _debug;
+            state.debug = state.debug;
             state.log = state.log || "";
             state.vars = {
                 __instance: 0,
@@ -642,6 +673,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             state.origin = origin || "";
 
             this.state = state;
+        }
+
+        appendError(code: ExtractErrorCode, message: string, level: number): void {
+            const key = this.contextKey();
+            this.state.errors.push({ code, message, key, level });
+            const text = `ERROR ${key ? `${key}: ` : ""}${message} code=${code} level=${level}`
+            this.log(text);
         }
 
         private break({ active, when }: Break): boolean {
@@ -684,7 +722,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                                 }
                             }
                             else if (code === "timeout") {
-                                this.error("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.$)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`);
+                                this.appendError("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.$)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
                                 return "timeout";
                             }
                             else if (code === "invalid") {
@@ -694,7 +732,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     else {
                         if (required) {
-                            this.error("click-required", `Required click target not found. ${trunc($)}`);
+                            this.appendError("click-required", `Required click target not found. ${trunc($)}`, 1);
                         }
                         return "not-found";
                     }
@@ -780,6 +818,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else if (action.hasOwnProperty("each")) {
                 await this.each((action as EachAction).each);
             }
+            else if (action.hasOwnProperty("error")) {
+                this.error((action as ErrorAction).error);
+            }
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
             }
@@ -813,7 +854,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             if (active ?? true) {
                 if (this.when(when, "CLICK")) {
                     const result = this.query({ $, repeated: true });
-                    if (result && result.nodes.length > 0) {
+                    if (result && result.nodes.length > 0) {                        
                         const elements = result.nodes.toArray();
                         for (const element of elements) {
                             const nodes = this.jquery(element);
@@ -845,11 +886,24 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        error(code: ExtractErrorCode, message: string): void {
-            const key = this.contextKey();
-            this.state.errors.push({ code, message, key });
-            const text = `ERROR ${key ? `${key}:` : ""}${message} [${code}]`
-            this.log(text);
+        private error({ $, code = "custom-error", message = "Custom template error", level = 1, stop, active = true, when }: Error): void {
+            if (active) {
+                if ($) {
+                    const result = this.query({ $, type: "boolean", repeated: false });
+                    if (result?.value === false) {
+                        this.appendError(code, String(this.evaluate(message)), level);
+                        if (stop === true || (stop === undefined && level === 0)) {
+                            throw "STOP";
+                        }
+                    }
+                }
+                else if (this.when(when, "ERROR")) {
+                    this.appendError(code, String(this.evaluate(message)), level);
+                    if (stop === true || (stop === undefined && level === 0)) {
+                        throw "STOP";
+                    }
+                }
+            }
         }
 
         private evaluate(input: unknown, params: Record<string, unknown> = {}): unknown {
@@ -869,8 +923,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     return result;
                 }
                 catch (err) {
-                    this.error("eval-error", `Error evaluating formula "${input}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
-                    throw new Error("Error evaluating formula");
+                    this.appendError("eval-error", `Error evaluating formula "${input}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
                 }
             }
             else if (isRegexp(input)) {
@@ -948,10 +1001,16 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         log(text: string): void {
             if (this.state.debug) {
-                this.state.log += text + "\n";
-            }
-            if (_debug) {
-                console.log(text);
+                // if the last line is repeated then append "X#" to the end
+                if (this.lastLogLine === text) {
+                    this.state.log = `${this.state.log.slice(0, this.lastLogLength)}${text} X${++this.lastLogLineCount}\n`;
+                }
+                else {
+                    this.lastLogLine = text;
+                    this.lastLogLength = this.state.log.length;
+                    this.lastLogLineCount = 1;
+                    this.state.log += text + "\n";
+                }
             }
         }
 
@@ -1045,7 +1104,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             else {
                 stack.push(context);
-                this.error("eval-error", `Undefined context #${inherit}`);
+                this.appendError("eval-error", `Undefined context #${inherit}`, 1);
             }
             this.log(`>>> ${this.contextKeyInfo()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)} ${stack.length}`);
         }
@@ -1064,7 +1123,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     const subresult = this.resolveQuery({ query, type, repeated, all, limit, format, pattern, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
-                        this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
+                        //this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
                         if (subresult.nodes.length > 0) {
                             if (!all) {
                                 this.log(`[${$.indexOf(query) + 1}/${$.length}] STOP (first hit)`);
@@ -1077,7 +1136,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                     }
                     else {
-                        this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
+                        //this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
                     }
                 }
 
@@ -1116,7 +1175,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
                     errorCount = this.state.errors.length - baselineErrorCount;
                     if (errorCount >= errors) {
-                        this.error("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`);
+                        this.appendError("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`, 1);
                         break;
                     }
                 }
@@ -1169,7 +1228,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     this.log(`QUERY $(${selector}, [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);    
                 }
                 else {
-                    this.error("eval-error", `Invalid context for selector "${selector}"`);
+                    this.appendError("eval-error", `Invalid context for selector "${selector}"`, 0);
                     return undefined;
                 }
             }
@@ -1192,7 +1251,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     this.log(`QUERY $("${_selector}", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
                 }
                 catch (err) {
-                    this.error("eval-error", `Failed to resolve selector for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    this.appendError("eval-error", `Failed to resolve selector for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
                     return undefined;
                 }
             }
@@ -1202,7 +1261,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value });
                 }
                 catch (err) {
-                    this.error("eval-error", `Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    this.appendError("eval-error", `Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
                     return undefined;
                 }
             }
@@ -1263,16 +1322,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                 }
                 else if (operator === "extract") {
-                    if (!this.validateOperands(operator, operands, ["string"], ["boolean"])) {
+                    if (!this.validateOperands(operator, operands, ["string"], ["boolean","boolean"])) {
                         break;
                     }
                     const regexp = createRegExp(operands[0]);
                     const keepUnmatchedItems = operands[1] as boolean;
+                    const trim = operands[2] as boolean ?? true;
                     if (!regexp) {
-                        this.error("invalid-operand", `Invalid regular expression for "extract"`);
+                        this.appendError("invalid-operand", `Invalid regular expression for "extract"`, 0);
                     }
                     else if (result.value instanceof Array && result.value.every(value => typeof value === "string")) {
-                        const values = result.value.map(value => regexpExtract(value.trim(), regexp));
+                        const values = result.value.map(value => regexpExtract(value.trim(), regexp, trim));
                         if (!keepUnmatchedItems) {
                             const elements = result.nodes.toArray();
                             for (let i = result.value.length - 1; i >= 0; --i) {
@@ -1286,7 +1346,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         result.value = values;
                     }
                     else if (typeof result.value === "string") {
-                        result.value = regexpExtract(result.value.trim(), regexp);
+                        result.value = regexpExtract(result.value.trim(), regexp, trim);
                     }
                     else {
                         result.value = null;
@@ -1376,7 +1436,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     const regexp = createRegExp(operands[0]);
                     if (!regexp) {
-                        this.error("invalid-operand", `Invalid regular expression for "replace"`);
+                        this.appendError("invalid-operand", `Invalid regular expression for "replace"`, 0);
                     }
                     else if (result.value instanceof Array && result.value.every(value => typeof value === "string")) {
                         result.value = result.value.map(value => regexpReplace(value, regexp, operands[1] as string));
@@ -1475,7 +1535,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     result.formatted = false;
                 }
                 else if (["appendTo", "each", "prependTo", "insertBefore", "insertAfter", "replaceAll"].includes(operator)) {
-                    this.error("invalid-operator", `Operator "${operator}" not supported`);
+                    this.appendError("invalid-operator", `Operator "${operator}" not supported`, 0);
                     this.break;
                 }
                 else if (isInvocableFrom(result.nodes, operator)) {
@@ -1501,7 +1561,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                 }
                 else {
-                    this.error("invalid-operator", `Operator '${operator}' not found`);
+                    this.appendError("invalid-operator", `Operator '${operator}' not found`, 0);
                     break;
                 }
             }
@@ -1556,7 +1616,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     
                             if (!pivot) {
                                 if (isEmpty(item?.value) && select.required) {
-                                    this.error("select-required", `Required select '${this.contextKey()}' not found`);
+                                    this.appendError("select-required", `Required select '${this.contextKey()}' not found`, 0);
                                 }    
                                 this.popContext();
                             }
@@ -1601,7 +1661,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         this.popContext();
                     }
                     if (isEmpty(item?.value) && select.required) {
-                        this.error("select-required", `Required select '${this.contextKey()}' not found`);
+                        this.appendError("select-required", `Required select '${this.contextKey()}' not found`, 0);
                     }
                     this.popContext();
                 }
@@ -1787,14 +1847,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private validateOperands(operator: SelectQueryOperator, operands: SelectQueryOperand[], required: Array<"string" | "number" | "boolean">, optional: Array<"string" | "number" | "boolean"> = []): boolean {
             for (let i = 0; i < required.length; ++i) {
                 if (typeof operands[i] !== required[i]) {
-                    this.error("invalid-operand", `Operand #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`);
+                    this.appendError("invalid-operand", `Operand #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`, 0);
                     return false;
                 }
             }
             for (let i = 0; i < optional.length; ++i) {
                 const j = i + required.length;
                 if (operands[j] !== undefined && operands[j] !== null && typeof operands[j] !== optional[i]) {
-                    this.error("invalid-operand", `Operand #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`);
+                    this.appendError("invalid-operand", `Operand #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`, 0);
                     return false;
                 }
             }
@@ -1804,7 +1864,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private validateOperators(ops: SelectQueryOp[]): boolean {
             const valid = ops instanceof Array && ops.every(op => op instanceof Array && op.length > 0 && typeof op[0] === "string");
             if (!valid) {
-                this.error("invalid-operator", `Invalid operator in: ${JSON.stringify(ops)}`);
+                this.appendError("invalid-operator", `Invalid operator in: ${JSON.stringify(ops)}`, 0);
             }
             return valid;
         }
@@ -1812,7 +1872,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private validateSelect(select: Select): boolean {
             const n = (select.$ ? 1 : 0) + (select.union ? 1 : 0) + (select.value ? 1 : 0);
             if (n !== 1) {
-                this.error("invalid-select", "Select requires one of '$', 'union', or 'value'");
+                this.appendError("invalid-select", "Select requires one of '$', 'union', or 'value'", 0);
                 return false;
             }
             else {
@@ -1858,7 +1918,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             let pass = false;
             let result = undefined;
             while (!pass && elapsed < timeout) {
-                const type = pattern ? "string": "boolean";
+                const type = pattern ? "string" : "boolean";
                 const all = on === "all";
                 result = this.query({ $, type, pattern, all, repeated: all });
                 if (result) {
@@ -1891,13 +1951,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            const message = `${context ? `${context} ` : ""}WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            const message = `${context ? `${context} ` : ""}WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
             this.log(message);
             if (pass) {
                 return null;
             }
             else if (required) {
-                this.error("waitfor-timeout", message);
+                this.appendError("waitfor-timeout", message, 1);
                 return "timeout";
             }
             else {
@@ -1908,7 +1968,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
-                    this.error("invalid-select", "waitfor select must all be internal, boolean, and not repeated");
+                    this.appendError("invalid-select", "waitfor select must all be internal, boolean, and not repeated", 0);
                     return "invalid";
                 }
             }
@@ -1951,13 +2011,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            const message = `${context ? `${context} ` : ""}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            const message = `${context ? `${context} ` : ""}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
             this.log(message);
             if (pass) {
                 return null;
             }
             else if (required) {
-                this.error("waitfor-timeout", message);
+                this.appendError("waitfor-timeout", message, 1);
                 return "timeout";
             }
             else {
@@ -2007,7 +2067,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         await obj.run(obj.state.actions);
     }
     catch (err) {
-        obj.error("fatal-error", err instanceof Error ? `${err.message}\n${err.stack}` : JSON.stringify(err));
+        if (err === "STOP") {
+            obj.log("STOPPED");
+        }
+        else {
+            obj.appendError("fatal-error", err instanceof Error ? `${err.message}\n${err.stack}` : JSON.stringify(err), 0);
+        }
     }
     return obj.state;
 }

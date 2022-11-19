@@ -36,24 +36,28 @@ describe("extract/2", () => {
     it("a1 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a1",
-        message: `Operand #1 of "extract" is invalid: "undefined" is not a string`
+        message: `Operand #1 of "extract" is invalid: "undefined" is not a string`,
+        level: 0
     }]));
     it("a2 has expected value", () => expect(result.data.a1).to.equal("xyz"));
     it("a2 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a2",
-        message: `Operand #1 of "extract" is invalid: "0" is not a string`
+        message: `Operand #1 of "extract" is invalid: "0" is not a string`,
+        level: 0
     }]));
     it("a3 has expected value", () => expect(result.data.a3).to.equal("xyz"));
     it("a3 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a3",
-        message: `Operand #2 of "extract" is invalid: "???" is not a boolean`
+        message: `Operand #2 of "extract" is invalid: "???" is not a boolean`,
+        level: 0
     }]));
     it("a4 has expected value", () => expect(result.data.a4).to.equal("xyz"));
     it("a4 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a4",
-        message: `Invalid regular expression for "extract"`
+        message: `Invalid regular expression for "extract"`,
+        level: 0
     }]));
 });

@@ -91,16 +91,20 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         if (outputHTML === "pre")
             html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
 
-        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, options as any);
+        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug: process.env.DEBUG ? true : undefined });
         while (state.yield) {
             await page.waitForNavigation({ waitUntil: "load", timeout: state.yield.timeout || timeout });
+            await page.evaluate(__jquery);
             state.yield === undefined;
-            state.vars._http_status = status;
+            state.vars.__status = status;
             state = await page.evaluate(syphonx.extract, state as any);
         }
 
         if (outputHTML === "post")
             html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
+
+        if (process.env.DEBUG)
+            console.log(state.log);
 
         return {
             ...state,

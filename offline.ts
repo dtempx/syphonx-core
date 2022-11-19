@@ -3,7 +3,7 @@ import { browser, evaluateFormula, loadJSON, offline, parseArgs } from "./common
 
 const args = parseArgs({
     required: {
-        0: "script file to load"
+        0: "template file to load"
     },
     optional: {
         1: "HTML file to load",
@@ -19,14 +19,14 @@ const args = parseArgs({
 
 (async () => {
     try {
-        const out = args.output ? args.output.split(",") : ["data"];
-        const script = await loadJSON(args[0]);
-        const url = script.url || args.url;
+        const out = args.out ? args.out.split(",") : ["data"];
+        const template = await loadJSON(args[0]);
+        const url = template.url || args.url;
         const html = args[1] ? fs.readFileSync(args[1], "utf8") : await browser.html(url, true);
 
         const result = await offline({
-            ...script,
-            url: evaluateFormula(`\`${url}\``, script.params),
+            ...template,
+            url: evaluateFormula(`\`${url}\``, template.params),
             html,
             debug: out.includes("log"),
             includeDOMRefs: false

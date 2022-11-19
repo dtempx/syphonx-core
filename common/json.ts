@@ -1,15 +1,14 @@
 import * as fs from "async-file";
-import stripJsonComments from "strip-json-comments";
+import JSON5 from "json5";
 
 export async function loadJSON(file: string): Promise<any> {
     const text = await fs.readTextFile(file);
-    const json = stripJsonComments(text);
-    return JSON.parse(json);
+    return JSON5.parse(text);
 }
 
 export function parseJSON(text: string, strict = true): any {
     if (strict) {
-        return JSON.parse(text);
+        return JSON5.parse(text);
     } else {
         return new Function(`return ${text}`)();
     }
