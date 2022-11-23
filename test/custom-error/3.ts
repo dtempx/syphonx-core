@@ -30,6 +30,7 @@ describe("custom-errors/3", () => {
         code: "custom-error",
         key: "",
         message: "h2 not found",
-        level: 2
+        level: 2,
+        stack: undefined
     }]));
 });

@@ -1,7 +1,10 @@
 import { CheerioAPI } from "cheerio";
 
 export interface Break {
-    when?: When;
+    $?: SelectQuery[];
+    on?: SelectOn; // only used with $
+    pattern?: string; // only used with $, waits for a specific text pattern if specified
+    when?: When; // if when is specified then when is evaluated first, and then $ is evaluated next if specified, if when not specified then $ is evaluated by itself
     active?: boolean;
 }
 
@@ -76,17 +79,19 @@ export interface Transform {
 export interface WaitFor {
     $?: SelectQuery[];
     select?: Select[];
-    timeout?: number;
-    on?: WaitForOn;
+    on?: SelectOn; // used with $ or select
+    timeout?: number; // used with $ or select
     pattern?: string; // waits for a specific text pattern if specified
     required?: boolean; // indicates whether processing should stop with an error on timeout
-    when?: When;
+    when?: When; // if when is specified then when is evaluated first, and then $ or select is evaluated next if specified, if when not specified then $ or select are evaluated by itself
     active?: boolean;
 }
 
+export type DocumentLoadState = "load" | "domcontentloaded" | "networkidle";
 export interface Yield {
     when?: When;
     timeout?: number;
+    waitUntil?: DocumentLoadState | DocumentLoadState[];
     active?: boolean;
 }
 
@@ -96,7 +101,7 @@ export type SelectQueryOp = [string, ...unknown[]];
 export type SelectQueryOperator = string;
 export type SelectQueryOperand = unknown;
 export type SelectFormat = "href" | "multiline" | "singleline" | "innertext" | "textcontent" | "none";
-export type WaitForOn = "any" | "all" | "none";
+export type SelectOn = "any" | "all" | "none";
 
 export type Snooze = [number, number];
 
@@ -151,6 +156,7 @@ export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //
 export interface YieldResult {
     step: number;
     timeout?: number;
+    waitUntil?: DocumentLoadState | DocumentLoadState[];
 }
 
 export interface ExtractState {
@@ -181,6 +187,7 @@ export interface ExtractError {
     message: string;
     level: number;
     key?: string;
+    stack?: string;
 }
 
 export type ExtractErrorCode = 
@@ -649,7 +656,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         online: boolean;
         lastLogLine = "";
         lastLogLength = 0;
-        lastLogLineCount = 1;
+        lastLogTimestamp = 0;
     
         constructor(state: ExtractState) {
             this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
@@ -675,18 +682,28 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.state = state;
         }
 
-        appendError(code: ExtractErrorCode, message: string, level: number): void {
+        appendError(code: ExtractErrorCode, message: string, level: number, stack?: string): void {
             const key = this.contextKey();
-            this.state.errors.push({ code, message, key, level });
-            const text = `ERROR ${key ? `${key}: ` : ""}${message} code=${code} level=${level}`
+            this.state.errors.push({ code, message, key, level, stack });
+            const text = `ERROR ${key ? `${key}: ` : ""}${message} code=${code} level=${level}${stack ? `\n${stack}` : ""}`
             this.log(text);
         }
 
-        private break({ active, when }: Break): boolean {
-            if (this.online && (active ?? true)) {
+        private break({ $, on = "any", pattern, when, active = true }: Break): boolean {
+            if (this.online && active) {
                 if (this.when(when, "BREAK")) {
-                    this.log(`BREAK ${when}`);
-                    return true;
+                    if ($) {
+                        this.log(`BREAK WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
+                        const result = this.queryCheck($, on, pattern);
+                        if (result === null) {
+                            this.log(`BREAK ${when}`);
+                            return true;    
+                        }
+                    }
+                    else {
+                        this.log(`BREAK ${when}`);
+                        return true;
+                    }
                 }
                 else {
                     this.log(`BREAK SKIPPED ${when}`);
@@ -1001,14 +1018,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         log(text: string): void {
             if (this.state.debug) {
-                // if the last line is repeated then append "X#" to the end
+                // if the last line is repeated then append elapsed time to the end
                 if (this.lastLogLine === text) {
-                    this.state.log = `${this.state.log.slice(0, this.lastLogLength)}${text} X${++this.lastLogLineCount}\n`;
+                    const elapsed = (new Date().valueOf() - this.lastLogTimestamp) / 1000;
+                    this.state.log = `${this.state.log.slice(0, this.lastLogLength)}${text} (${elapsed.toFixed(1)}s)\n`;
                 }
                 else {
                     this.lastLogLine = text;
                     this.lastLogLength = this.state.log.length;
-                    this.lastLogLineCount = 1;
+                    this.lastLogTimestamp = new Date().valueOf();
                     this.state.log += text + "\n";
                 }
             }
@@ -1153,6 +1171,38 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     return result;
                 }
             }
+        }
+
+        private queryCheck($: SelectQuery[], on: SelectOn, pattern: string | undefined): [boolean, QueryResult | undefined] {
+            const type = pattern ? "string" : "boolean";
+            const all = on === "all";
+            const result = this.query({ $, type, pattern, all, repeated: all });
+            let pass = false;
+            if (result) {
+                if (type === "boolean") {
+                    if (on === "any") {
+                        pass = result.value === true;
+                    }
+                    else if (on === "all") {
+                        pass = (result.value as boolean[]).every(value => value === true);
+                    }
+                    else if (on === "none") {
+                        pass = result.value === false;
+                    }
+                }
+                else if (type === "string") {
+                    if (on === "any") {
+                        pass = !isEmpty(trim(result.value as string)) && result.valid !== false;
+                    }
+                    else if (on === "all") {
+                        pass = (result.value as string[]).every(value => !isEmpty(trim(value))) && result.valid !== false;
+                    }
+                    else if (on === "none") {
+                        pass = !(!isEmpty(trim(result.value as string)) && result.valid !== false);
+                    }
+                }
+            }
+            return [pass, result];
         }
 
         private async repeat({ actions, limit = 100, errors = 1 }: Repeat): Promise<void> {
@@ -1536,7 +1586,6 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
                 else if (["appendTo", "each", "prependTo", "insertBefore", "insertAfter", "replaceAll"].includes(operator)) {
                     this.appendError("invalid-operator", `Operator "${operator}" not supported`, 0);
-                    this.break;
                 }
                 else if (isInvocableFrom(result.nodes, operator)) {
                     this.resolveOperands(operands, result);
@@ -1870,7 +1919,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private validateSelect(select: Select): boolean {
-            const n = (select.$ ? 1 : 0) + (select.union ? 1 : 0) + (select.value ? 1 : 0);
+            const n = (select.$ !== undefined ? 1 : 0) + (select.union !== undefined ? 1 : 0) + (select.value !== undefined ? 1 : 0);
             if (n !== 1) {
                 this.appendError("invalid-select", "Select requires one of '$', 'union', or 'value'", 0);
                 return false;
@@ -1912,39 +1961,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitforQuery($: SelectQuery[], on: WaitForOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
+        private async waitforQuery($: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
             let result = undefined;
             while (!pass && elapsed < timeout) {
-                const type = pattern ? "string" : "boolean";
-                const all = on === "all";
-                result = this.query({ $, type, pattern, all, repeated: all });
-                if (result) {
-                    if (type === "boolean") {
-                        if (on === "any") {
-                            pass = result.value === true;
-                        }
-                        else if (on === "all") {
-                            pass = (result.value as boolean[]).every(value => value === true);
-                        }
-                        else if (on === "none") {
-                            pass = result.value === false;
-                        }
-                    }
-                    else if (type === "string") {
-                        if (on === "any") {
-                            pass = !isEmpty(trim(result.value as string)) && result.valid !== false;
-                        }
-                        else if (on === "all") {
-                            pass = (result.value as string[]).every(value => !isEmpty(trim(value))) && result.valid !== false;
-                        }
-                        else if (on === "none") {
-                            pass = !(!isEmpty(trim(result.value as string)) && result.valid !== false);
-                        }
-                    }
-                }
+                [pass, result] = this.queryCheck($, on, pattern);
                 if (!pass) {
                     await sleep(100);
                 }
@@ -1965,7 +1988,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitforSelect(selects: Select[], on: WaitForOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
+        private async waitforSelect(selects: Select[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
                     this.appendError("invalid-select", "waitfor select must all be internal, boolean, and not repeated", 0);
@@ -2071,7 +2094,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             obj.log("STOPPED");
         }
         else {
-            obj.appendError("fatal-error", err instanceof Error ? `${err.message}\n${err.stack}` : JSON.stringify(err), 0);
+            obj.appendError("fatal-error", err instanceof Error ? err.message : JSON.stringify(err), 0, err instanceof Error ? err.stack : undefined);
         }
     }
     return obj.state;

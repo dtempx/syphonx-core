@@ -27,7 +27,8 @@ describe("errors/2", () => {
             code: "eval-error",
             key: "a1",
             message: `Error evaluating formula "{xyz.endsWith(':')}": xyz is not defined`,
-            level: 0
+            level: 0,
+            stack: undefined
         }
     ]));
 });

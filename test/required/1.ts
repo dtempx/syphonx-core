@@ -43,6 +43,7 @@ describe("required/1", () => {
         code: "select-required",
         key: "d2",
         message: "Required select 'd2' not found",
-        level: 0
+        level: 0,
+        stack: undefined
     }]));
 });

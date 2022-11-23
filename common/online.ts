@@ -9,17 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const __jquery = fs.readFileSync(path.resolve(__dirname, "../node_modules/jquery/dist/jquery.slim.min.js"), "utf8");
 
-const defaultBrowserOptions = {
-    useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36",
+const defaults = {
+    useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
     headers: { "Accept-Language": "en-US,en" },
     viewport: { width: 1366, height: 768 }
 };
-
-interface BrowserOptions {
-    useragent?: string;
-    headers?: Record<string, string>;
-    viewport?: { width: number, height: number };
-}
 
 interface OnlineOptions {
     actions: syphonx.Action[];
@@ -28,13 +22,31 @@ interface OnlineOptions {
     vars?: Record<string, unknown>;
     show?: boolean;
     debug?: boolean;
-    timeout?: number;
-    browserOptions?: BrowserOptions;
+    timeout?: number; // seconds
+    useragent?: string;
+    headers?: Record<string, string>;
+    viewport?: { width: number, height: number };
+    waitUntil?: syphonx.DocumentLoadState | syphonx.DocumentLoadState[];
     includeDOMRefs?: boolean;
     outputHTML?: "pre" | "post";
 }
 
-export async function online({ show = false, includeDOMRefs = false, outputHTML = "pre", browserOptions, timeout, ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
+function asPuppeteerLifeCycleEvent(state: syphonx.DocumentLoadState | syphonx.DocumentLoadState[] | undefined): puppeteer.PuppeteerLifeCycleEvent | puppeteer.PuppeteerLifeCycleEvent[] | undefined {
+    if (state instanceof Array)
+        return state.map(value => asPuppeteerLifeCycleEvent(value) as puppeteer.PuppeteerLifeCycleEvent);
+    else if (state === "load")
+        return "load";
+    else if (state === "domcontentloaded")
+        return "domcontentloaded";
+    else if (state === "networkidle")
+        return "networkidle2";
+    else if (state === "none")
+        return undefined;
+    else
+        return "load";
+}
+
+export async function online({ show = false, includeDOMRefs = false, outputHTML = "pre", ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
     if (!options.url || typeof options.url !== "string")
         throw new Error("url not specified");
     if (!options.vars)
@@ -54,10 +66,9 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         });
 
         page = await browser.newPage();
-        const { useragent, headers, viewport } = { ...defaultBrowserOptions, ...browserOptions };
-        await page.setUserAgent(useragent);
-        await page.setExtraHTTPHeaders(headers);
-        await page.setViewport(viewport);
+        await page.setUserAgent(options.useragent || defaults.useragent);
+        await page.setExtraHTTPHeaders({ ...defaults.headers, ...options.headers });
+        await page.setViewport(options.viewport || defaults.viewport);
 
         let status = 0;
         await page.on("response", response => {
@@ -66,24 +77,9 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             }
         });
 
-        //await page.goto(url, { waitUntil: "networkidle0" });
-        /*
-        const jquery = await page.evaluate(async () => {
-            const response = await window.fetch("https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js");
-            const result = await response.text();
-            return result;
-        });
-        await page.goto(url);
-        await page.evaluate(jquery);
-        */
-
-        // https://stackoverflow.com/questions/46987516/inject-jquery-into-puppeteer-page
-        //await page.evaluate(__jquery);
-        //await page.addScriptTag({ path: path.resolve(__dirname, "../node_modules/jquery/dist/jquery.slim.min.js") });
-        //await page.addScriptTag({ url: "https://code.jquery.com/jquery-3.6.0.slim.min.js" });
-        //await page.addScriptTag({ path: require.resolve("jquery") });
-
-        await page.goto(originalUrl, { waitUntil: "load", timeout });
+        const timeout = typeof options.timeout === "number" ? options.timeout * 1000 : undefined;
+        const waitUntil = asPuppeteerLifeCycleEvent(options.waitUntil);
+        await page.goto(originalUrl, { timeout, waitUntil });
         options.vars._http_status = status;
         await page.evaluate(__jquery);
 
@@ -91,12 +87,17 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         if (outputHTML === "pre")
             html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
 
-        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug: process.env.DEBUG ? true : undefined });
+        const debug = options.debug || !!process.env.DEBUG;
+        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug });
         while (state.yield) {
-            await page.waitForNavigation({ waitUntil: "load", timeout: state.yield.timeout || timeout });
+            await page.waitForNavigation({
+                timeout: state.yield.timeout ? state.yield.timeout : timeout,
+                waitUntil: state.yield.waitUntil ? asPuppeteerLifeCycleEvent(state.yield.waitUntil) : waitUntil
+            });
             await page.evaluate(__jquery);
             state.yield === undefined;
             state.vars.__status = status;
+            state.debug = debug;
             state = await page.evaluate(syphonx.extract, state as any);
         }
 

@@ -29,13 +29,15 @@ describe("cut/2", () => {
         code: "invalid-operand",
         key: "a1",
         message: `Operand #1 of "cut" is invalid: "undefined" is not a string`,
-        level: 0
+        level: 0,
+        stack: undefined
     }]));
     it("a2 has expected value", () => expect(result.data.a1).to.equal("xyz"));    
     it("a2 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a2",
         message: `Operand #1 of "cut" is invalid: "0" is not a string`,
-        level: 0
+        level: 0,
+        stack: undefined
     }]));
 });

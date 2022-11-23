@@ -39,7 +39,8 @@ describe("custom-errors/1", () => {
         code: "custom-error",
         key: "",
         message: "xyz error",
-        level: 1
+        level: 1,
+        stack: undefined
     }]));
     it("_h1 has expected value", () => expect(result.vars._h1).to.equal("xyz"));
     it("_p has expected value", () => expect(result.vars._p).to.equal("abc"));

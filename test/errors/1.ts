@@ -24,6 +24,7 @@ describe("errors/1", () => {
         code: "invalid-operator",
         key: "a1",
         message: "Operator 'p:first' not found",
-        level: 0
+        level: 0,
+        stack: undefined
     }]));
 });
