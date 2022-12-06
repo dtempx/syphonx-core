@@ -17,14 +17,14 @@ const actions = [
         "select": [
             {
                 "name": "_lang",
-                "$": [
+                "query": [
                     ["h3:contains('Name')",["map","en"]],
                     ["h3:contains('Nom')",["map","it"]]
                 ]
             },
             {
                 "name": "name",
-                "$": [["{`h3:contains('${params[_lang]?.name}') + div`}"]]
+                "query": [["{`h3:contains('${params[_lang]?.name}') + div`}"]]
             }
         ]
     }

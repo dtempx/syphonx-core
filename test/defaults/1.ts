@@ -8,7 +8,7 @@ const test = {
         {
             "select": [
                 {
-                    "$": [["h1"]]
+                    "query": [["h1"]]
                 }
             ]
         }

@@ -26,68 +26,68 @@ const test = {
             "select": [
                 {
                     "name": "h1",
-                    "$": [["h1"]]
+                    "query": [["h1"]]
                 },
                 {
                     "name": "p1",
-                    "$": [["p"]]
+                    "query": [["p"]]
                 },
                 {
                     "name": "p2",
-                    "$": [["p",["text"]]]
+                    "query": [["p",["text"]]]
                 },
                 {
                     "name": "p3",
-                    "$": [["p",["html"],["text"]]]
+                    "query": [["p",["html"],["text"]]]
                 },
                 {
                     "name": "p4",
-                    "$": [["p",["text","inline"]]]
+                    "query": [["p",["text","inline"]]]
                 },
                 {
                     "name": "s1",
-                    "$": [["#s1"]]
+                    "query": [["#s1"]]
                 },
                 {
                     "name": "s2",
-                    "$": [["#s2"]]
+                    "query": [["#s2"]]
                 },
                 {
                     "name": "d1",
-                    "$": [["#d1"]]
+                    "query": [["#d1"]]
                 },
                 {
                     "name": "d2",
-                    "$": [["#d2"]],
+                    "query": [["#d2"]],
                     "format": "none"
                 },
                 {
                     "name": "d3",
-                    "$": [["#d3"]],
+                    "query": [["#d3"]],
                     "format": "singleline"
                 },
                 {
                     "name": "d4",
-                    "$": [["#d3"]],
+                    "query": [["#d3"]],
                     "format": "multiline"
                 },
                 {
                     "name": "q1",
-                    "$": [["q"]]
+                    "query": [["q"]]
                 },
                 {
                     "name": "q2",
-                    "$": [["q"]],
+                    "query": [["q"]],
                     "format": "innerhtml"
                 },
                 {
                     "name": "q3",
-                    "$": [["q"]],
+                    "query": [["q"]],
                     "format": "textcontent"
                 },
                 {
                     "name": "q4",
-                    "$": [["q"]],
+                    "query": [["q"]],
                     "format": "none"
                 }
             ]

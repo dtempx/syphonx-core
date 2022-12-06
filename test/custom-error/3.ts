@@ -6,14 +6,14 @@ const test = {
     actions: [
         {
             "error": {
-                "$": [["h1"]],
+                "query": [["h1"]],
                 "message": "h1 not found",
                 "level": 2
             }
         },
         {
             "error": {
-                "$": [["h2"]],
+                "query": [["h2"]],
                 "message": "h2 not found",
                 "level": 2
             }

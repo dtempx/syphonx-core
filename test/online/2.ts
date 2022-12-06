@@ -7,7 +7,7 @@ const test = {
         { "select": [
             {
                 "name": "title1",
-                "$": [["title"]]
+                "query": [["title"]]
             },
             {
                 "name": "url1",
@@ -22,12 +22,12 @@ const test = {
                 "value": "{origin}"
             }
         ] },
-        { "click": { "$": [["a"]] }},
+        { "click": { "query": [["a"]] }},
         { "yield": null },
         { "select": [
             {
                 "name": "title2",
-                "$": [["title"]]
+                "query": [["title"]]
             },
             {
                 "name": "url2",

@@ -28,10 +28,10 @@ const test = {
                     "repeated": true,
                     "union": [
                         {
-                            "$": [["div > p",["map","{`${value}-${union}`}"]]]
+                            "query": [["div > p",["map","{`${value}-${union}`}"]]]
                         },
                         {
-                            "$": [["ul > li",["map","{`${value}-${union}`}"]]]
+                            "query": [["ul > li",["map","{`${value}-${union}`}"]]]
                         }
                     ]
                 }

@@ -15,22 +15,22 @@ const test = {
             "select": [
                 {
                     "name": "h1",
-                    "$": [["h1"]]
+                    "query": [["h1"]]
                 },
                 {
                     "name": "h2",
-                    "$": [["h2"]]
+                    "query": [["h2"]]
                 }
             ]
         },
         {
             "transform": [
-                { "$": ["h1",["replaceText","{value.split(' ').reduce((sum, text) => sum + parseInt(text), 0)}"]] },
-                { "$": ["h2",["replaceHTML","{'<b>' + value.split(' ').reduce((sum, text) => sum + parseInt(text), 0) + '</b>'}"]] },
-                { "$": ["h3",["replaceText","{value}"]] },
-                { "$": ["h4",["replaceText","{`${data.h1} ${value} ${data.h2}`}"]] },
-                { "$": ["h5",["html","inner"],["replaceHTML","{value.replace('vino', 'VINO')}"]] },
-                { "$": ["h6",["html","inner"],["replaceWith","{`<div>${value}</div>`}"]] }
+                { "query": ["h1",["replaceText","{value.split(' ').reduce((sum, text) => sum + parseInt(text), 0)}"]] },
+                { "query": ["h2",["replaceHTML","{'<b>' + value.split(' ').reduce((sum, text) => sum + parseInt(text), 0) + '</b>'}"]] },
+                { "query": ["h3",["replaceText","{value}"]] },
+                { "query": ["h4",["replaceText","{`${data.h1} ${value} ${data.h2}`}"]] },
+                { "query": ["h5",["html","inner"],["replaceHTML","{value.replace('vino', 'VINO')}"]] },
+                { "query": ["h6",["html","inner"],["replaceWith","{`<div>${value}</div>`}"]] }
 
             ]
         }

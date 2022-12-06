@@ -8,11 +8,11 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["div",["replace","/([0-9]+)/g","::"]]]
+                    "query": [["div",["replace","/([0-9]+)/g","::"]]]
                 },
                 {
                     "name": "a2",
-                    "$": [["div",["replace","/e/gi","_"]]]
+                    "query": [["div",["replace","/e/gi","_"]]]
                 }
             ]
         }

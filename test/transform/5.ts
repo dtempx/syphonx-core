@@ -9,8 +9,8 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["h1",["addClass","{value.toLowerCase()}"]] },
-                { "$": ["h2",["attr","id","{value.toUpperCase()}"]] }
+                { "query": ["h1",["addClass","{value.toLowerCase()}"]] },
+                { "query": ["h2",["attr","id","{value.toUpperCase()}"]] }
             ]
         }
     ] as syphonx.Action[]

@@ -16,7 +16,7 @@ const test = {
                 {
                     "name": "p0",
                     "all": true,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"],
                         ["h3"]
@@ -26,7 +26,7 @@ const test = {
                     "name": "p1",
                     "hits": 1,
                     "all": true,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"],
                         ["h3"]
@@ -36,7 +36,7 @@ const test = {
                     "name": "p2",
                     "hits": 2,
                     "all": true,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"],
                         ["h3"]
@@ -46,7 +46,7 @@ const test = {
                     "name": "p3",
                     "hits": 3,
                     "all": true,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"],
                         ["h3"]
@@ -56,7 +56,7 @@ const test = {
                     "name": "pn",
                     "hits": null,
                     "all": true,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"],
                         ["h3"]

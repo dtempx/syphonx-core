@@ -8,7 +8,7 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["div",["filter","{xyz.endsWith(':')}"]]]
+                    "query": [["div",["filter","{xyz.endsWith(':')}"]]]
                     
                 }
             ]

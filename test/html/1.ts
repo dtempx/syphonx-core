@@ -15,15 +15,15 @@ const test = {
             "select": [
                 {
                     "name": "h1",
-                    "$": [["ul",["html"]]]
+                    "query": [["ul",["html"]]]
                 },
                 {
                     "name": "h2",
-                    "$": [["ul",["html","outer"]]]
+                    "query": [["ul",["html","outer"]]]
                 },
                 {
                     "name": "h3",
-                    "$": [["ul",["html","inner"]]]
+                    "query": [["ul",["html","inner"]]]
                 }
             ]
         }

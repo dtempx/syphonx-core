@@ -13,14 +13,14 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["li",["filter","!/ta$/"],["remove"]] }
+                { "query": ["li",["filter","!/ta$/"],["remove"]] }
             ]
         },
         {
             "select": [
                 {
                     "repeated": true,
-                    "$": [["li"]]
+                    "query": [["li"]]
                 }
             ]
         }

@@ -14,24 +14,24 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["a"]]
+                    "query": [["a"]]
                 },
                 {
                     "name": "a2",
-                    "$": [["a",["attr","href"]]]
+                    "query": [["a",["attr","href"]]]
                 },
                 {
                     "name": "a3",
-                    "$": [["a",["attr","href"]]],
+                    "query": [["a",["attr","href"]]],
                     "format": "href"
                 },
                 {
                     "name": "i1",
-                    "$": [["img",["attr","src"]]]
+                    "query": [["img",["attr","src"]]]
                 },
                 {
                     "name": "i2",
-                    "$": [["img",["attr","src"]]],
+                    "query": [["img",["attr","src"]]],
                     "format": "href"
                 }
             ]

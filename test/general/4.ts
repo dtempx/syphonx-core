@@ -12,7 +12,7 @@ const test = {
                 {
                     "name": "p1",
                     "all": true,
-                    "$": [
+                    "query": [
                         ["p:contains('Ipsum')"],
                         ["h1 ~ p"]
                     ]

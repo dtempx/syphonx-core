@@ -14,7 +14,7 @@ const test = {
                 {
                     "name": "p1",
                     "all": false,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"]
                     ]
@@ -22,7 +22,7 @@ const test = {
                 {
                     "name": "p2",
                     "all": true,
-                    "$": [
+                    "query": [
                         ["h1"],
                         ["h2"]
                     ]

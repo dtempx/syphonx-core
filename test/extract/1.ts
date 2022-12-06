@@ -18,7 +18,7 @@ const test = {
                 {
                     "name": "colors",
                     "repeated": true,
-                    "$": [["li",["extract","/color: ([a-z]+)/"]]]
+                    "query": [["li",["extract","/color: ([a-z]+)/"]]]
                 }
             ]
         }

@@ -6,7 +6,7 @@ const test = {
     actions: [
         {
             "select": [
-                { "$": [["h1"]] }
+                { "query": [["h1"]] }
             ]
         }
     ] as syphonx.Action[]

@@ -14,12 +14,12 @@ const test = {
             "select": [
                 {
                     "name": "singleline",
-                    "$": [["p"]],
+                    "query": [["p"]],
                     "format": "singleline"
                 },
                 {
                     "name": "multiline",
-                    "$": [["p"]],
+                    "query": [["p"]],
                     "format": "multiline"
                 }
             ]

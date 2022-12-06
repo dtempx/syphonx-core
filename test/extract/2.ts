@@ -8,19 +8,19 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["div",["extract"]]]
+                    "query": [["div",["extract"]]]
                 },
                 {
                     "name": "a2",
-                    "$": [["div",["extract", 0]]]
+                    "query": [["div",["extract", 0]]]
                 },
                 {
                     "name": "a3",
-                    "$": [["div",["extract", "/, ([a-z]+),/", "???"]]]
+                    "query": [["div",["extract", "/, ([a-z]+),/", "???"]]]
                 },
                 {
                     "name": "a4",
-                    "$": [["div",["extract", "???"]]]
+                    "query": [["div",["extract", "???"]]]
                 }
             ]
         }

@@ -10,7 +10,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["div",["html","inner"],["replaceWith","{`<p>${value.toLowerCase()}</p>`}"]] }
+                { "query": ["div",["html","inner"],["replaceWith","{`<p>${value.toLowerCase()}</p>`}"]] }
             ]
         }
     ] as syphonx.Action[]

@@ -12,22 +12,22 @@ const test = {
                 {
                     "name": "d1",
                     "required": true,
-                    "$": [["#d1"]]
+                    "query": [["#d1"]]
                 },
                 {
                     "name": "d2",
                     "required": true,
-                    "$": [["#d2"]]
+                    "query": [["#d2"]]
                 },
                 {
                     "name": "d3",
                     "required": false,
-                    "$": [["#d3"]]
+                    "query": [["#d3"]]
                 },
                 {
                     "name": "d4",
                     "required": false,
-                    "$": [["#d4"]]
+                    "query": [["#d4"]]
                 }
             ]
         }

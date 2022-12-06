@@ -12,12 +12,12 @@ const test = {
                 {
                     "name": "a1",
                     "type": "number",
-                    "$": [["#a1"]]
+                    "query": [["#a1"]]
                 },
                 {
                     "name": "a2",
                     "type": "number",
-                    "$": [["#a2"]]
+                    "query": [["#a2"]]
                 }
             ]
         }

@@ -15,16 +15,16 @@ const test = {
             "select": [
                 {
                     "repeated": true,
-                    "$": [["ul > li"]],
+                    "query": [["ul > li"]],
                     "select": [
                         {
                             "name": "name",
-                            "$": [["a"]]
+                            "query": [["a"]]
                         },
                         {
                             "name": "href",
                             "format": "href",
-                            "$": [["a",["attr","href"]]]
+                            "query": [["a",["attr","href"]]]
                         }
                     ]
                 }

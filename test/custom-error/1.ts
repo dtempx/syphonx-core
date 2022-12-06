@@ -8,7 +8,7 @@ const test = {
             "select": [
                 {
                     "name": "_h1",
-                    "$": [["h1"]]
+                    "query": [["h1"]]
                 }
             ]
         },
@@ -23,7 +23,7 @@ const test = {
             "select": [
                 {
                     "name": "_p",
-                    "$": [["p"]]
+                    "query": [["p"]]
                 }
             ]
         }

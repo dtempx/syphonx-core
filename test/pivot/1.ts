@@ -22,17 +22,17 @@ const test = {
                     "name": "p1",
                     "type": "object",
                     "repeated": true,
-                    "$": [["h3"]],
+                    "query": [["h3"]],
                     "pivot": {
-                        "$": [[".",["nextUntil","h3"]]],
+                        "query": [[".",["nextUntil","h3"]]],
                         "select": [
                             {
                                 "name": "name",
-                                "$": [["."]]
+                                "query": [["."]]
                             },
                             {
                                 "name": "group",
-                                "$": [[".."]]
+                                "query": [[".."]]
                             }
                         ]
                     }

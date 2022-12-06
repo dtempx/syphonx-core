@@ -1,15 +1,15 @@
 import { CheerioAPI } from "cheerio";
 
 export interface Break {
-    $?: SelectQuery[];
-    on?: SelectOn; // only used with $
-    pattern?: string; // only used with $, waits for a specific text pattern if specified
-    when?: When; // if when is specified then when is evaluated first, and then $ is evaluated next if specified, if when not specified then $ is evaluated by itself
+    query?: SelectQuery[];
+    on?: SelectOn; // only used with query
+    pattern?: string; // only used with query, waits for a specific text pattern if specified
+    when?: When; // if when is specified then when is evaluated first, and then query is evaluated next if specified, if when not specified then query is evaluated by itself
     active?: boolean;
 }
 
 export interface Click {
-    $: SelectQuery[];
+    query: SelectQuery[];
     waitfor?: WaitFor; // skip if no nodes selected
     snooze?: SnoozeInterval;
     required?: boolean;
@@ -19,7 +19,7 @@ export interface Click {
 }
 
 export interface Each {
-    $: SelectQuery[];
+    query: SelectQuery[];
     actions: Action[];
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
     when?: When;
@@ -31,7 +31,7 @@ export interface Error {
     code?: ExtractErrorCode; // default is "custom-error"
     level?: number; // indicates error level, 0 is non-retryable, 1 or above is retryable (default=1)
     stop?: boolean; // stops processing, default is false if level is 0 or not specified, otherwise true
-    $?: SelectQuery[];
+    query?: SelectQuery[];
     when?: When;
     active?: boolean;
 }
@@ -43,16 +43,16 @@ export interface Repeat {
 }
 
 export interface SelectTarget {
-    $?: SelectQuery[];
+    query?: SelectQuery[];
     pivot?: SelectTarget;
     select?: Select[];
     value?: unknown;
-    all?: boolean; // includes all $ hits instead of just the first hit (default=false)
+    all?: boolean; // includes all query stage hits instead of just the first stage (default=false)
         // if values are arrays then results are merged
         // if values are strings then results are concatenated with newlines
         // if values are booleans then results are and'ed together
         // otherwise the latest result takes precedence
-    hits?: number | null; // limits the number of query hits, default is unlimited or specify null for unlimited
+    hits?: number | null; // limits the number of query stage hits, default is unlimited or specify null for unlimited
     limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited, specify null to force unlimited nodes
     format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
     pattern?: string; // validation pattern (only applies if type=string)
@@ -71,19 +71,19 @@ export interface Select extends SelectTarget {
 }
 
 export interface Transform {
-    $: SelectQuery;
+    query: SelectQuery;
     when?: When;
     active?: boolean;
 }
 
 export interface WaitFor {
-    $?: SelectQuery[];
+    query?: SelectQuery[];
     select?: Select[];
-    on?: SelectOn; // used with $ or select
-    timeout?: number; // used with $ or select
+    on?: SelectOn; // used with query or select
+    timeout?: number; // used with query or select
     pattern?: string; // waits for a specific text pattern if specified
     required?: boolean; // indicates whether processing should stop with an error on timeout
-    when?: When; // if when is specified then when is evaluated first, and then $ or select is evaluated next if specified, if when not specified then $ or select are evaluated by itself
+    when?: When; // if when is specified then when is evaluated first, and then query or select is evaluated next if specified, if when not specified then query or select are evaluated by itself
     active?: boolean;
 }
 
@@ -129,7 +129,7 @@ export type Action =
     | YieldAction;
 
 export interface QueryParams {
-    $?: SelectQuery[];
+    query?: SelectQuery[];
     type?: SelectType;
     repeated?: boolean;
     all?: boolean;
@@ -643,9 +643,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         return [`$("${selector}")`, ...ops.map(op => `${op[0]}(${op.slice(1).map(param => JSON.stringify(param)).join(", ")})`)].join(".");
     }
 
-    function $statements($: SelectQuery[] | undefined): string {
-        if ($ && $.length > 0)
-            return `${$statement($[0])}${$.length > 1 ? ` (+${$.length - 1} more))` : ""}`;
+    function $statements(query: SelectQuery[] | undefined): string {
+        if (query && query.length > 0)
+            return `${$statement(query[0])}${query.length > 1 ? ` (+${query.length - 1} more))` : ""}`;
         else
             return "(none)";
     }
@@ -689,12 +689,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(text);
         }
 
-        private break({ $, on = "any", pattern, when, active = true }: Break): boolean {
+        private break({ query, on = "any", pattern, when, active = true }: Break): boolean {
             if (this.online && active) {
                 if (this.when(when, "BREAK")) {
-                    if ($) {
+                    if (query) {
                         this.log(`BREAK WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
-                        const result = this.queryCheck($, on, pattern);
+                        const result = this.queryCheck(query, on, pattern);
                         if (result === null) {
                             this.log(`BREAK ${when}`);
                             return true;    
@@ -715,18 +715,18 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return false;
         }
 
-        private async click({ $, waitfor, snooze, required, retry, active, when }: Click): Promise<"timeout" | "not-found" | null> {
+        private async click({ query, waitfor, snooze, required, retry, active, when }: Click): Promise<"timeout" | "not-found" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "CLICK")) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
                     if (snooze && (mode === "before" || mode === "before-and-after")) {
                         const seconds = snooze[0];
-                        this.log(`CLICK SNOOZE BEFORE (${seconds}s) ${$statements($)}`);
+                        this.log(`CLICK SNOOZE BEFORE (${seconds}s) ${$statements(query)}`);
                         await sleep(seconds * 1000);
                     }
-                    const result = this.query({ $ });
+                    const result = this.query({ query });
                     if (result && result.nodes.length > 0) {
-                        this.log(`CLICK ${$statements($)}`);
+                        this.log(`CLICK ${$statements(query)}`);
                         const [node] = result.nodes;
                         node.click();
                         if (waitfor) {
@@ -734,12 +734,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             if (!code) {
                                 if (snooze && (mode === "after" || mode === "before-and-after")) {
                                     const seconds = snooze[0];
-                                    this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements($)}`);
+                                    this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements(query)}`);
                                     await sleep(seconds * 1000);
                                 }
                             }
                             else if (code === "timeout") {
-                                this.appendError("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.$)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
+                                this.appendError("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.query)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
                                 return "timeout";
                             }
                             else if (code === "invalid") {
@@ -749,17 +749,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     else {
                         if (required) {
-                            this.appendError("click-required", `Required click target not found. ${trunc($)}`, 1);
+                            this.appendError("click-required", `Required click target not found. ${trunc(query)}`, 1);
                         }
                         return "not-found";
                     }
                 }
                 else {
-                    this.log(`CLICK SKIPPED ${$statements($)}`);
+                    this.log(`CLICK SKIPPED ${$statements(query)}`);
                 }
             }
             else {
-                this.log(`CLICK BYPASSED ${$statements($)}`);
+                this.log(`CLICK BYPASSED ${$statements(query)}`);
             }
             return null;
         }
@@ -867,10 +867,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
-        private async each({ $, actions, context, active, when }: Each): Promise<void> {
+        private async each({ query, actions, context, active, when }: Each): Promise<void> {
             if (active ?? true) {
                 if (this.when(when, "CLICK")) {
-                    const result = this.query({ $, repeated: true });
+                    const result = this.query({ query, repeated: true });
                     if (result && result.nodes.length > 0) {                        
                         const elements = result.nodes.toArray();
                         for (const element of elements) {
@@ -903,10 +903,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private error({ $, code = "custom-error", message = "Custom template error", level = 1, stop, active = true, when }: Error): void {
+        private error({ query, code = "custom-error", message = "Custom template error", level = 1, stop, active = true, when }: Error): void {
             if (active) {
-                if ($) {
-                    const result = this.query({ $, type: "boolean", repeated: false });
+                if (query) {
+                    const result = this.query({ query, type: "boolean", repeated: false });
                     if (result?.value === false) {
                         this.appendError(code, String(this.evaluate(message)), level);
                         if (stop === true || (stop === undefined && level === 0)) {
@@ -1127,34 +1127,34 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`>>> ${this.contextKeyInfo()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)} ${stack.length}`);
         }
 
-        private query({ $, type, repeated = false, all = false, format, pattern, limit, hits }: QueryParams): QueryResult | undefined {
-            if ($ instanceof Array && $.every(query => query instanceof Array) && $[0].length > 0 && !!$[0][0]) {
+        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits }: QueryParams): QueryResult | undefined {
+            if (query instanceof Array && query.every(stage => stage instanceof Array) && query[0].length > 0 && !!query[0][0]) {
                 if (limit === undefined && type === "string" && !repeated && !all) {
                     limit = 1;
                 }
                 if (hits === null || hits === undefined) {
-                    hits = $.length;
+                    hits = query.length;
                 }
                 let hit = 0;
                 let result: QueryResult | undefined = undefined;
-                for (const query of $) {
-                    const subresult = this.resolveQuery({ query, type, repeated, all, limit, format, pattern, result });
+                for (const stage of query) {
+                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
-                        //this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
+                        //this.log(`[${query.indexOf(stage) + 1}/${query.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
                         if (subresult.nodes.length > 0) {
                             if (!all) {
-                                this.log(`[${$.indexOf(query) + 1}/${$.length}] STOP (first hit)`);
+                                this.log(`[${query.indexOf(stage) + 1}/${query.length}] STOP (first hit)`);
                                 break;
                             }
                             if (++hit === hits) {
-                                this.log(`[${$.indexOf(query) + 1}/${$.length}] STOP (${hits} hits)`);
+                                this.log(`[${query.indexOf(stage) + 1}/${query.length}] STOP (${hits} hits)`);
                                 break;
                             }
                         }
                     }
                     else {
-                        //this.log(`[${$.indexOf(query) + 1}/${$.length}] ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
+                        //this.log(`[${$.indexOf(stage) + 1}/${query.length}] ${$statement(query)} -> (none)${pattern ? `, pattern=${pattern}` : ""}`);
                     }
                 }
 
@@ -1173,10 +1173,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private queryCheck($: SelectQuery[], on: SelectOn, pattern: string | undefined): [boolean, QueryResult | undefined] {
+        private queryCheck(query: SelectQuery[], on: SelectOn, pattern: string | undefined): [boolean, QueryResult | undefined] {
             const type = pattern ? "string" : "boolean";
             const all = on === "all";
-            const result = this.query({ $, type, pattern, all, repeated: all });
+            const result = this.query({ query, type, pattern, all, repeated: all });
             let pass = false;
             if (result) {
                 if (type === "boolean") {
@@ -1656,7 +1656,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             if (select.union) {
                                 item = this.selectResolveUnion(select, item, data);
                             }                        
-                            else if (select.$) {
+                            else if (select.query) {
                                 item = this.selectResolveSelector(select, item);
                             }
                             else if (select.value) {
@@ -1782,7 +1782,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     this.popContext();
                 }
             }
-            this.log(`SELECT ${this.contextKey()} -> ${$statements(select.$)} -> ${subitem ? trunc(subitem.value) : "(none)"}${item ? ` merge(${typeName(item?.value)}, ${typeName(subitem?.value)})` : ""}`);
+            this.log(`SELECT ${this.contextKey()} -> ${$statements(select.query)} -> ${subitem ? trunc(subitem.value) : "(none)"}${item ? ` merge(${typeName(item?.value)}, ${typeName(subitem?.value)})` : ""}`);
             return merge(item, subitem);
         }
 
@@ -1800,7 +1800,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             if (subselect.pivot) {
                                 item = this.selectResolvePivot({ ...superselect, ...subselect }, item);
                             }
-                            else if (subselect.$) {
+                            else if (subselect.query) {
                                 item = this.selectResolveSelector({ ...superselect, ...subselect }, item);
                             }
                             else if (subselect.value) {
@@ -1864,7 +1864,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             for (const transform of transforms) {
                 if (transform.active ?? true) {
                     if (this.when(transform.when, "TRANSFORM")) {
-                        const query = transform.$;
+                        const query = transform.query;
                         const selector = query[0];
                         const [operands] = query.slice(1) as SelectQueryOp[];
                         if (selector === "{window}" && operands[0] === "scrollBottom") {
@@ -1884,11 +1884,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                     }
                     else {
-                        this.log(`TRANSFORM SKIPPED ${$statement(transform.$)}`);
+                        this.log(`TRANSFORM SKIPPED ${$statement(transform.query)}`);
                     }
                 }
                 else {
-                    this.log(`TRANSFORM BYPASSED ${$statement(transform.$)}`);
+                    this.log(`TRANSFORM BYPASSED ${$statement(transform.query)}`);
                 }    
             }
         }
@@ -1919,9 +1919,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private validateSelect(select: Select): boolean {
-            const n = (select.$ !== undefined ? 1 : 0) + (select.union !== undefined ? 1 : 0) + (select.value !== undefined ? 1 : 0);
+            const n = (select.query !== undefined ? 1 : 0) + (select.union !== undefined ? 1 : 0) + (select.value !== undefined ? 1 : 0);
             if (n !== 1) {
-                this.appendError("invalid-select", "Select requires one of '$', 'union', or 'value'", 0);
+                this.appendError("invalid-select", "Select requires one of 'query', 'union', or 'value'", 0);
                 return false;
             }
             else {
@@ -1929,7 +1929,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitfor({ $, select, timeout, on = "any", required, pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
+        private async waitfor({ query, select, timeout, on = "any", required, pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
             if (this.online && (active ?? true)) {
                 if (this.when(when, "WAITFOR")) {
                     if (timeout === undefined) {
@@ -1940,9 +1940,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
         
                     let code = null;
-                    if ($) {
-                        this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${trunc($)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        code = await this.waitforQuery($, on, timeout, required, pattern, context);
+                    if (query) {
+                        this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        code = await this.waitforQuery(query, on, timeout, required, pattern, context);
                     }
                     else if (select) {
                         this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
@@ -1951,30 +1951,30 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     return code;
                 }
                 else {
-                    this.log(`${context ? `${context} ` : ""}WAITFOR BYPASSSED ${$statements($)}`);
+                    this.log(`${context ? `${context} ` : ""}WAITFOR BYPASSSED ${$statements(query)}`);
                     return null;
                 }
             }
             else {
-                this.log(`${context ? `${context} ` : ""}WAITFOR SKIPPED ${$statements($)}`);
+                this.log(`${context ? `${context} ` : ""}WAITFOR SKIPPED ${$statements(query)}`);
                 return null;
             }
         }
 
-        private async waitforQuery($: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
+        private async waitforQuery(query: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
             let result = undefined;
             while (!pass && elapsed < timeout) {
-                [pass, result] = this.queryCheck($, on, pattern);
+                [pass, result] = this.queryCheck(query, on, pattern);
                 if (!pass) {
                     await sleep(100);
                 }
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            const message = `${context ? `${context} ` : ""}WAITFOR QUERY ${$statements($)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            const message = `${context ? `${context} ` : ""}WAITFOR QUERY ${$statements(query)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
             this.log(message);
             if (pass) {
                 return null;

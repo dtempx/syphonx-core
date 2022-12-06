@@ -14,12 +14,12 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["ul > li"]],
+                    "query": [["ul > li"]],
                     "format": "singleline"
                 },
                 {
                     "name": "a2",
-                    "$": [["ul > li"]],
+                    "query": [["ul > li"]],
                     "format": "multiline"
                 }
             ]

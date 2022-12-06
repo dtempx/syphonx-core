@@ -13,7 +13,7 @@ const test = {
             "select": [
                 {
                     "repeated": true,
-                    "$": [["h1",["prevAll"],["reverse"]]]
+                    "query": [["h1",["prevAll"],["reverse"]]]
                 }
             ]
         }

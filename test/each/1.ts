@@ -22,7 +22,7 @@ const test = {
     actions: [
         {
             "each": {
-                "$": [["ul > li"]],
+                "query": [["ul > li"]],
                 "context": null,
                 "actions": [
                     {
@@ -31,7 +31,7 @@ const test = {
                                 "name": "a1",
                                 "type": "string",
                                 "repeated": true,
-                                "$": [["{`p:eq(${parent.index})`}",["map","{`${parent.index}:${parent.value}:${value}`}"]]]
+                                "query": [["{`p:eq(${parent.index})`}",["map","{`${parent.index}:${parent.value}:${value}`}"]]]
                             }
                         ]
                     }

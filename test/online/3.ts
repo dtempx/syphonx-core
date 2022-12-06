@@ -14,13 +14,13 @@ const test = {
                         "select": [
                             {
                                 "name": "_size",
-                                "$": [["img.image-grid__image",["size"]]]
+                                "query": [["img.image-grid__image",["size"]]]
                             }
                         ]
                     },
                     {
                         "transform": [
-                            { "$": ["{window}",["scrollBottom"]] }
+                            { "query": ["{window}",["scrollBottom"]] }
                         ]
                     },
                     {
@@ -29,7 +29,7 @@ const test = {
                                 {
                                     "name": "_more",
                                     "type": "boolean",
-                                    "$": [["img.image-grid__image",["size"],["filter","{ value > _size }"]]]
+                                    "query": [["img.image-grid__image",["size"],["filter","{ value > _size }"]]]
                                 }
                             ],
                             "timeout": 2
@@ -49,7 +49,7 @@ const test = {
                     "name": "images",
                     "type": "string",
                     "repeated": true,
-                    "$": [["img.image-grid__image",["attr","src"]]]
+                    "query": [["img.image-grid__image",["attr","src"]]]
                 }
                 
             ]

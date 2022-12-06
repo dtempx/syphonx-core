@@ -25,17 +25,17 @@ const test = {
                     "name": "p1",
                     "type": "object",
                     "repeated": true,
-                    "$": [["ul > li"]],
+                    "query": [["ul > li"]],
                     "pivot": {
-                        "$": [[".",["closest","section"],["find","{`div > p:eq(${pivot})`}"]]],
+                        "query": [[".",["closest","section"],["find","{`div > p:eq(${pivot})`}"]]],
                         "select": [
                             {
                                 "name": "name",
-                                "$": [["."]]
+                                "query": [["."]]
                             },
                             {
                                 "name": "group",
-                                "$": [[".."]]
+                                "query": [[".."]]
                             }
                         ]
                     }

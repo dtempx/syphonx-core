@@ -9,7 +9,7 @@ describe("replace/2.1", () => {
             {
                 "transform": [
                     {
-                        "$": ["span",["replaceTag","<div></div>"]]
+                        "query": ["span",["replaceTag","<div></div>"]]
                     }
                 ]
             }
@@ -28,7 +28,7 @@ describe("replace/2.2", () => {
             {
                 "transform": [
                     {
-                        "$": ["span",["replaceTag","<div id='new' class='abc'></div>"]]
+                        "query": ["span",["replaceTag","<div id='new' class='abc'></div>"]]
                     }
                 ]
             }

@@ -13,17 +13,17 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["a:contains('test1')",["attr","href"]]],
+                    "query": [["a:contains('test1')",["attr","href"]]],
                     "format": "href"
                 },
                 {
                     "name": "a2",
-                    "$": [["a:contains('test2')",["attr","href"]]],
+                    "query": [["a:contains('test2')",["attr","href"]]],
                     "format": "href"
                 },
                 {
                     "name": "a3",
-                    "$": [["a:contains('test3')",["attr","href"]]],
+                    "query": [["a:contains('test3')",["attr","href"]]],
                     "format": "href"
                 }
             ]

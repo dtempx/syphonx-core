@@ -13,16 +13,16 @@ const test = {
                 {
                     "name": "_ok",
                     "type": "boolean",
-                    "$": [["#xyz"]]
+                    "query": [["#xyz"]]
                 },
                 {
                     "name": "a1",
-                    "$": [["#a1"]],
+                    "query": [["#a1"]],
                     "when": "{_ok}"
                 },
                 {
                     "name": "a2",
-                    "$": [["#a2"]],
+                    "query": [["#a2"]],
                     "when": "{!_ok}"
                 }
             ]

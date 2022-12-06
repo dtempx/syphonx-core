@@ -12,14 +12,14 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["li",["blank"],["remove"]] }
+                { "query": ["li",["blank"],["remove"]] }
             ]
         },
         {
             "select": [
                 {
                     "repeated": true,
-                    "$": [["li"]]
+                    "query": [["li"]]
                 }
             ]
         }

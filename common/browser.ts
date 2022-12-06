@@ -1,6 +1,6 @@
-import puppeteer from "puppeteer";
+import puppeteer, { Page } from "puppeteer";
 
-export async function open(url: string, headless = true): Promise<puppeteer.Page> {
+export async function open(url: string, headless = true): Promise<Page> {
     const browser = await puppeteer.launch({
         headless,
         args: [
@@ -21,7 +21,7 @@ export async function open(url: string, headless = true): Promise<puppeteer.Page
     return page;
 }
 
-export async function close(page: puppeteer.Page): Promise<void> {
+export async function close(page: Page): Promise<void> {
     const browser = page.browser();
     await page.close();
     await browser.close();

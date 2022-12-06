@@ -9,7 +9,7 @@ const test = {
     actions: [
         {
             "select": [
-                { "$": [["#title"]] }
+                { "query": [["#title"]] }
             ]
         }
     ] as syphonx.Action[]

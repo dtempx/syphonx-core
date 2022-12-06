@@ -12,14 +12,14 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["li",["nonblank"],["addClass","ok"]] }
+                { "query": ["li",["nonblank"],["addClass","ok"]] }
             ]
         },
         {
             "select": [
                 {
                     "repeated": true,
-                    "$": [["li.ok"]]
+                    "query": [["li.ok"]]
                 }
             ]
         }

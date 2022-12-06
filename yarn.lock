@@ -47,7 +47,12 @@
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-9.1.1.tgz#e7c4f1001eefa4b8afbd1eee27a237fee3bf29c4"
   integrity sha512-Z61JK7DKDtdKTWwLeElSEBcWGRLY8g95ic5FoQqI9CMx0ns/Ghep3B4DfcEimiKMvtamNVULVNKEsiwV3aQmXw==
 
-"@types/node@*", "@types/node@^18.7.18":
+"@types/node@*":
+  version "18.11.11"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.11.tgz#1d455ac0211549a8409d3cdb371cd55cc971e8dc"
+  integrity sha512-KJ021B1nlQUBLopzZmPBVuGU9un7WJd/W4ya7Ih02B4Uwky5Nja0yGYav2EfYIk0RR2Q9oVhf60S2XR1BCWJ2g==
+
+"@types/node@^18.7.18":
   version "18.11.9"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.9.tgz#02d013de7058cea16d36168ef2fc653464cfbad4"
   integrity sha512-CRpX21/kGdzjOpFsZSkcrXMGIBWMGNIHXXBVFSH+ggkftxg+XYP20TESbh+zFvFj3EQOl5byk0HTRn1IL6hbqg==
@@ -930,10 +935,10 @@ pump@^3.0.0:
     end-of-stream "^1.1.0"
     once "^1.3.1"
 
-puppeteer-core@19.2.2:
-  version "19.2.2"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-19.2.2.tgz#a9b7b25099d87d550c224c660c205b7ebdd03eb4"
-  integrity sha512-faojf+1pZ/tHXSr4x1q+9MVd9FrL3rpdbC0w7qN7MNClMoLuCvMbpR4vzcjoiJYgclt1n+SOPUOmHQViTw6frw==
+puppeteer-core@19.3.0:
+  version "19.3.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-19.3.0.tgz#deba854f3dd3f74a04db200274827a67e200f39e"
+  integrity sha512-P8VAAOBnBJo/7DKJnj1b0K9kZBF2D8lkdL94CjJ+DZKCp182LQqYemPI9omUSZkh4bgykzXjZhaVR1qtddTTQg==
   dependencies:
     cross-fetch "3.1.5"
     debug "4.3.4"
@@ -946,17 +951,17 @@ puppeteer-core@19.2.2:
     unbzip2-stream "1.4.3"
     ws "8.10.0"
 
-puppeteer@19.2.2:
-  version "19.2.2"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-19.2.2.tgz#e6f7bc089ac9bffea78b2f792bf3affd93e16803"
-  integrity sha512-m1T5Mog5qu5+dMBptWYTn6pXRdnFbydbVUCthqwbfd8/kOiMlzZBR9ywjX79LpvI1Sj+/z8+FKeIsjnMul8ZYA==
+puppeteer@^19.3.0:
+  version "19.3.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-19.3.0.tgz#defa8b6a6401b23cdc4f634c441b55d61f6b3d65"
+  integrity sha512-WJbi/ULaeuFOz7cfMgJlJCBAZiyqIFeQ6os4h5ex3PVTt2qosXgwI9eruFZqFAwJRv8x5pOuMhWR0aSRgyDqEg==
   dependencies:
     cosmiconfig "7.0.1"
     devtools-protocol "0.0.1056733"
     https-proxy-agent "5.0.1"
     progress "2.0.3"
     proxy-from-env "1.1.0"
-    puppeteer-core "19.2.2"
+    puppeteer-core "19.3.0"
 
 randombytes@^2.1.0:
   version "2.1.0"

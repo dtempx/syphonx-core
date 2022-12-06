@@ -6,7 +6,7 @@ const test = {
     actions: [
         {
             "waitfor": {
-                "$": [["h2"]],
+                "query": [["h2"]],
                 "required": true,
                 "timeout": 1
             }

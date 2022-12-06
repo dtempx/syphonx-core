@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import puppeteer, { Browser, Page, PuppeteerLifeCycleEvent } from "puppeteer";
 import * as syphonx from "../index.js";
 import * as fs from "fs";
 import * as path from "path";
@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const __jquery = fs.readFileSync(path.resolve(__dirname, "../node_modules/jquery/dist/jquery.slim.min.js"), "utf8");
 
 const defaults = {
-    useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+    useragent: "Mozilla/5.0 (X11; CrOS x86_64 15117.112.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
     headers: { "Accept-Language": "en-US,en" },
     viewport: { width: 1366, height: 768 }
 };
@@ -31,9 +31,9 @@ interface OnlineOptions {
     outputHTML?: "pre" | "post";
 }
 
-function asPuppeteerLifeCycleEvent(state: syphonx.DocumentLoadState | syphonx.DocumentLoadState[] | undefined): puppeteer.PuppeteerLifeCycleEvent | puppeteer.PuppeteerLifeCycleEvent[] | undefined {
+function asPuppeteerLifeCycleEvent(state: syphonx.DocumentLoadState | syphonx.DocumentLoadState[] | undefined): PuppeteerLifeCycleEvent | PuppeteerLifeCycleEvent[] | undefined {
     if (state instanceof Array)
-        return state.map(value => asPuppeteerLifeCycleEvent(value) as puppeteer.PuppeteerLifeCycleEvent);
+        return state.map(value => asPuppeteerLifeCycleEvent(value) as PuppeteerLifeCycleEvent);
     else if (state === "load")
         return "load";
     else if (state === "domcontentloaded")
@@ -53,8 +53,8 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         options.vars = {};
 
     const originalUrl = evaluateFormula(`\`${options.url}\``, options.params) as string;
-    let browser: puppeteer.Browser | undefined = undefined;
-    let page: puppeteer.Page | undefined = undefined;
+    let browser: Browser | undefined = undefined;
+    let page: Page | undefined = undefined;
     try {
         browser = await puppeteer.launch({
             headless: !show,

@@ -8,11 +8,11 @@ const test = {
             "select": [
                 {
                     "name": "t1",
-                    "$": [["div"]]
+                    "query": [["div"]]
                 },
                 {
                     "name": "t2",
-                    "$": [["h1"]]
+                    "query": [["h1"]]
                 }
             ]
         }

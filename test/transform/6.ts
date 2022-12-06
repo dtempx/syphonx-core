@@ -11,7 +11,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["h3:contains(':')",["filter","{value.endsWith(':')}"],["replaceWith","{`<h2>${value.replace(':','').trim()}</h2>`}"]] }
+                { "query": ["h3:contains(':')",["filter","{value.endsWith(':')}"],["replaceWith","{`<h2>${value.replace(':','').trim()}</h2>`}"]] }
             ]
         }
     ] as syphonx.Action[]

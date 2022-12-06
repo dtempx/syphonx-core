@@ -13,7 +13,7 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "$": [["div"]]
+                    "query": [["div"]]
                 },
                 {
                     "name": "a2",

@@ -10,7 +10,7 @@ const test = {
         </ul>
     `,
     actions: [{
-        "select": [{ "$": [["ul > li",["size"]]] }]
+        "select": [{ "query": [["ul > li",["size"]]] }]
     }] as syphonx.Action[]
 };
 

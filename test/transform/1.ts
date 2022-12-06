@@ -13,10 +13,10 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["h3",["map","{value?.endsWith(':') ? value :  undefined}"],["addClass","alpha"]] },
-                { "$": ["h3",["map","{!value?.endsWith(':') ? value :  undefined}"],["replaceWith","{`<p>${value}</p>`}"]] },
-                { "$": ["a",["wrap","<div></div>"]] },
-                { "$": ["b",["addClass","omega"]], "active": false }
+                { "query": ["h3",["map","{value?.endsWith(':') ? value :  undefined}"],["addClass","alpha"]] },
+                { "query": ["h3",["map","{!value?.endsWith(':') ? value :  undefined}"],["replaceWith","{`<p>${value}</p>`}"]] },
+                { "query": ["a",["wrap","<div></div>"]] },
+                { "query": ["b",["addClass","omega"]], "active": false }
             ]
         }
     ] as syphonx.Action[]

@@ -12,7 +12,7 @@ const test = {
     actions: [
         {
             "transform": [
-                { "$": ["li",["replaceText","{value.toUpperCase()}"]] }
+                { "query": ["li",["replaceText","{value.toUpperCase()}"]] }
             ]
         }
     ] as syphonx.Action[]
