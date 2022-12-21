@@ -8,6 +8,7 @@ const args = parseArgs({
     optional: {
         1: "HTML file to load",
         url: "URL to navigate to",
+        metadata: "include metadata",
         out: "determines output (data, html, log)"
     },
     validate: args => {
@@ -29,7 +30,7 @@ const args = parseArgs({
             url: evaluateFormula(`\`${url}\``, template.params),
             html,
             debug: out.includes("log"),
-            includeDOMRefs: false
+            includeDOMRefs: !!args.metadata
         });
 
         if (out.includes("data")) {

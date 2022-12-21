@@ -7,6 +7,7 @@ const args = parseArgs({
     optional: {
         url: "URL to navigate to",
         show: "shows browser window",
+        metadata: "include metadata",
         out: "determines output (data, html, log)"
     }
 });
@@ -26,7 +27,7 @@ const args = parseArgs({
             url: evaluateFormula(`\`${url}\``, template.params),
             show: !!args.show,
             debug: out.includes("log"),
-            includeDOMRefs: false,
+            includeDOMRefs: !!args.metadata,
             outputHTML: "post"
         });
 

@@ -11,7 +11,7 @@ export async function open(url: string, headless = true): Promise<Page> {
     });
     const page = await browser.newPage();
 
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36");
+    await page.setUserAgent("Mozilla/5.0 (X11; CrOS x86_64 15183.69.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
     await page.setExtraHTTPHeaders({ "Accept-Language": "en-US,en" });
     await page.setViewport({ width: 1366, height: 768 });
 

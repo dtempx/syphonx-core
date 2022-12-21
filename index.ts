@@ -52,7 +52,7 @@ export interface SelectTarget {
         // if values are strings then results are concatenated with newlines
         // if values are booleans then results are and'ed together
         // otherwise the latest result takes precedence
-    hits?: number | null; // limits the number of query stage hits, default is unlimited or specify null for unlimited
+    hits?: number | null; // DEPRECATED, use `all` instead // limits the number of query stage hits, default is unlimited or specify null for unlimited
     limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited, specify null to force unlimited nodes
     format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
     pattern?: string; // validation pattern (only applies if type=string)
@@ -141,6 +141,7 @@ export interface QueryParams {
 
 export interface QueryResult {
     nodes: JQueryResult;
+    key: string;
     value: unknown;
     valid?: boolean;
     formatted?: boolean;
@@ -208,8 +209,9 @@ type SelectContextAction = "each" | "pivot" | "subselect" | "union"
 type DispatchResult = "break" | "yield" | "timeout" | "required" | null;
 
 interface DataItem {
-    nodes: string[];
+    key: string;
     value: unknown;
+    nodes: string[];
 }
 
 interface ResolveQueryParams {
@@ -726,24 +728,23 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     const result = this.query({ query });
                     if (result && result.nodes.length > 0) {
-                        this.log(`CLICK ${$statements(query)}`);
-                        const [node] = result.nodes;
-                        node.click();
-                        if (waitfor) {
-                            const code = await this.waitfor(waitfor, "CLICK");
-                            if (!code) {
-                                if (snooze && (mode === "after" || mode === "before-and-after")) {
-                                    const seconds = snooze[0];
-                                    this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements(query)}`);
-                                    await sleep(seconds * 1000);
+                        if (this.clickElement(result.nodes[0], $statements(query))) {
+                            if (waitfor) {
+                                const code = await this.waitfor(waitfor, "CLICK");
+                                if (!code) {
+                                    if (snooze && (mode === "after" || mode === "before-and-after")) {
+                                        const seconds = snooze[0];
+                                        this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements(query)}`);
+                                        await sleep(seconds * 1000);
+                                    }
                                 }
-                            }
-                            else if (code === "timeout") {
-                                this.appendError("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.query)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
-                                return "timeout";
-                            }
-                            else if (code === "invalid") {
-                                // error already recorded, do nothing more
+                                else if (code === "timeout") {
+                                    this.appendError("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.query)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
+                                    return "timeout";
+                                }
+                                else if (code === "invalid") {
+                                    // error already recorded, do nothing more
+                                }
                             }
                         }
                     }
@@ -762,6 +763,26 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 this.log(`CLICK BYPASSED ${$statements(query)}`);
             }
             return null;
+        }
+
+        private clickElement(element: unknown, context: string): boolean {
+            if (element instanceof HTMLElement) {
+                if (element instanceof HTMLOptionElement && element.parentElement instanceof HTMLSelectElement) {
+                    this.log(`CLICK ${context} <select> "${element.parentElement.value}" -> "${element.value}"`);
+                    element.parentElement.value = element.value;
+                    element.parentElement.dispatchEvent(new Event("change", { bubbles: true, cancelable: false }));
+                    element.parentElement.dispatchEvent(new Event("input", { bubbles: true, cancelable: false }));
+                }
+                else {
+                    this.log(`CLICK ${context}`);
+                    element.click();
+                }
+                return true;
+            }
+            else {
+                this.log(`CLICK ${context} not insanceof HTMLElement`);
+                return false;
+            }
         }
 
         private context(): SelectContext {
@@ -868,13 +889,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private async each({ query, actions, context, active, when }: Each): Promise<void> {
+            const $ = this.jquery;
             if (active ?? true) {
                 if (this.when(when, "CLICK")) {
                     const result = this.query({ query, repeated: true });
                     if (result && result.nodes.length > 0) {                        
                         const elements = result.nodes.toArray();
                         for (const element of elements) {
-                            const nodes = this.jquery(element);
+                            const nodes = $(element);
                             this.pushContext({
                                 nodes,
                                 value: this.text(nodes),
@@ -893,10 +915,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private eachNode({ nodes, value }: QueryResult, callback: (node: JQuery, param: unknown) => void) {
+            const $ = this.jquery;
             if (nodes) {
                 const elements = nodes.toArray();
                 for (let i = 0; i < elements.length; ++i) {
-                    const node = this.jquery(elements[i]);
+                    const node = $(elements[i]);
                     const subvalue = value instanceof Array ? value[i] : value;
                     callback(node, subvalue);
                 }
@@ -964,6 +987,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
+            const $ = this.jquery;
             const regexp = createRegExp(pattern);
 
             // if type not specified then default to the value's primitive type or to a string
@@ -974,7 +998,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
             // apply limit for repeated result
             if (limit !== undefined && limit !== null && result.value instanceof Array) {
-                result.nodes = this.jquery(result.nodes.toArray().slice(0, limit));
+                result.nodes = $(result.nodes.toArray().slice(0, limit));
                 result.value = result.value.slice(0, limit);
             }
 
@@ -1033,8 +1057,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private mergeQueryResult(source: QueryResult | undefined, target: QueryResult | undefined): QueryResult | undefined {
+            const $ = this.jquery;
             if (source && target) {
-                const nodes = source.nodes && target.nodes ? this.jquery([...source.nodes.toArray(), ...target.nodes.toArray()]) : target.nodes || source.nodes;
+                const nodes = source.nodes && target.nodes ? $([...source.nodes.toArray(), ...target.nodes.toArray()]) : target.nodes || source.nodes;
                 let value = undefined;
                 if (source.value instanceof Array && target.value instanceof Array) {
                     value = [...source.value, ...target.value];
@@ -1051,7 +1076,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 else {
                     value = target.value ?? source.value;
                 }
-                return { nodes, value, valid: target.valid ?? source.valid };
+                return { nodes, key: this.contextKey(), value, valid: target.valid ?? source.valid };
             }
             else if (target) {
                 return target;
@@ -1062,14 +1087,40 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private nodeKey(node: JQueryResult | undefined): string {
-            if (node) {
-                const elements = this.jquery(node.length > 1 ? node[0] : node).parents().addBack().not("html").toArray();
-                const key = elements.map(element =>  `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${typeof element.className === "string" ? `.${element.className.replace(/ /g, ".")}` : ""}`).join(" ");
-                return key;    
+            const $ = this.jquery;
+            const path = [];
+            const elements = $(node && node.length > 1 ? node[0] : node).parents().addBack().not("html").toArray().reverse();
+            for (const element of elements) {
+                const $parent = $(element).parent();
+                const tag = element.tagName.toLowerCase();
+                const id = $(element).attr('id');
+                const className = $(element).attr('class')?.split(' ')[0];
+                const n = $(element).index() + 1;
+
+                const uniqueId = $(`#${id}`).length === 1;
+                const uniqueClassName = $(`${tag}.${className}`).length === 1;
+                const onlyTag = $parent.children(tag).length === 1;
+                const onlyClassName = className ? $parent.children(`${tag}.${className}`).length === 1 : false;
+
+                if (uniqueId) {
+                    path.push(`#${id}`);
+                    break;
+                }
+                else if (uniqueClassName) {
+                    path.push(`${tag}.${className}`);
+                    break;
+                }
+                else if (onlyTag) {
+                    path.push(tag);
+                }
+                else if (onlyClassName) {
+                    path.push(`${tag}.${className}`);
+                }
+                else {
+                    path.push(`${tag}:nth-child(${n})`);
+                }
             }
-            else {
-                return "";
-            }
+            return path.reverse().join(" > ");
         }
 
         private nodeKeys(nodes: JQueryResult | undefined): string[] {
@@ -1250,6 +1301,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private resolveQuery({ query, type, repeated, all, limit, format, pattern, result }: ResolveQueryParams): QueryResult | undefined {
+            const $ = this.jquery;
             let selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
             const context = this.context();
@@ -1257,12 +1309,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             let nodes: JQueryResult;
             let value: unknown;
             if (selector === "." && context) {
-                nodes = this.jquery(context.nodes);
+                nodes = $(context.nodes);
                 value = context.value;
                 this.log(`QUERY $(".", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
             }
             else if (selector === ".." && context?.parent) {
-                nodes = this.jquery(context.parent.nodes);
+                nodes = $(context.parent.nodes);
                 value = context.parent.value;
                 this.log(`QUERY $("..", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
             }
@@ -1273,7 +1325,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     subcontext = context.parent;
                 }
                 if (subcontext) {
-                    nodes = this.jquery(subcontext.nodes);
+                    nodes = $(subcontext.nodes);
                     value = subcontext.value;
                     this.log(`QUERY $(${selector}, [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);    
                 }
@@ -1283,17 +1335,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
             }
             else if (selector === "{window}") {
-                nodes = this.online ? this.jquery(window) : this.jquery();
+                nodes = this.online ? $(window) : $();
                 value = null;
             }
             else if (selector === "{document}") {
-                nodes = this.online ? this.jquery(document) : this.jquery();
+                nodes = this.online ? $(document) : $();
                 value = null;
             }
             else {
                 try {
                     const _selector = String(this.evaluate(selector));
-                    nodes = this.resolveQueryNodes(this.jquery(_selector, context?.nodes), result?.nodes);
+                    nodes = this.resolveQueryNodes($(_selector, context?.nodes), result?.nodes);
                     value = this.text(nodes, format);
                     if (selector !== _selector) {
                         this.log(`EVALUATE "${selector}" >>> "${_selector}"`);
@@ -1319,11 +1371,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 // if type is boolean then result is based on whether the query resulted in any hits
                 return {
                     nodes,
+                    key: this.contextKey(),
                     value: !repeated ? nodes.length > 0 : [nodes.length > 0]
                 }
             }
             else if (nodes.length > 0) {
-                return this.formatResult({ nodes, value }, type, all, limit, format, pattern);
+                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern);
             }
             else {
                 return undefined;
@@ -1331,10 +1384,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private resolveQueryNodes(target: JQueryResult, result: JQueryResult | undefined) {
+            const $ = this.jquery;
             if (result) {
                 const source = result.toArray();
                 const nodes = target.toArray().filter(node => !source.includes(node));
-                return this.jquery(nodes);
+                return $(nodes);
             }
             else {
                 return target;
@@ -1342,7 +1396,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: ResolveQueryOpsParams): QueryResult {
-            const result: QueryResult = { nodes, value };
+            const $ = this.jquery;
+            const result: QueryResult = { nodes, key: this.contextKey(), value };
             if (!this.validateOperators(ops)) {
                 return result;
             }
@@ -1351,7 +1406,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             while (a.length > 0) {
                 const [operator, ...operands] = a.shift()!;
                 if (operator === "blank") {
-                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length === 0));
+                    result.nodes = $(result.nodes.toArray().filter(element => $(element).text().trim().length === 0));
                     result.value = this.text(result.nodes, format);
                 }
                 else if (operator === "cut") {
@@ -1391,7 +1446,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                                     values.splice(i, 1);
                                 }
                             }
-                            result.nodes = this.jquery(elements);
+                            result.nodes = $(elements);
                         }
                         result.value = values;
                     }
@@ -1423,13 +1478,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                                 output.values.push(input.values[i]);
                             }
                         }
-                        result.nodes = this.jquery(output.elements);
+                        result.nodes = $(output.elements);
                         result.value = output.values;
                     }
                     else {
                         const hit = this.evaluateBoolean(operands[0], { value: result.value });
                         if (!hit) {
-                            result.nodes = this.jquery([]);
+                            result.nodes = $([]);
                             result.value = null;
                         }
                     }
@@ -1439,7 +1494,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         result.value = result.nodes.toArray().map(element => element.outerHTML.trim());
                     }
                     else {
-                        result.value = result.nodes.toArray().map(element => this.jquery.html(element).toString().trim());
+                        result.value = result.nodes.toArray().map(element => $.html(element).toString().trim());
                     }
                     if (typeof operands[1] === "boolean" ? operands[1] : true) {
                         result.value = formatHTML(result.value);
@@ -1447,7 +1502,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                 }
                 else if (operator === "html" && operands[0] === "inner") {
-                    result.value = result.nodes.toArray().map(element => this.jquery(element).html());
+                    result.value = result.nodes.toArray().map(element => $(element).html());
                     if (typeof operands[1] === "boolean" ? operands[1] : true) {
                         result.value = formatHTML(result.value);
                         result.formatted = true;
@@ -1473,11 +1528,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             output.values.push(value);
                         }
                     }
-                    result.nodes = this.jquery(output.elements);
+                    result.nodes = $(output.elements);
                     result.value = output.values;
                 }
                 else if (operator === "nonblank") {
-                    result.nodes = this.jquery(result.nodes.toArray().filter(element => this.jquery(element).text().trim().length > 0));
+                    result.nodes = $(result.nodes.toArray().filter(element => $(element).text().trim().length > 0));
                     result.value = this.text(result.nodes, format);
                 }
                 else if (operator === "replace") {
@@ -1513,7 +1568,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     const keepProps = operands[1] as boolean ?? true;
                     this.eachNode(result, node => {
                         // adapted from https://stackoverflow.com/questions/918792/use-jquery-to-change-an-html-tag
-                        const newNode = this.jquery(newTag);
+                        const newNode = $(newTag);
                         if (keepProps) {
                             $merge(newNode, node);
                         }
@@ -1546,7 +1601,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (!this.validateOperands(operator, operands, [], [])) {
                         break;
                     }
-                    result.nodes = this.jquery(result.nodes.toArray().reverse());
+                    result.nodes = $(result.nodes.toArray().reverse());
                     result.value = this.text(result.nodes, format);
                 }
                 else if (operator === "scrollBottom") {
@@ -1598,7 +1653,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     else if (repeated) {
                         result.value = result.nodes.toArray().map(element => {
-                            const delegate = this.jquery(element) as unknown as JQueryDelegate;
+                            const delegate = $(element) as unknown as JQueryDelegate;
                             const obj = delegate[operator](...operands);
                             return obj;
                         });
@@ -1687,6 +1742,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private selectResolvePivot(select: Select, item: DataItem | null): DataItem | null {
+            const $ = this.jquery;
             const { pivot, ...superselect } = select;
             if (pivot) {
                 const result = this.query(select);
@@ -1699,9 +1755,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }, select.context);
                     const elements = result.nodes.toArray();
                     for (const element of elements) {
-                        const nodes = this.jquery(element);
+                        const nodes = $(element);
                         this.pushContext({
-                            nodes: this.jquery(element),
+                            nodes: $(element),
                             value: this.text(nodes, select.format),
                             pivot: elements.indexOf(element)
                         }, select.context);
@@ -1722,6 +1778,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private selectResolveSelector(select: Select, item: DataItem | null, pivot = false): DataItem | null {
+            const $ = this.jquery;
             let subitem: DataItem | null = null;
             // if select type is unspecified then default to "object" if there is a subselect
             if (select.type === undefined && select.select) {
@@ -1732,6 +1789,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 if (select.type !== "object") {
                     subitem = {
                         nodes: this.nodeKeys(result.nodes),
+                        key: result.key,
                         value: result.value
                     };
                 }
@@ -1742,9 +1800,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         // select by nodes
                         subitem = {
                             nodes: this.nodeKeys(result.nodes),
+                            key: result.key,
                             value: result.nodes.toArray().map((node, index) => {
                                 this.pokeContext({
-                                    nodes: this.jquery(node),
+                                    nodes: $(node),
                                     value: result.value instanceof Array ? result.value[index] : result.value,
                                     index
                                 });
@@ -1756,6 +1815,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         // select by values (this is common when using split)
                         subitem = {
                             nodes: this.nodeKeys(result.nodes),
+                            key: result.key,
                             value: result.value.map((value, index) => {
                                 this.pokeContext({
                                     nodes: result.nodes,
@@ -1776,6 +1836,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         const value = this.select(subselect, pivot);
                         subitem = {
                             nodes: this.nodeKeys(result.nodes),
+                            key: result.key,
                             value: select.repeated ? [value] : value
                         };
                     }
@@ -1824,6 +1885,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             const value = coerceValue(result, select.type || "string");
             return {
                 nodes: [],
+                key: this.contextKey(),
                 value: select.repeated ? [value] : value
             };
         }
@@ -1834,6 +1896,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private text(nodes: JQuery<HTMLElement>, format?: SelectFormat): string[] {
+            const $ = this.jquery;
             format = format?.toLowerCase() as SelectFormat;
             if (this.online && format === "innertext") {
                 return nodes.toArray().map(element => element.innerText);
@@ -1842,13 +1905,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 return nodes.toArray().map(element => element.textContent as string);
             }
             else if (format === "none") {
-                return nodes.toArray().map(element => this.jquery(element).text());
+                return nodes.toArray().map(element => $(element).text());
             }
             else {
                 // add whitespace after nodes https://stackoverflow.com/questions/32635444/alternative-to-jquery-text-that-includes-spaces-between-elements
                 // a<i>b</i>c -> a b c 
                 nodes.find("*").each((index, element) => {
-                    const node = this.jquery(element);
+                    const node = $(element);
                     const tag = node.prop("tagName").toLowerCase();
                     const whitespace = tag === "br" || tag === "p" ? "\n" : " ";
                     node.append(whitespace);
@@ -1856,7 +1919,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         node.prepend(" ");
                     }
                 });
-                return nodes.toArray().map(element => this.jquery(element).text().trim().replace(/[ ]{2,}/g, " "));
+                return nodes.toArray().map(element => $(element).text().trim().replace(/[ ]{2,}/g, " "));
             }
         }
 

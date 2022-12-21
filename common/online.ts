@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const __jquery = fs.readFileSync(path.resolve(__dirname, "../node_modules/jquery/dist/jquery.slim.min.js"), "utf8");
 
 const defaults = {
-    useragent: "Mozilla/5.0 (X11; CrOS x86_64 15117.112.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+    useragent: "Mozilla/5.0 (X11; CrOS x86_64 15183.69.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
     headers: { "Accept-Language": "en-US,en" },
     viewport: { width: 1366, height: 768 }
 };
