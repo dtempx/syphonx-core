@@ -1,3 +1,6 @@
+setup dist folder and package.json to hold different builds for node and browser
+https://esbuild.github.io/api/#main-fields
+
 remove whitespace after an opening tag and before a closing tag { data.replace(/>\s*/g, ">").replace(/\s*</g, "<") }
 
 extractSync function for offline use only

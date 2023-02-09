@@ -40,6 +40,8 @@ export interface Repeat {
     actions: Action[];
     limit?: number; // max # of repitions (default=100)
     errors?: number; // error limit (default=1)
+    when?: When;
+    active?: boolean;
 }
 
 export interface SelectTarget {
@@ -52,8 +54,8 @@ export interface SelectTarget {
         // if values are strings then results are concatenated with newlines
         // if values are booleans then results are and'ed together
         // otherwise the latest result takes precedence
-    hits?: number | null; // DEPRECATED, use `all` instead // limits the number of query stage hits, default is unlimited or specify null for unlimited
-    limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited, specify null to force unlimited nodes
+    hits?: number | null; // DEPRECATED, use `all` instead // limits the number of query stage hits, default is unlimited or specify null for unlimited (null)
+    limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited (null), specify null to force unlimited nodes
     format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
     pattern?: string; // validation pattern (only applies if type=string)
     collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
@@ -92,6 +94,7 @@ export interface Yield {
     when?: When;
     timeout?: number;
     waitUntil?: DocumentLoadState | DocumentLoadState[];
+    context?: string;
     active?: boolean;
 }
 
@@ -154,10 +157,14 @@ export type When = string;
 export type SnoozeMode = "before" | "after" | "before-and-after"; // default=before
 export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //seconds
 
-export interface YieldResult {
-    step: number;
+export interface YieldState {
+    context?: string;
     timeout?: number;
     waitUntil?: DocumentLoadState | DocumentLoadState[];
+}
+
+export interface YieldResult extends YieldState {
+    step: number;
 }
 
 export interface ExtractState {
@@ -717,8 +724,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return false;
         }
 
-        private async click({ query, waitfor, snooze, required, retry, active, when }: Click): Promise<"timeout" | "not-found" | null> {
-            if (this.online && (active ?? true)) {
+        private async click({ query, waitfor, snooze, required, retry, when, active = true }: Click): Promise<"timeout" | "not-found" | null> {
+            if (this.online && active) {
                 if (this.when(when, "CLICK")) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
                     if (snooze && (mode === "before" || mode === "before-and-after")) {
@@ -880,6 +887,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 if (y) {
                     this.state.yield = {
                         step: step + 1,
+                        context: y.context,
                         timeout: y.timeout
                     };
                     return "yield";
@@ -888,9 +896,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
-        private async each({ query, actions, context, active, when }: Each): Promise<void> {
+        private async each({ query, actions, context, when, active = true }: Each): Promise<void> {
             const $ = this.jquery;
-            if (active ?? true) {
+            if (active) {
                 if (this.when(when, "CLICK")) {
                     const result = this.query({ query, repeated: true });
                     if (result && result.nodes.length > 0) {                        
@@ -926,7 +934,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private error({ query, code = "custom-error", message = "Custom template error", level = 1, stop, active = true, when }: Error): void {
+        private error({ query, code = "custom-error", message = "Custom template error", level = 1, stop, when, active = true }: Error): void {
             if (active) {
                 if (query) {
                     const result = this.query({ query, type: "boolean", repeated: false });
@@ -1093,14 +1101,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             for (const element of elements) {
                 const $parent = $(element).parent();
                 const tag = element.tagName.toLowerCase();
-                const id = $(element).attr('id');
-                const className = $(element).attr('class')?.split(' ')[0];
+                const id = $(element).attr('id') || "";
+                const className = $(element).attr('class')?.split(' ')[0] || "";
                 const n = $(element).index() + 1;
 
-                const uniqueId = $(`#${id}`).length === 1;
-                const uniqueClassName = $(`${tag}.${className}`).length === 1;
+                const uniqueId = /^[A-Za-z0-9_-]+$/.test(id) ? $(`#${id}`).length === 1 : false;
+                const uniqueClassName = /^[A-Za-z0-9_-]+$/.test(className) ? $(`${tag}.${className}`).length === 1 : false;
                 const onlyTag = $parent.children(tag).length === 1;
-                const onlyClassName = className ? $parent.children(`${tag}.${className}`).length === 1 : false;
+                const onlyClassName = /^[A-Za-z0-9_-]+$/.test(className) ? $parent.children(`${tag}.${className}`).length === 1 : false;
 
                 if (uniqueId) {
                     path.push(`#${id}`);
@@ -1256,35 +1264,45 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return [pass, result];
         }
 
-        private async repeat({ actions, limit = 100, errors = 1 }: Repeat): Promise<void> {
-            let errorCount = 0;
-            let baselineErrorCount = this.state.errors.length;
-            let i = 0;
-            let code = undefined;
-            while (i < limit) {
-                this.log(`REPEAT #${++i} (limit=${limit})`);
-                this.state.vars._page = i;
-                for (const action of actions) {
-                    const step = actions.indexOf(action) + 1;
-                    code = await this.dispatch(action, step);
-                    if (code) {
-                        this.log(`REPEAT #${i} -> break at step ${step}/${actions.length}, code=${code}`);
-                        break;
+        private async repeat({ actions, limit = 100, errors = 1, when, active = true }: Repeat): Promise<void> {
+            if (active) {
+                if (this.when(when, "REPEAT")) {
+                    let errorCount = 0;
+                    let baselineErrorCount = this.state.errors.length;
+                    let i = 0;
+                    let code = undefined;
+                    while (i < limit) {
+                        this.log(`REPEAT #${++i} (limit=${limit})`);
+                        this.state.vars._page = i;
+                        for (const action of actions) {
+                            const step = actions.indexOf(action) + 1;
+                            code = await this.dispatch(action, step);
+                            if (code) {
+                                this.log(`REPEAT #${i} -> break at step ${step}/${actions.length}, code=${code}`);
+                                break;
+                            }
+                        }
+                        if (!code) {
+                            this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
+                            errorCount = this.state.errors.length - baselineErrorCount;
+                            if (errorCount >= errors) {
+                                this.appendError("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`, 1);
+                                break;
+                            }
+                        }
+                        else {
+                            break;
+                        }
                     }
-                }
-                if (!code) {
-                    this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
-                    errorCount = this.state.errors.length - baselineErrorCount;
-                    if (errorCount >= errors) {
-                        this.appendError("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`, 1);
-                        break;
-                    }
+                    this.log(`REPEAT ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
                 }
                 else {
-                    break;
+                    this.log(`REPEAT SKIPPED ${when}`);
                 }
             }
-            this.log(`REPEAT ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
+            else {
+                this.log(`REPEAT BYPASSED ${when}`);
+            }
         }
 
         private resolveOperands(operands: unknown[], result: QueryResult): void {
@@ -1992,8 +2010,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitfor({ query, select, timeout, on = "any", required, pattern, when, active }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
-            if (this.online && (active ?? true)) {
+        private async waitfor({ query, select, timeout, on = "any", required, pattern, when, active = true }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
+            if (this.online && active) {
                 if (this.when(when, "WAITFOR")) {
                     if (timeout === undefined) {
                         timeout = 30;
@@ -2126,11 +2144,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return true;
         }
 
-        private yield({ active, when, timeout }: Yield): { timeout?: number } | undefined {
-            if (this.online && (active ?? true)) {
+        private yield({ when, context, timeout, waitUntil, active = true }: Yield): YieldState | undefined {
+            if (this.online && active) {
                 if (this.when(when, "YIELD")) {
                     this.log(`YIELD ${when || "(default)"} -> timeout=${timeout || "(default)"}`);
-                    return { timeout };
+                    return { context, timeout, waitUntil };
                 }
                 else {
                     this.log(`YIELD SKIPPED ${when}`);
