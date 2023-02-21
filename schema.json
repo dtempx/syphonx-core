@@ -1,5 +1,5 @@
 {
-    "title": "SyphonX",
+    "title": "syphonx",
     "type": "object",
     "properties": {
         "actions": { "$ref": "#/definitions/actions" },
@@ -44,14 +44,14 @@
                 },
                 "waitfor": {},
                 "when": {},
-                "$": { "$ref": "#definitions/$$" }
+                "query": { "$ref": "#definitions/$$" }
             },
             "required": ["$"]
         },
         "each-action": {
             "type": "object",
             "properties": {
-                "$": { "$ref": "#definitions/$$" },
+                "query": { "$ref": "#definitions/$$" },
                 "actions": {},
                 "active": { "type": "boolean" },
                 "context": { "$ref": "#definitions/break-action" },
@@ -128,7 +128,7 @@
                 },
                 "value": {},
                 "when": { "$ref": "#definitions/when" },
-                "$": { "$ref": "#definitions/$$" }
+                "query": { "$ref": "#definitions/$$" }
             }
         },
         "select-type": {
@@ -140,7 +140,7 @@
                 "string"
             ]
         },
-        "$": {
+        "query": {
             "type": "array"
         },
         "$$": {
@@ -158,9 +158,9 @@
             "properties": {
                 "active": { "type": "boolean" },
                 "when": { "$ref": "#definitions/when" },
-                "$": { "$ref": "#definitions/$" }
+                "query": { "$ref": "#definitions/$" }
             },
-            "required": ["$"]
+            "required": ["query"]
         },
         "waitfor-action": {
             "type": "object",
@@ -183,7 +183,7 @@
                 },
                 "timeout": { "type": "number" },
                 "when": { "$ref": "#definitions/when" },
-                "$": { "$ref": "#definitions/$$" }
+                "query": { "$ref": "#definitions/$$" }
             }
         },
         "yield-action": {

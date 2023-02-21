@@ -2,18 +2,18 @@
     "actions": [
         {
             "transform": [
-                { "$": ["a,span,font,strong",["replaceWith","{value.trim()}"]] },
-                { "$": ["div",["replaceWith","{`${value.trim()}<br>`}"]] },
-                { "$": ["p",["html","inner"],["replaceWith","{`<p>${value.trim()}</p>`}"]] },
-                { "$": ["td > p",["unwrap","td"]] },
-                { "$": ["tr > p",["unwrap","tr"]] },
-                { "$": ["tbody > p",["unwrap","tbody"]] },
-                { "$": ["table > p",["unwrap","table"]] }
+                { "query": ["a,span,font,strong",["replaceWith","{value.trim()}"]] },
+                { "query": ["div",["replaceWith","{`${value.trim()}<br>`}"]] },
+                { "query": ["p",["html","inner"],["replaceWith","{`<p>${value.trim()}</p>`}"]] },
+                { "query": ["td > p",["unwrap","td"]] },
+                { "query": ["tr > p",["unwrap","tr"]] },
+                { "query": ["tbody > p",["unwrap","tbody"]] },
+                { "query": ["table > p",["unwrap","table"]] }
             ]
         },
         {
             "select": [{
-                "$": [["main",["html","inner"]]],
+                "query": [["main",["html","inner"]]],
                 "all": true
             }]
         }

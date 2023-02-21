@@ -89,12 +89,11 @@ export interface WaitFor {
     active?: boolean;
 }
 
-export type DocumentLoadState = "load" | "domcontentloaded" | "networkidle";
 export interface Yield {
     when?: When;
     timeout?: number;
-    waitUntil?: DocumentLoadState | DocumentLoadState[];
     context?: string;
+    params?: YieldParams;
     active?: boolean;
 }
 
@@ -157,10 +156,15 @@ export type When = string;
 export type SnoozeMode = "before" | "after" | "before-and-after"; // default=before
 export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //seconds
 
+export type DocumentLoadState = "load" | "domcontentloaded" | "networkidle";
+export interface YieldParams extends Record<string, unknown> {
+    waitUntil?: DocumentLoadState | DocumentLoadState[];
+}
+
 export interface YieldState {
     context?: string;
     timeout?: number;
-    waitUntil?: DocumentLoadState | DocumentLoadState[];
+    params?: YieldParams;
 }
 
 export interface YieldResult extends YieldState {
@@ -888,7 +892,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     this.state.yield = {
                         step: step + 1,
                         context: y.context,
-                        timeout: y.timeout
+                        timeout: y.timeout,
+                        params: y.params
                     };
                     return "yield";
                 }
@@ -2144,11 +2149,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return true;
         }
 
-        private yield({ when, context, timeout, waitUntil, active = true }: Yield): YieldState | undefined {
+        private yield({ when, context, timeout, params, active = true }: Yield): YieldState | undefined {
             if (this.online && active) {
                 if (this.when(when, "YIELD")) {
-                    this.log(`YIELD ${when || "(default)"} -> timeout=${timeout || "(default)"}`);
-                    return { context, timeout, waitUntil };
+                    this.log(`YIELD ${when || "(default)"} -> timeout=${timeout || "(default)"}${params ? `\n${JSON.stringify(params)}` : ""}`);
+                    return { context, timeout, params };
                 }
                 else {
                     this.log(`YIELD SKIPPED ${when}`);
