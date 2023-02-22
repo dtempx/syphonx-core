@@ -90,9 +90,10 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         const debug = options.debug || !!process.env.DEBUG;
         let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug });
         while (state.yield) {
+            
             await page.waitForNavigation({
                 timeout: state.yield.timeout ? state.yield.timeout : timeout,
-                waitUntil: state.yield.waitUntil ? asPuppeteerLifeCycleEvent(state.yield.waitUntil) : waitUntil
+                waitUntil: state.yield.params?.waitUntil ? asPuppeteerLifeCycleEvent(state.yield.params.waitUntil) : waitUntil
             });
             await page.evaluate(__jquery);
             state.yield === undefined;

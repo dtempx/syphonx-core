@@ -44,6 +44,16 @@ export interface Repeat {
     active?: boolean;
 }
 
+export interface Scroll {
+    query?: SelectQuery[];
+    target?: ScrollTarget; // Determines the target of the scroll as top, bottom, or query
+    behavior?: ScrollBehavior; // Determines whether to scroll smoothly or immediately jump to target (default=smooth)
+    block?: ScrollLogicalPosition; // Determines vertical alignment (default=start)
+    inline?: ScrollLogicalPosition; // Determines horizontal alignment (default=nearest)
+    when?: When;
+    active?: boolean;
+}
+
 export interface SelectTarget {
     query?: SelectQuery[];
     pivot?: SelectTarget;
@@ -97,6 +107,8 @@ export interface Yield {
     active?: boolean;
 }
 
+export type ScrollTarget = "top" | "bottom";
+
 export type SelectType = "string" | "number" | "boolean" | "object"; // document how formatResult works and coerceValue converts different values to the target type
 export type SelectQuery = [string, ...SelectQueryOp[]];
 export type SelectQueryOp = [string, ...unknown[]];
@@ -112,6 +124,7 @@ export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
 export type ErrorAction = { error: Error };
 export type RepeatAction = { repeat: Repeat };
+export type ScrollAction = { scroll: Scroll };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
 export type TransformAction = { transform: Transform[] };
@@ -124,6 +137,7 @@ export type Action =
     | EachAction
     | ErrorAction
     | RepeatAction
+    | ScrollAction
     | SelectAction
     | SnoozeAction
     | TransformAction
@@ -616,6 +630,21 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return "unknown";
     }
 
+    // waits for no scroll event to occur within a window of 200ms, or 3s maximum
+    function waitForScrollEnd(): Promise<void> {
+        return new Promise<void>(resolve => {
+            let timer = setTimeout(() => resolve(), 3000);
+            function onScroll() {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    removeEventListener("scroll", onScroll);
+                    resolve();
+                }, 200);
+            }
+            addEventListener("scroll", onScroll);
+        });
+    }
+
     function $merge(source: JQuery<HTMLElement>, target: JQuery<HTMLElement>): void {
         for (const targetAttr of target[0].attributes) {
             const sourceAttr = Array.from(source[0].attributes).find(attr => attr.name === targetAttr.name);
@@ -872,6 +901,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
+            }
+            else if (action.hasOwnProperty("scroll")) {
+                await this.scroll((action as ScrollAction).scroll);
             }
             else if (action.hasOwnProperty("snooze")) {
                 await this.snooze((action as SnoozeAction).snooze);
@@ -1714,6 +1746,44 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
             }
             this.log(`${actions.length} steps completed`);
+        }
+
+        private async scroll({ query, target, behavior = "smooth", block, inline, when, active = true }: Scroll): Promise<void> {
+            if (this.online && active) {
+                if (this.when(when, "SCROLL")) {
+                    if (target === "top" || target === "bottom") {
+                        const top = target === "bottom" ? document.body.scrollHeight : 0;
+                        const left = 0;
+                        window.scrollTo({ top, left, behavior });
+                        const w0 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
+                        await waitForScrollEnd();
+                        const w1 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
+                        this.log(`SCROLL ${when || "(default)"} scroll to ${target} from [${w0}] to [${w1}]`);
+                    }
+                    else if (query) {
+                        const result = this.query({ query, repeated: false });
+                        if (result && result.nodes.length > 0) {
+                            const element = result.nodes[0] as Element;
+                            const { top, left } = element.getBoundingClientRect();
+                            const elementPos = [window.scrollX + Math.floor(left), window.scrollY + Math.floor(top)]
+                            const w0 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
+                            element.scrollIntoView({ behavior, block, inline });
+                            await waitForScrollEnd();
+                            const w1 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
+                            this.log(`SCROLL ${when || "(default)"} -> [${this.nodeKey(result.nodes)}] scroll to element at [${elementPos}] from [${w0}] to [${w1}]`);
+                        }
+                    }
+                    else {
+                        this.log(`SCROLL ${when || "(default)"} INVALID TARGET`);
+                    }
+                }
+                else {
+                    this.log(`SCROLL SKIPPED ${when}`);
+                }
+            }
+            else {
+                this.log(`SCROLL BYPASSED ${when}`);
+            }
         }
 
         private select(selects: Select[], pivot = false): unknown {
