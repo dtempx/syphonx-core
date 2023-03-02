@@ -34,6 +34,10 @@ npm publish
 ```
 > Publish requires authenticator code
 
+## Debug code running in the browser
+Try https://www.builder.io/blog/debug-nodejs
+
+
 ## Add jQuery to any page
 ```
 (() => {
