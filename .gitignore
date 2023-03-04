@@ -1,4 +1,5 @@
 node_modules
+dist
 *.js
 *.js.map
 *.d.ts
@@ -6,6 +7,7 @@ node_modules
 *.out
 .env
 .env.*
+.parcel-cache
 .DS_Store
 Thumbs.db
 private

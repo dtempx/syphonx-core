@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "outDir": "./dist/commonjs"
+    },
+    "files": [
+        "./index.ts"
+    ]
+}

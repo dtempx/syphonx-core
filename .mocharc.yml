@@ -1,0 +1,8 @@
+# https://github.com/mochajs/mocha/blob/master/example/config/.mocharc.yml
+# https://mochajs.org/#command-line-usage
+
+color: true
+spec:
+  - './test/**/*.js'
+slow: 30000
+timeout: 0

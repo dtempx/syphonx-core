@@ -646,7 +646,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     }
 
     function $merge(source: JQuery<HTMLElement>, target: JQuery<HTMLElement>): void {
-        for (const targetAttr of target[0].attributes) {
+        for (const targetAttr of Array.from(target[0].attributes)) {
             const sourceAttr = Array.from(source[0].attributes).find(attr => attr.name === targetAttr.name);
             if (sourceAttr && targetAttr.name === "class") {
                 const value = Array.from(new Set([

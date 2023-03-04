@@ -34,11 +34,11 @@ npm publish
 ```
 > Publish requires authenticator code
 
-## Debug code running in the browser
-Try https://www.builder.io/blog/debug-nodejs
 
-
-## Add jQuery to any page
+## Debug in browser
+1. Hit F12 in browser to open developer tools
+2. Paste contents of file `dist/umd/syphonx.js` into the console
+3. Execute the following command to add jQuery to the page
 ```
 (() => {
     const script = document.createElement('script');
@@ -47,63 +47,10 @@ Try https://www.builder.io/blog/debug-nodejs
     //jQuery.noConflict();
 })();
 ```
-##
-
+4. Execute the following command in the console
 ```
-execute
-  each action
-    dispatch(action)
-        select
-        break
-        click
-        repeat
-        snooze
-        transform
-        waitfor
-        yield
-
-select
-    select.active
-        select.when
-            select.pivot -> selectResolvePivot (creates a context, uses keypath)
-            select.union -> selectResolveUnion (does not create a context, uses keypath)
-            select.$ -> selectResolveSelector (creates parent/child contexts, uses keypath)
-            select.value -> selectResolveValue (no context, no keypath)
-
-selectResolveSelector(select, item, context)
-    query(select, context)
-        if select.type !== "object" -> merge
-        if select.type === "object" -> select(select.select -> subcontext) -> merge
-
-query(select, context)  ...context passthru only
-    resolveQuery(context)
-        mergeQueryResult
-
-resolveQuery(..., context)
-    case selector
-        when "." -> context.nodes
-        when ".." -> context.parent.nodes
-        when "{window}" -> $(window)
-        when "{document}" -> $(document)
-        else -> evaluate(selector), resolveQueryNodes(context.nodes)
-    resolveQueryOps()  (no context)
-
-resolveQueryOps
-    case operator
-        when "blank" ->
-        when "cut" ->
-        when "extract" ->
-        when "filter" ->
-        when "html" ->
-        when "map" ->
-        when "nonblank" ->
-        when "replace" ->
-        when "replaceHTML" ->
-        when "replaceText" ->
-        when "replaceWith" ->
-        when "scrollBottom" ->
-        when "size" ->
-        when "split" ->
-        when "text" ->
-        else -> dispatch to jquery
+await syphonx.extract({ actions: [{ select: [{ query: [["h1"]] }] }] })
 ```
+
+## Debug code running in the browser
+Try https://www.builder.io/blog/debug-nodejs
