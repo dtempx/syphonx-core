@@ -172,7 +172,7 @@ export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //
 
 export type DocumentLoadState = "load" | "domcontentloaded" | "networkidle";
 export interface YieldParams extends Record<string, unknown> {
-    waitUntil?: DocumentLoadState | DocumentLoadState[];
+    waitUntil?: DocumentLoadState;
 }
 
 export interface YieldState {

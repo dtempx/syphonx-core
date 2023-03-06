@@ -1,19 +1,10 @@
-import puppeteer, { Browser, Page, PuppeteerLifeCycleEvent } from "puppeteer";
+import playwright, { Browser, BrowserContext, Page } from "playwright";
 import * as syphonx from "../index.js";
 import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
 import { evaluateFormula, removeDOMRefs } from "./utilities.js";
+import { args, headers, userAgent, viewport } from "./defaults.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const __jquery = fs.readFileSync(path.resolve(__dirname, "../node_modules/jquery/dist/jquery.slim.min.js"), "utf8");
-
-const defaults = {
-    useragent: "Mozilla/5.0 (X11; CrOS x86_64 15183.69.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-    headers: { "Accept-Language": "en-US,en" },
-    viewport: { width: 1366, height: 768 }
-};
+const jquery = fs.readFileSync(new URL("../node_modules/jquery/dist/jquery.slim.min.js", import.meta.url), "utf8");
 
 interface OnlineOptions {
     actions: syphonx.Action[];
@@ -26,24 +17,9 @@ interface OnlineOptions {
     useragent?: string;
     headers?: Record<string, string>;
     viewport?: { width: number, height: number };
-    waitUntil?: syphonx.DocumentLoadState | syphonx.DocumentLoadState[];
+    waitUntil?: syphonx.DocumentLoadState;
     includeDOMRefs?: boolean;
     outputHTML?: "pre" | "post";
-}
-
-function asPuppeteerLifeCycleEvent(state: syphonx.DocumentLoadState | syphonx.DocumentLoadState[] | undefined): PuppeteerLifeCycleEvent | PuppeteerLifeCycleEvent[] | undefined {
-    if (state instanceof Array)
-        return state.map(value => asPuppeteerLifeCycleEvent(value) as PuppeteerLifeCycleEvent);
-    else if (state === "load")
-        return "load";
-    else if (state === "domcontentloaded")
-        return "domcontentloaded";
-    else if (state === "networkidle")
-        return "networkidle2";
-    else if (state === "none")
-        return undefined;
-    else
-        return "load";
 }
 
 export async function online({ show = false, includeDOMRefs = false, outputHTML = "pre", ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
@@ -54,21 +30,14 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
 
     const originalUrl = evaluateFormula(`\`${options.url}\``, options.params) as string;
     let browser: Browser | undefined = undefined;
+    let context: BrowserContext | undefined = undefined;
     let page: Page | undefined = undefined;
     try {
-        browser = await puppeteer.launch({
-            headless: !show,
-            args: [
-                "--no-sandbox", // required to run within some containers
-                "--disable-web-security", // enable accessing cross-domain iframe's
-                "--disable-dev-shm-usage", // workaround for "Target closed" errors when capturing screenshots https://github.com/GoogleChrome/puppeteer/issues/1790
-            ],
-        });
-
-        page = await browser.newPage();
-        await page.setUserAgent(options.useragent || defaults.useragent);
-        await page.setExtraHTTPHeaders({ ...defaults.headers, ...options.headers });
-        await page.setViewport(options.viewport || defaults.viewport);
+        browser = await playwright.chromium.launch({ headless: !show, args });
+        context = await browser.newContext({ userAgent: options.useragent || userAgent });
+        page = await context.newPage();
+        await page.setExtraHTTPHeaders({ ...headers, ...options.headers });
+        await page.setViewportSize({ ...viewport, ...options.viewport });
 
         let status = 0;
         await page.on("response", response => {
@@ -78,10 +47,13 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         });
 
         const timeout = typeof options.timeout === "number" ? options.timeout * 1000 : undefined;
-        const waitUntil = asPuppeteerLifeCycleEvent(options.waitUntil);
+        const waitUntil = options.waitUntil;
         await page.goto(originalUrl, { timeout, waitUntil });
+        if (waitUntil)
+            await page.waitForURL(originalUrl, { timeout, waitUntil });
+
         options.vars._http_status = status;
-        await page.evaluate(__jquery);
+        await page.evaluate(jquery);
 
         let html = "";
         if (outputHTML === "pre")
@@ -90,12 +62,9 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         const debug = options.debug || !!process.env.DEBUG;
         let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug });
         while (state.yield) {
-            
-            await page.waitForNavigation({
-                timeout: state.yield.timeout ? state.yield.timeout : timeout,
-                waitUntil: state.yield.params?.waitUntil ? asPuppeteerLifeCycleEvent(state.yield.params.waitUntil) : waitUntil
-            });
-            await page.evaluate(__jquery);
+            if (state.yield.params?.waitUntil)
+                await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.timeout || timeout });
+            await page.evaluate(jquery);
             state.yield === undefined;
             state.vars.__status = status;
             state.debug = debug;

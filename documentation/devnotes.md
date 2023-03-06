@@ -27,7 +27,7 @@ yarn test
 
 ## Deploy
 ```
-yarn upgrade puppeteer --latest
+yarn upgrade playwright --latest
 yarn build
 yarn test
 npm publish

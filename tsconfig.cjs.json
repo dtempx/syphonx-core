@@ -4,7 +4,7 @@
         "target": "ES5",
         "module": "CommonJS",
         "moduleResolution": "node",
-        "outDir": "./dist/commonjs"
+        "outDir": "./dist/cjs"
     },
     "files": [
         "./index.ts"

@@ -12,7 +12,7 @@ Zero dependencies
 jQuery + Regex
 
 jQuery
-puppeteer
+playwright
 cheerio
 
 ## Features

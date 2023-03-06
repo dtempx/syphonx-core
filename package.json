@@ -1,18 +1,18 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Embeddable core for SyphonX web data extractor",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
   "repository": "github:dtempx/syphonx-core",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/commonjs/index.js",
+  "main": "./dist/cjs/index.js",
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/commonjs/index.js",
+      "require": "./dist/cjs/index.js",
       "browser": "./dist/umd/syphonx.js"
     }
   },
@@ -27,7 +27,9 @@
   "keywords": [
     "scrape"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "playwright": "^1.31.2"
+  },
   "devDependencies": {
     "@types/chai": "^4.3.3",
     "@types/chai-as-promised": "^7.1.5",
@@ -43,7 +45,6 @@
     "jquery": "^3.6.0",
     "json5": "^2.2.1",
     "mocha": "^9.2.2",
-    "puppeteer": "^19.7.2",
     "rollup": "^3.18.0",
     "typescript": "^4.6.2",
     "word-wrap": "^1.2.3"
