@@ -1,6 +1,7 @@
 import { CheerioAPI } from "cheerio";
 
 export interface Break {
+    name?: string;
     query?: SelectQuery[];
     on?: SelectOn; // only used with query
     pattern?: string; // only used with query, waits for a specific text pattern if specified
@@ -9,6 +10,7 @@ export interface Break {
 }
 
 export interface Click {
+    name?: string;
     query: SelectQuery[];
     waitfor?: WaitFor; // skip if no nodes selected
     snooze?: SnoozeInterval;
@@ -19,6 +21,7 @@ export interface Click {
 }
 
 export interface Each {
+    name?: string;
     query: SelectQuery[];
     actions: Action[];
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
@@ -27,6 +30,7 @@ export interface Each {
 }
 
 export interface Error {
+    name?: string;
     message: string;
     code?: ExtractErrorCode; // default is "custom-error"
     level?: number; // indicates error level, 0 is non-retryable, 1 or above is retryable (default=1)
@@ -37,6 +41,7 @@ export interface Error {
 }
 
 export interface Repeat {
+    name?: string;
     actions: Action[];
     limit?: number; // max # of repitions (default=100)
     errors?: number; // error limit (default=1)
@@ -45,6 +50,7 @@ export interface Repeat {
 }
 
 export interface Scroll {
+    name?: string;
     query?: SelectQuery[];
     target?: ScrollTarget; // Determines the target of the scroll as top, bottom, or query
     behavior?: ScrollBehavior; // Determines whether to scroll smoothly or immediately jump to target (default=smooth)
@@ -83,12 +89,14 @@ export interface Select extends SelectTarget {
 }
 
 export interface Transform {
+    name?: string;
     query: SelectQuery;
     when?: When;
     active?: boolean;
 }
 
 export interface WaitFor {
+    name?: string;
     query?: SelectQuery[];
     select?: Select[];
     on?: SelectOn; // used with query or select
@@ -100,6 +108,7 @@ export interface WaitFor {
 }
 
 export interface Yield {
+    name?: string;
     when?: When;
     timeout?: number;
     context?: string;
@@ -731,39 +740,39 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(text);
         }
 
-        private break({ query, on = "any", pattern, when, active = true }: Break): boolean {
+        private break({ name, query, on = "any", pattern, when, active = true }: Break): boolean {
             if (this.online && active) {
                 if (this.when(when, "BREAK")) {
                     if (query) {
-                        this.log(`BREAK WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
+                        this.log(`BREAK${name ? ` ${name}` : ""} WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
                         const result = this.queryCheck(query, on, pattern);
                         if (result === null) {
-                            this.log(`BREAK ${when}`);
+                            this.log(`BREAK${name ? ` ${name}` : ""} ${when}`);
                             return true;    
                         }
                     }
                     else {
-                        this.log(`BREAK ${when}`);
+                        this.log(`BREAK${name ? ` ${name}` : ""} ${when}`);
                         return true;
                     }
                 }
                 else {
-                    this.log(`BREAK SKIPPED ${when}`);
+                    this.log(`BREAK${name ? ` ${name}` : ""} SKIPPED ${when}`);
                 }
             }
             else {
-                this.log(`BREAK BYPASSED ${when}`);
+                this.log(`BREAK${name ? ` ${name}` : ""} BYPASSED ${when}`);
             }
             return false;
         }
 
-        private async click({ query, waitfor, snooze, required, retry, when, active = true }: Click): Promise<"timeout" | "not-found" | null> {
+        private async click({ name, query, waitfor, snooze, required, retry, when, active = true }: Click): Promise<"timeout" | "not-found" | null> {
             if (this.online && active) {
-                if (this.when(when, "CLICK")) {
+                if (this.when(when, `CLICK${name ? ` ${name}` : ""}`)) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
                     if (snooze && (mode === "before" || mode === "before-and-after")) {
                         const seconds = snooze[0];
-                        this.log(`CLICK SNOOZE BEFORE (${seconds}s) ${$statements(query)}`);
+                        this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE BEFORE (${seconds}s) ${$statements(query)}`);
                         await sleep(seconds * 1000);
                     }
                     const result = this.query({ query });
@@ -774,12 +783,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                                 if (!code) {
                                     if (snooze && (mode === "after" || mode === "before-and-after")) {
                                         const seconds = snooze[0];
-                                        this.log(`CLICK SNOOZE AFTER (${seconds}s) ${$statements(query)}`);
+                                        this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE AFTER (${seconds}s) ${$statements(query)}`);
                                         await sleep(seconds * 1000);
                                     }
                                 }
                                 else if (code === "timeout") {
-                                    this.appendError("click-timeout", `Timeout waiting for click result. ${trunc(waitfor.query)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
+                                    this.appendError("click-timeout", `Timeout waiting for CLICK${name ? ` ${name}` : ""} result. ${trunc(waitfor.query)}${waitfor.pattern ? `, pattern=${waitfor.pattern}` : ""}`, 1);
                                     return "timeout";
                                 }
                                 else if (code === "invalid") {
@@ -796,11 +805,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                 }
                 else {
-                    this.log(`CLICK SKIPPED ${$statements(query)}`);
+                    this.log(`CLICK${name ? ` ${name}` : ""} SKIPPED ${$statements(query)}`);
                 }
             }
             else {
-                this.log(`CLICK BYPASSED ${$statements(query)}`);
+                this.log(`CLICK${name ? ` ${name}` : ""} BYPASSED ${$statements(query)}`);
             }
             return null;
         }
@@ -933,10 +942,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
-        private async each({ query, actions, context, when, active = true }: Each): Promise<void> {
+        private async each({ name, query, actions, context, when, active = true }: Each): Promise<void> {
             const $ = this.jquery;
             if (active) {
-                if (this.when(when, "CLICK")) {
+                if (this.when(when, `EACH${name ? ` ${name}` : ""}`)) {
                     const result = this.query({ query, repeated: true });
                     if (result && result.nodes.length > 0) {                        
                         const elements = result.nodes.toArray();
@@ -1301,26 +1310,26 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return [pass, result];
         }
 
-        private async repeat({ actions, limit = 100, errors = 1, when, active = true }: Repeat): Promise<void> {
+        private async repeat({ name, actions, limit = 100, errors = 1, when, active = true }: Repeat): Promise<void> {
             if (active) {
-                if (this.when(when, "REPEAT")) {
+                if (this.when(when, `REPEAT${name ? ` ${name}` : ""}`)) {
                     let errorCount = 0;
                     let baselineErrorCount = this.state.errors.length;
                     let i = 0;
                     let code = undefined;
                     while (i < limit) {
-                        this.log(`REPEAT #${++i} (limit=${limit})`);
+                        this.log(`REPEAT${name ? ` ${name}` : ""} #${++i} (limit=${limit})`);
                         this.state.vars._page = i;
                         for (const action of actions) {
                             const step = actions.indexOf(action) + 1;
                             code = await this.dispatch(action, step);
                             if (code) {
-                                this.log(`REPEAT #${i} -> break at step ${step}/${actions.length}, code=${code}`);
+                                this.log(`REPEAT${name ? ` ${name}` : ""} #${i} -> break at step ${step}/${actions.length}, code=${code}`);
                                 break;
                             }
                         }
                         if (!code) {
-                            this.log(`REPEAT #${i} -> ${actions.length} steps completed`);
+                            this.log(`REPEAT${name ? ` ${name}` : ""} #${i} -> ${actions.length} steps completed`);
                             errorCount = this.state.errors.length - baselineErrorCount;
                             if (errorCount >= errors) {
                                 this.appendError("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`, 1);
@@ -1331,14 +1340,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             break;
                         }
                     }
-                    this.log(`REPEAT ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
+                    this.log(`REPEAT${name ? ` ${name}` : ""} ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
                 }
                 else {
-                    this.log(`REPEAT SKIPPED ${when}`);
+                    this.log(`REPEAT${name ? ` ${name}` : ""} SKIPPED ${when}`);
                 }
             }
             else {
-                this.log(`REPEAT BYPASSED ${when}`);
+                this.log(`REPEAT${name ? ` ${name}` : ""} BYPASSED ${when}`);
             }
         }
 
@@ -1748,9 +1757,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`${actions.length} steps completed`);
         }
 
-        private async scroll({ query, target, behavior = "smooth", block, inline, when, active = true }: Scroll): Promise<void> {
+        private async scroll({ name, query, target, behavior = "smooth", block, inline, when, active = true }: Scroll): Promise<void> {
             if (this.online && active) {
-                if (this.when(when, "SCROLL")) {
+                if (this.when(when, `SCROLL${name ? ` ${name}` : ""}`)) {
                     if (target === "top" || target === "bottom") {
                         const top = target === "bottom" ? document.body.scrollHeight : 0;
                         const left = 0;
@@ -1758,7 +1767,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         const w0 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
                         await waitForScrollEnd();
                         const w1 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
-                        this.log(`SCROLL ${when || "(default)"} scroll to ${target} from [${w0}] to [${w1}]`);
+                        this.log(`SCROLL${name ? ` ${name}` : ""} ${when || "(default)"} scroll to ${target} from [${w0}] to [${w1}]`);
                     }
                     else if (query) {
                         const result = this.query({ query, repeated: false });
@@ -1770,15 +1779,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             element.scrollIntoView({ behavior, block, inline });
                             await waitForScrollEnd();
                             const w1 = [Math.floor(window.scrollX), Math.floor(window.scrollY)];
-                            this.log(`SCROLL ${when || "(default)"} -> [${this.nodeKey(result.nodes)}] scroll to element at [${elementPos}] from [${w0}] to [${w1}]`);
+                            this.log(`SCROLL${name ? ` ${name}` : ""} ${when || "(default)"} -> [${this.nodeKey(result.nodes)}] scroll to element at [${elementPos}] from [${w0}] to [${w1}]`);
                         }
                     }
                     else {
-                        this.log(`SCROLL ${when || "(default)"} INVALID TARGET`);
+                        this.log(`SCROLL${name ? ` ${name}` : ""} ${when || "(default)"} INVALID TARGET`);
                     }
                 }
                 else {
-                    this.log(`SCROLL SKIPPED ${when}`);
+                    this.log(`SCROLL${name ? ` ${name}` : ""} SKIPPED ${when}`);
                 }
             }
             else {
@@ -2019,7 +2028,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private async transform(transforms: Transform[]): Promise<void> {
             for (const transform of transforms) {
                 if (transform.active ?? true) {
-                    if (this.when(transform.when, "TRANSFORM")) {
+                    if (this.when(transform.when, `TRANSFORM${transform.name ? ` ${transform.name}` : ""}`)) {
                         const query = transform.query;
                         const selector = query[0];
                         const [operands] = query.slice(1) as SelectQueryOp[];
@@ -2027,24 +2036,24 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             const delay = typeof operands[1] === "number" ? operands[1] : undefined;
                             const max = typeof operands[2] === "number" ? operands[2] : undefined;
                             const pagedowns = await $scrollToBottom(delay, max);
-                            this.log(`TRANSFORM ${$statement(query)} (${pagedowns}x)`);
+                            this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${$statement(query)} (${pagedowns}x)`);
                         }
                         else {
                             try {
                                 const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
-                                this.log(`TRANSFORM ${$statement(query)} -> (${result?.nodes?.length || 0} nodes)`);
+                                this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${$statement(query)} -> (${result?.nodes?.length || 0} nodes)`);
                             }
                             catch (err) {
-                                this.log(`TRANSFORM ERROR ${$statement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                                this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ERROR ${$statement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
                             }
                         }
                     }
                     else {
-                        this.log(`TRANSFORM SKIPPED ${$statement(transform.query)}`);
+                        this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} SKIPPED ${$statement(transform.query)}`);
                     }
                 }
                 else {
-                    this.log(`TRANSFORM BYPASSED ${$statement(transform.query)}`);
+                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} BYPASSED ${$statement(transform.query)}`);
                 }    
             }
         }
@@ -2085,9 +2094,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitfor({ query, select, timeout, on = "any", required, pattern, when, active = true }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
+        private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when, active = true }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
             if (this.online && active) {
-                if (this.when(when, "WAITFOR")) {
+                if (this.when(when, `WAITFOR${name ? ` ${name}` : ""}`)) {
                     if (timeout === undefined) {
                         timeout = 30;
                     }
@@ -2097,22 +2106,22 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         
                     let code = null;
                     if (query) {
-                        this.log(`${context ? `${context} ` : ""}WAITFOR QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
                         code = await this.waitforQuery(query, on, timeout, required, pattern, context);
                     }
                     else if (select) {
-                        this.log(`${context ? `${context} ` : ""}WAITFOR SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
                         code = await this.waitforSelect(select, on, timeout, required, pattern, context);
                     }
                     return code;
                 }
                 else {
-                    this.log(`${context ? `${context} ` : ""}WAITFOR BYPASSSED ${$statements(query)}`);
+                    this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} BYPASSSED ${$statements(query)}`);
                     return null;
                 }
             }
             else {
-                this.log(`${context ? `${context} ` : ""}WAITFOR SKIPPED ${$statements(query)}`);
+                this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} SKIPPED ${$statements(query)}`);
                 return null;
             }
         }
@@ -2219,18 +2228,18 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return true;
         }
 
-        private yield({ when, context, timeout, params, active = true }: Yield): YieldState | undefined {
+        private yield({ name, when, context, timeout, params, active = true }: Yield): YieldState | undefined {
             if (this.online && active) {
-                if (this.when(when, "YIELD")) {
-                    this.log(`YIELD ${when || "(default)"} -> timeout=${timeout || "(default)"}${params ? `\n${JSON.stringify(params)}` : ""}`);
+                if (this.when(when, `YIELD${name ? ` ${name}` : ""}`)) {
+                    this.log(`YIELD${name ? ` ${name}` : ""} ${when || "(default)"} -> timeout=${timeout || "(default)"}${params ? `\n${JSON.stringify(params)}` : ""}`);
                     return { context, timeout, params };
                 }
                 else {
-                    this.log(`YIELD SKIPPED ${when}`);
+                    this.log(`YIELD${name ? ` ${name}` : ""} SKIPPED ${when}`);
                 }
             }
             else {
-                this.log(`YIELD BYPASSED ${when}`);
+                this.log(`YIELD${name ? ` ${name}` : ""} BYPASSED ${when}`);
             }
             return undefined;
         }
