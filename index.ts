@@ -111,7 +111,6 @@ export interface Yield {
     name?: string;
     when?: When;
     timeout?: number;
-    context?: string;
     params?: YieldParams;
     active?: boolean;
 }
@@ -2228,11 +2227,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return true;
         }
 
-        private yield({ name, when, context, timeout, params, active = true }: Yield): YieldState | undefined {
+        private yield({ name, params, timeout, when, active = true }: Yield): YieldState | undefined {
             if (this.online && active) {
                 if (this.when(when, `YIELD${name ? ` ${name}` : ""}`)) {
                     this.log(`YIELD${name ? ` ${name}` : ""} ${when || "(default)"} -> timeout=${timeout || "(default)"}${params ? `\n${JSON.stringify(params)}` : ""}`);
-                    return { context, timeout, params };
+                    return { params, timeout };
                 }
                 else {
                     this.log(`YIELD${name ? ` ${name}` : ""} SKIPPED ${when}`);
