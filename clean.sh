@@ -1,10 +1,4 @@
 rm -rf dist
-rm *.js
-rm *.js.map
-rm *.d.ts
-find ./common -name "*.js" -type f -delete
-find ./common -name "*.js.map" -type f -delete
-find ./common -name "*.d.ts" -type f -delete
-find ./test -name "*.js" -type f -delete
-find ./test -name "*.js.map" -type f -delete
-find ./test -name "*.d.ts" -type f -delete
+find . -name "*.js" ! -path "./node_modules/*" -type f -exec rm {} +
+find . -name "*.js.map" ! -path "./node_modules/*" -type f -exec rm {} +
+find . -name "*.d.ts" ! -path "./node_modules/*" -type f -exec rm {} +
