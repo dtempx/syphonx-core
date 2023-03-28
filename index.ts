@@ -109,9 +109,8 @@ export interface WaitFor {
 
 export interface Yield {
     name?: string;
-    when?: When;
-    timeout?: number;
     params?: YieldParams;
+    when?: When;
     active?: boolean;
 }
 
@@ -179,19 +178,6 @@ export type SnoozeMode = "before" | "after" | "before-and-after"; // default=bef
 export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //seconds
 
 export type DocumentLoadState = "load" | "domcontentloaded" | "networkidle";
-export interface YieldParams extends Record<string, unknown> {
-    waitUntil?: DocumentLoadState;
-}
-
-export interface YieldState {
-    context?: string;
-    timeout?: number;
-    params?: YieldParams;
-}
-
-export interface YieldResult extends YieldState {
-    step: number;
-}
 
 export interface ExtractState {
     actions: Action[];
@@ -204,9 +190,10 @@ export interface ExtractState {
     log: string;
     errors: ExtractError[];
     debug: boolean;
-    yield?: YieldResult;
+    yield?: YieldState;
     root?: unknown;
 }
+
 
 export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
     ok: boolean;
@@ -238,6 +225,17 @@ export type ExtractErrorCode =
     "select-required" |
     "waitfor-timeout";
 
+export interface YieldParams extends Record<string, unknown> {
+    timeout?: number;
+    waitUntil?: DocumentLoadState;
+}
+
+export interface YieldState {
+    step: number[];
+    params?: YieldParams;
+    level?: number;
+}
+
 type SelectContextAction = "each" | "pivot" | "subselect" | "union"
 type DispatchResult = "break" | "yield" | "timeout" | "required" | null;
 
@@ -245,6 +243,23 @@ interface DataItem {
     key: string;
     value: unknown;
     nodes: string[];
+}
+
+interface ExtractStateInternal extends ExtractState {
+    vars: ExtractStateInternalVars;
+}
+
+interface ExtractStateInternalVars extends Record<string, unknown> {
+    __instance: number;
+    __context: SelectContext[];
+    __repeat: Record<number, RepeatState | undefined>;
+    __step: number[];
+    __yield: number[] | undefined;
+}
+
+interface RepeatState {
+    index: number;
+    errors: number;
 }
 
 interface ResolveQueryParams {
@@ -480,8 +495,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         return undefined;
     }
     
-    function parseUrl(url: string): { domain?: string, origin?: string } {
-        if (/^https?:\/\//.test(url)) {
+    function parseUrl(url: string | undefined): { domain?: string, origin?: string } {
+        if (typeof url === "string" && /^https?:\/\//.test(url)) {
             const [protocol, , host] = url.split("/");
             const a = host.split(":")[0].split(".").reverse();
             return {
@@ -702,34 +717,37 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
     class ExtractContext {
         jquery: JQueryStatic & CheerioAPI;
-        state: ExtractState;
+        state: ExtractStateInternal;
         online: boolean;
         lastLogLine = "";
         lastLogLength = 0;
         lastLogTimestamp = 0;
     
-        constructor(state: ExtractState) {
+        constructor(state: Partial<ExtractState>) {
             this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
             this.online = typeof this.jquery.noConflict === "function";
 
-            state.params = state.params || {};
-            state.errors = state.errors || [];
-            state.debug = state.debug;
-            state.log = state.log || "";
-            state.vars = {
-                __instance: 0,
-                __context: [],
-                ...state.vars
-            };
-
-            if (this.online) {
+            if (this.online)
                 state.url = window.location.href;
-            }
             const { domain, origin } = parseUrl(state.url);
-            state.domain = domain || "";
-            state.origin = origin || "";
 
-            this.state = state;
+            this.state = {
+                params: {},
+                errors: [],
+                log: "",
+                ...state, // may include params, data, log, errors, debug, root
+                yield: undefined, // yield state discarded on re-entry
+                vars: {
+                    __instance: 0, // initialize or carry over from previous instance
+                    __context: [], // initialize or carry over from previous instance
+                    __repeat: {}, // initialize or carry over from previous instance
+                    ...state.vars,
+                    __step: [], // initialize fresh on every instance
+                    __yield: state.yield?.step
+                },
+                domain,
+                origin
+            } as ExtractStateInternal;
         }
 
         appendError(code: ExtractErrorCode, message: string, level: number, stack?: string): void {
@@ -739,24 +757,27 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(text);
         }
 
-        private break({ name, query, on = "any", pattern, when, active = true }: Break): boolean {
+        private break({ name = "", query, on = "any", pattern, when, active = true }: Break): boolean {
+            if (name)
+                name = " " + name;
             if (this.online && active) {
                 if (this.when(when, "BREAK")) {
                     if (query) {
-                        this.log(`BREAK${name ? ` ${name}` : ""} WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
-                        const result = this.queryCheck(query, on, pattern);
-                        if (result === null) {
-                            this.log(`BREAK${name ? ` ${name}` : ""} ${when}`);
-                            return true;    
+                        this.log(`BREAK${name} WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
+                        const [pass, result] = this.queryCheck(query, on, pattern);
+                        this.log(`BREAK${name} QUERY ${$statements(query)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass}`);
+                        if (pass) {
+                            this.log(`BREAK${name} ${when || ""}`);
+                            return true;
                         }
                     }
                     else {
-                        this.log(`BREAK${name ? ` ${name}` : ""} ${when}`);
+                        this.log(`BREAK${name} ${when || ""}`);
                         return true;
                     }
                 }
                 else {
-                    this.log(`BREAK${name ? ` ${name}` : ""} SKIPPED ${when}`);
+                    this.log(`BREAK${name} SKIPPED ${when}`);
                 }
             }
             else {
@@ -834,7 +855,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private context(): SelectContext {
-            const stack = this.state.vars.__context as SelectContext[];
+            const stack = this.state.vars.__context;
             let j = stack.length - 1;
             const context = { ...stack[j] };
             let subcontext = context;
@@ -846,7 +867,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private contextKey(): string {
-            const stack = this.state.vars.__context as SelectContext[];
+            const stack = this.state.vars.__context;
             let key = "";
             for (const { name, index } of stack) {
                 if (name) {
@@ -864,7 +885,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private contextKeyInfo() {
             const key = this.contextKey();
-            const stack = this.state.vars.__context as SelectContext[];
+            const stack = this.state.vars.__context;
             let info = "";
             if (stack.length > 0) {
                 const [top] = stack.slice(-1);
@@ -927,16 +948,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
             }
             else if (action.hasOwnProperty("yield")) {
-                const y = this.yield((action as YieldAction).yield || {});
-                if (y) {
-                    this.state.yield = {
-                        step: step + 1,
-                        context: y.context,
-                        timeout: y.timeout,
-                        params: y.params
-                    };
-                    return "yield";
-                }
+                this.yield((action as YieldAction).yield || {});
             }
             return null;
         }
@@ -944,7 +956,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private async each({ name, query, actions, context, when, active = true }: Each): Promise<void> {
             const $ = this.jquery;
             if (active) {
-                if (this.when(when, `EACH${name ? ` ${name}` : ""}`)) {
+                const label = `EACH${name ? ` ${name}` : ""}`;
+                if (this.when(when, label)) {
                     const result = this.query({ query, repeated: true });
                     if (result && result.nodes.length > 0) {                        
                         const elements = result.nodes.toArray();
@@ -956,7 +969,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                                 action: "each",
                                 index: elements.indexOf(element)
                             }, context);
-                            const code = await this.run(actions);
+                            const code = await this.run(actions, label, true);
                             this.popContext();
                             if (code === "break") {
                                 break;
@@ -1186,7 +1199,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private pokeContext(context: Omit<SelectContext, 'parent' | 'name'>): void {
-            const stack = this.state.vars.__context as SelectContext[];
+            const stack = this.state.vars.__context;
             const i = stack.length - 1;
             if (i >= 0) {
                 stack[i] = { ...stack[i], ...context };
@@ -1197,14 +1210,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
 
         private popContext(): void {
-            const stack = this.state.vars.__context as SelectContext[];
+            const stack = this.state.vars.__context;
             const [top] = stack.slice(-1);
             this.log(`<<< ${this.contextKeyInfo()} [${this.nodeKey(top?.nodes)}] ${stack.length - 1}`);
             stack.pop();
         }
 
         private pushContext(context: Omit<SelectContext, 'parent'>, inherit: number | null | undefined): void {
-            const stack = this.state.vars.__context as SelectContext[];
+            const stack = this.state.vars.__context;
             if (inherit === undefined) {
                 const [parent] = stack.slice(-1);
                 stack.push({
@@ -1309,29 +1322,22 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return [pass, result];
         }
 
-        private async repeat({ name, actions, limit = 100, errors = 1, when, active = true }: Repeat): Promise<void> {
+        private async repeat({ name = "", actions, limit = 100, errors = 1, when, active = true }: Repeat): Promise<void> {
+            if (name)
+                name = " " + name;
             if (active) {
-                if (this.when(when, `REPEAT${name ? ` ${name}` : ""}`)) {
-                    let errorCount = 0;
-                    let baselineErrorCount = this.state.errors.length;
-                    let i = 0;
-                    let code = undefined;
-                    while (i < limit) {
-                        this.log(`REPEAT${name ? ` ${name}` : ""} #${++i} (limit=${limit})`);
-                        this.state.vars._page = i;
-                        for (const action of actions) {
-                            const step = actions.indexOf(action) + 1;
-                            code = await this.dispatch(action, step);
-                            if (code) {
-                                this.log(`REPEAT${name ? ` ${name}` : ""} #${i} -> break at step ${step}/${actions.length}, code=${code}`);
-                                break;
-                            }
-                        }
+                if (this.when(when, `REPEAT${name}`)) {
+                    const state = this.acquireRepeatState();
+                    let errorOffset = 0;
+                    while (state.index < limit) {
+                        const label = `REPEAT${name} #${++state.index}`;
+                        this.log(`${label} (limit=${limit})`);
+                        const code = await this.run(actions, label, true);
                         if (!code) {
-                            this.log(`REPEAT${name ? ` ${name}` : ""} #${i} -> ${actions.length} steps completed`);
-                            errorCount = this.state.errors.length - baselineErrorCount;
-                            if (errorCount >= errors) {
-                                this.appendError("error-limit", `${errorCount} errors in repeat (error ${errors} limit exceeded)`, 1);
+                            this.log(`${label} -> ${actions.length} steps completed`);
+                            errorOffset = this.state.errors.length - state.errors;
+                            if (errorOffset >= errors) {
+                                this.appendError("error-limit", `${errorOffset} errors in repeat (error limit of ${errors} exceeded)`, 1);
                                 break;
                             }
                         }
@@ -1339,15 +1345,31 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                             break;
                         }
                     }
-                    this.log(`REPEAT${name ? ` ${name}` : ""} ${i} iterations completed (limit=${limit}, errors=${errorCount}/${errors})`);
+                    this.clearRepeatState();
+                    this.log(`REPEAT${name} ${state.index} iterations completed (limit=${limit}, errors=${errorOffset}/${errors})`);
                 }
                 else {
-                    this.log(`REPEAT${name ? ` ${name}` : ""} SKIPPED ${when}`);
+                    this.log(`REPEAT${name} SKIPPED ${when}`);
                 }
             }
             else {
-                this.log(`REPEAT${name ? ` ${name}` : ""} BYPASSED ${when}`);
+                this.log(`REPEAT${name} BYPASSED ${when}`);
             }
+        }
+
+        private acquireRepeatState(): RepeatState {
+            const depth = this.state.vars.__step.length;
+            if (!this.state.vars.__repeat[depth])
+                this.state.vars.__repeat[depth] = {
+                    index: 0,
+                    errors: this.state.errors.length
+                };
+            return this.state.vars.__repeat[depth]!;
+        }
+
+        private clearRepeatState(): void {
+            const depth = this.state.vars.__step.length;
+            this.state.vars.__repeat[depth] = undefined;
         }
 
         private resolveOperands(operands: unknown[], result: QueryResult): void {
@@ -1735,25 +1757,47 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return this.formatResult(result, type, all, limit, format, pattern);
         }
 
-        async run(actions: Action[]): Promise<DispatchResult | undefined> {
-            const resumeStep = this.state.yield?.step || 0;
-            if (this.state.yield) {
-                this.log(`YIELD SKIPPING TO STEP #${this.state.yield.step}`);
-                this.state.yield = undefined;
-            }
-            for (const action of actions) {
-                const step = actions.indexOf(action) + 1;
-                if (step >= resumeStep) {
-                    this.log(`STEP #${step}/${actions.length}`);
-                    this.state.vars._step = step; //todo: consider moving _step into context
-                    const result = await this.dispatch(action, step);
-                    if (result) {
-                        this.log(`BREAK AT STEP #${step}/${actions.length}, code=${result}`);
-                        return result;
-                    }
+        async run(actions: Action[], label = "", wraparound = false): Promise<DispatchResult | undefined> {
+            if (label)
+                label += " ";
+
+            const steps = actions.length;
+            this.state.vars.__step.unshift(0); // push step state
+            const j = this.runRestoreIndexFromYield(actions, label, wraparound);
+            for (let i = j; i < actions.length; i++) {
+                const action = actions[i];
+                const step = i + 1;
+                this.state.vars.__step[0] = step;
+                const [key] = Object.keys(action);
+                this.log(`${label}STEP #${step}/${steps} {${key}}`);
+                const code = await this.dispatch(action, step);
+                if (code) {
+                    this.log(`${label}BREAK at step #${step}/${actions.length}, code=${code}`);
+                    this.state.vars.__step.shift(); // pop step state
+                    return code;
                 }
             }
-            this.log(`${actions.length} steps completed`);
+            this.state.vars.__step.shift(); // pop step state
+            this.log(`${label}${steps} steps completed`);
+        }
+
+        runRestoreIndexFromYield(actions: Action[], label: string, wraparound: boolean): number {
+            let index = 0;
+            if (this.state.vars.__yield) {
+                const step = this.state.vars.__yield.pop()!;
+                if (step > actions.length && wraparound) {
+                    this.log(`${label}YIELD wraparound to step #1/${actions.length}, index=${index}`);
+                }
+                else {
+                    index = step - 1;
+                    this.log(`${label}YIELD skipping to step #${step}/${actions.length}, index=${index}`);
+                }
+                if (this.state.vars.__yield.length === 0) {
+                    this.state.vars.__yield = undefined; // clear the yield state
+                    this.log(`${label}YIELD state cleared`);
+                }
+            }
+            return index;
         }
 
         private async scroll({ name, query, target, behavior = "smooth", block, inline, when, active = true }: Scroll): Promise<void> {
@@ -2093,7 +2137,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when, active = true }: WaitFor, context?: string): Promise<"timeout" | "invalid" | null> {
+        private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when, active = true }: WaitFor, label = ""): Promise<"timeout" | "invalid" | null> {
+            if (label)
+                label += " ";
             if (this.online && active) {
                 if (this.when(when, `WAITFOR${name ? ` ${name}` : ""}`)) {
                     if (timeout === undefined) {
@@ -2105,27 +2151,29 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         
                     let code = null;
                     if (query) {
-                        this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        code = await this.waitforQuery(query, on, timeout, required, pattern, context);
+                        this.log(`${label}WAITFOR${name ? ` ${name}` : ""} QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        code = await this.waitforQuery(query, on, timeout, required, pattern, label);
                     }
                     else if (select) {
-                        this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
-                        code = await this.waitforSelect(select, on, timeout, required, pattern, context);
+                        this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                        code = await this.waitforSelect(select, on, timeout, required, pattern, label);
                     }
                     return code;
                 }
                 else {
-                    this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} BYPASSSED ${$statements(query)}`);
+                    this.log(`${label}WAITFOR${name ? ` ${name}` : ""} BYPASSSED ${$statements(query)}`);
                     return null;
                 }
             }
             else {
-                this.log(`${context ? `${context} ` : ""}WAITFOR${name ? ` ${name}` : ""} SKIPPED ${$statements(query)}`);
+                this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SKIPPED ${$statements(query)}`);
                 return null;
             }
         }
 
-        private async waitforQuery(query: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | null> {
+        private async waitforQuery(query: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, label = ""): Promise<"timeout" | null> {
+            if (label)
+                label += " ";
             const t0 = new Date().valueOf();
             let elapsed = 0;
             let pass = false;
@@ -2138,7 +2186,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            const message = `${context ? `${context} ` : ""}WAITFOR QUERY ${$statements(query)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            const message = `${label}WAITFOR QUERY ${$statements(query)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
             this.log(message);
             if (pass) {
                 return null;
@@ -2152,7 +2200,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private async waitforSelect(selects: Select[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, context: string | undefined): Promise<"timeout" | "invalid" | null> {
+        private async waitforSelect(selects: Select[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, label = ""): Promise<"timeout" | "invalid" | null> {
+            if (label)
+                label += " ";
             for (const select of selects) {
                 if (!select.name || !select.name.startsWith("_") || !(!select.type || select.type === "boolean") || select.repeated) {
                     this.appendError("invalid-select", "waitfor select must all be internal, boolean, and not repeated", 0);
@@ -2198,7 +2248,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 elapsed = (new Date().valueOf() - t0) / 1000;
             }
 
-            const message = `${context ? `${context} ` : ""}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
+            const message = `${label}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
             this.log(message);
             if (pass) {
                 return null;
@@ -2212,33 +2262,40 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private when(when: When | undefined, context?: string): boolean {
+        private when(when: When | undefined, label = ""): boolean {
+            if (label)
+                label += " ";
             if (when) {
                 try {
                     const result = !!this.evaluate(when);
-                    this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ${result}`);
+                    this.log(`${label}WHEN ${JSON.stringify(when)} -> ${result}`);
                     return result;
                 }
                 catch (err) {
-                    this.log(`${context ? `${context} ` : ""}WHEN ${JSON.stringify(when)} -> ERROR ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                    this.log(`${label}WHEN ${JSON.stringify(when)} -> ERROR ${err instanceof Error ? err.message : JSON.stringify(err)}`);
                     return false;
                 }
             }
             return true;
         }
 
-        private yield({ name, params, timeout, when, active = true }: Yield): YieldState | undefined {
+        private yield({ name = "", params, when, active = true }: Yield): void {
+            if (name)
+                name = " " + name;
             if (this.online && active) {
-                if (this.when(when, `YIELD${name ? ` ${name}` : ""}`)) {
-                    this.log(`YIELD${name ? ` ${name}` : ""} ${when || "(default)"} -> timeout=${timeout || "(default)"}${params ? `\n${JSON.stringify(params)}` : ""}`);
-                    return { params, timeout };
+                if (this.when(when, `YIELD${name}`)) {
+                    this.state.vars.__step[0] += 1; // advance to next step on re-entry
+                    const step = this.state.vars.__step;
+                    this.log(`YIELD${name} step=${JSON.stringify(step)} params=${JSON.stringify(params || {})}`);
+                    this.state.yield = { step, params };
+                    throw "YIELD";
                 }
                 else {
-                    this.log(`YIELD${name ? ` ${name}` : ""} SKIPPED ${when}`);
+                    this.log(`YIELD${name} SKIPPED ${when}`);
                 }
             }
             else {
-                this.log(`YIELD${name ? ` ${name}` : ""} BYPASSED ${when}`);
+                this.log(`YIELD${name} BYPASSED ${when}`);
             }
             return undefined;
         }
@@ -2248,13 +2305,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         state.vars.__instance += 1;
     }
     const obj = new ExtractContext(state);
-    obj.log(`INSTANCE #${obj.state.vars.__instance}${obj.online ? ` ${window.location.href}` : ""}`);
+    obj.log(`ENTRY #${obj.state.vars.__instance}${obj.online ? ` ${window.location.href}` : ""}`);
 
     try {
         await obj.run(obj.state.actions);
+        obj.log("EXIT");
     }
     catch (err) {
-        if (err === "STOP") {
+        if (err === "YIELD") {
+            obj.log("YIELDING");
+        }
+        else if (err === "STOP") {
             obj.log("STOPPED");
         }
         else {

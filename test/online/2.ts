@@ -3,6 +3,8 @@ import { syphonx, online } from "../common.js";
 
 const test = {
     url: "https://www.example.com/",
+    //debug: true,
+    //show: true,
     actions: [
         { "select": [
             {

@@ -9,6 +9,7 @@ const test = {
         {
             "select": [
                 {
+                    // p1 = document.scrollTop
                     "name": "p1",
                     "query": [["{document}",["scrollTop"]]],
                     "type": "number"
@@ -23,6 +24,7 @@ const test = {
         {
             "select": [
                 {
+                    // p2 = document.scrollTop
                     "name": "p2",
                     "query": [["{document}",["scrollTop"]]],
                     "type": "number"
@@ -37,6 +39,7 @@ const test = {
         {
             "select": [
                 {
+                    // p3 = document.scrollTop
                     "name": "p3",
                     "query": [["{document}",["scrollTop"]]],
                     "type": "number"
@@ -51,6 +54,7 @@ const test = {
         {
             "select": [
                 {
+                    // p4 = document.scrollTop
                     "name": "p4",
                     "query": [["{document}",["scrollTop"]]],
                     "type": "number"

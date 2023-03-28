@@ -1,7 +1,7 @@
 import playwright, { Browser, BrowserContext, Page } from "playwright";
 import * as syphonx from "../index.js";
 import * as fs from "fs";
-import { evaluateFormula, removeDOMRefs } from "./utilities.js";
+import { evaluateFormula, unwrap } from "./utilities.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
 
 const jquery = fs.readFileSync(new URL("../node_modules/jquery/dist/jquery.slim.min.js", import.meta.url), "utf8");
@@ -63,7 +63,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug });
         while (state.yield) {
             if (state.yield.params?.waitUntil)
-                await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.timeout || timeout });
+                await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.params.timeout || timeout });
             await page.evaluate(jquery);
             state.yield === undefined;
             state.vars.__status = status;
@@ -73,6 +73,8 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
 
         if (outputHTML === "post")
             html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
+
+        await page.close();
 
         if (process.env.DEBUG)
             console.log(state.log);
@@ -87,7 +89,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             originalUrl,
             html,
             online: true,
-            data: includeDOMRefs ? state.data : removeDOMRefs(state.data)
+            data: includeDOMRefs ? state.data : unwrap(state.data)
         };
     }
     finally {
