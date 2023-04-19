@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "Embeddable core for SyphonX web data extractor",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
@@ -31,6 +31,7 @@
   "devDependencies": {
     "@types/chai": "^4.3.3",
     "@types/chai-as-promised": "^7.1.5",
+    "@types/chai-string": "^1.4.2",
     "@types/jquery": "^3.5.14",
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.7.18",
@@ -39,6 +40,7 @@
     "async-parallel": "^1.2.3",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
+    "chai-string": "^1.5.0",
     "cheerio": "^1.0.0-rc.12",
     "jquery": "^3.6.0",
     "json5": "^2.2.1",

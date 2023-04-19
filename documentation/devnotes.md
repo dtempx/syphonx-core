@@ -37,7 +37,7 @@ npm publish
 
 ## Debug in browser
 1. Hit F12 in browser to open developer tools
-2. Paste contents of file `dist/umd/syphonx.js` into the console
+2. Paste contents of file `dist/iife/syphonx.js` into the console
 3. Execute the following command to add jQuery to the page
 ```
 (() => {

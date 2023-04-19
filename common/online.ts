@@ -52,7 +52,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         if (waitUntil)
             await page.waitForURL(originalUrl, { timeout, waitUntil });
 
-        options.vars._http_status = status;
+        options.vars.__status = status;
         await page.evaluate(jquery);
 
         let html = "";
@@ -60,7 +60,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
 
         const debug = options.debug || !!process.env.DEBUG;
-        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, debug });
+        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, originalUrl, debug });
         while (state.yield) {
             if (state.yield.params?.waitUntil)
                 await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.params.timeout || timeout });
@@ -68,7 +68,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             state.yield === undefined;
             state.vars.__status = status;
             state.debug = debug;
-            state = await page.evaluate(syphonx.extract, state as any);
+            state = await page.evaluate(syphonx.extract, { ...state as any, originalUrl });
         }
 
         if (outputHTML === "post")

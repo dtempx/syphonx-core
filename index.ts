@@ -180,6 +180,7 @@ export type SnoozeInterval = [number, number] | [number, number, SnoozeMode]; //
 export type DocumentLoadState = "load" | "domcontentloaded" | "networkidle";
 
 export interface ExtractState {
+    [key: string]: any;
     actions: Action[];
     url: string;
     domain: string;
@@ -192,15 +193,14 @@ export interface ExtractState {
     debug: boolean;
     yield?: YieldState;
     root?: unknown;
+    originalUrl?: string;
 }
-
 
 export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
     ok: boolean;
     status: number;
     online: boolean;
     html: string;
-    originalUrl?: string;
 }
 
 export interface ExtractError {
