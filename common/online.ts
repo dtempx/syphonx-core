@@ -28,7 +28,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
     if (!options.vars)
         options.vars = {};
 
-    const originalUrl = evaluateFormula(`\`${options.url}\``, { params: options.params }) as string;
+    const originalUrl = encodeURI(evaluateFormula(`\`${options.url}\``, { params: options.params }) as string);
     let browser: Browser | undefined = undefined;
     let context: BrowserContext | undefined = undefined;
     let page: Page | undefined = undefined;
