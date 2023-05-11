@@ -77,6 +77,7 @@ export interface SelectTarget {
     collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
     negate?: boolean; // negates a boolean result
+    removeNulls?: boolean; // removes null values from arrays
     when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
     active?: boolean;
 }
@@ -170,6 +171,7 @@ export interface QueryParams {
     pattern?: string;
     limit?: number | null;
     negate?: boolean;
+    removeNulls?: boolean;
     hits?: number | null;
 }
 
@@ -282,6 +284,7 @@ interface ResolveQueryParams {
     format?: SelectFormat;
     pattern?: string;
     negate?: boolean;
+    removeNulls?: boolean;
     result?: QueryResult;
 }
 
@@ -296,6 +299,7 @@ interface ResolveQueryOpsParams {
     format?: SelectFormat;
     pattern?: string;
     negate?: boolean;
+    removeNulls?: boolean;
 }
 
 interface SelectContext {
@@ -1073,7 +1077,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return typeof result === "number" ? result : 0;
         }
 
-        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined, negate: boolean | undefined): QueryResult {
+        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined, negate: boolean | undefined, removeNulls: boolean | undefined): QueryResult {
             const $ = this.jquery;
             const regexp = createRegExp(pattern);
 
@@ -1129,6 +1133,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     result.value = !result.value;
                 else if (result.value instanceof Array && result.value.every(value => typeof value === "boolean"))
                     result.value = result.value.map(value => !value);
+            }
+
+            if (removeNulls && result.value instanceof Array) {
+                result.value = result.value.filter(value => value !== null && value !== undefined);
             }
 
             return result;
@@ -1272,7 +1280,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`>>> ${this.contextKeyInfo()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)} ${stack.length}`);
         }
 
-        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits, negate }: QueryParams): QueryResult | undefined {
+        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits, negate, removeNulls }: QueryParams): QueryResult | undefined {
             if (query instanceof Array && query.every(stage => stage instanceof Array) && query[0].length > 0 && !!query[0][0]) {
                 if (limit === undefined && type === "string" && !repeated && !all) {
                     limit = 1;
@@ -1283,7 +1291,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 let hit = 0;
                 let result: QueryResult | undefined = undefined;
                 for (const stage of query) {
-                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, negate, result });
+                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, negate, removeNulls, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
                         //this.log(`[${query.indexOf(stage) + 1}/${query.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
@@ -1417,7 +1425,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQuery({ query, type, repeated, all, limit, format, pattern, negate, result }: ResolveQueryParams): QueryResult | undefined {
+        private resolveQuery({ query, type, repeated, all, limit, format, pattern, negate, removeNulls, result }: ResolveQueryParams): QueryResult | undefined {
             if (!(query instanceof Array)) {
                 this.appendError("eval-error", "Invalid selector query, query is not an array", 0);
                 return undefined;
@@ -1487,7 +1495,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
             if (ops.length > 0 && nodes.length > 0) {
                 try {
-                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, value });
+                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, removeNulls, value });
                 }
                 catch (err) {
                     this.appendError("eval-error", `Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
@@ -1507,7 +1515,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
             }
             else if (nodes.length > 0) {
-                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern, negate);
+                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern, negate, removeNulls);
             }
             else {
                 return undefined;
@@ -1526,7 +1534,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, value }: ResolveQueryOpsParams): QueryResult {
+        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, removeNulls, value }: ResolveQueryOpsParams): QueryResult {
             const $ = this.jquery;
             const result: QueryResult = { nodes, key: this.contextKey(), value };
             if (!this.validateOperators(ops)) {
@@ -1800,7 +1808,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     break;
                 }
             }
-            return this.formatResult(result, type, all, limit, format, pattern, negate);
+            return this.formatResult(result, type, all, limit, format, pattern, negate, removeNulls);
         }
 
         async run(actions: Action[], label = "", wraparound = false): Promise<DispatchResult | undefined> {
