@@ -43,7 +43,7 @@ export interface Error {
 export interface Repeat {
     name?: string;
     actions: Action[];
-    limit?: number; // max # of repitions (default=100)
+    limit?: number | string; // max # of repitions (default=100) or a forumla to calculate the limit
     errors?: number; // error limit (default=1)
     when?: When;
     active?: boolean;
@@ -76,6 +76,7 @@ export interface SelectTarget {
     pattern?: string; // validation pattern (only applies if type=string)
     collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
+    negate?: boolean; // negates a boolean result
     when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
     active?: boolean;
 }
@@ -86,6 +87,13 @@ export interface Select extends SelectTarget {
     required?: boolean; // indicates whether an error should result if no value selected, default is false
     type?: SelectType; // default is "string" except when there is a sub-select in which case default is "object"
     union?: SelectTarget[];
+}
+
+export interface Switch {
+    name?: string;
+    query?: SelectQuery[];
+    actions: Action[];
+    when?: string;
 }
 
 export interface Transform {
@@ -134,6 +142,7 @@ export type RepeatAction = { repeat: Repeat };
 export type ScrollAction = { scroll: Scroll };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
+export type SwitchAction = { switch: Switch[] };
 export type TransformAction = { transform: Transform[] };
 export type WaitForAction = { waitfor: WaitFor };
 export type YieldAction = { yield: Yield };
@@ -147,6 +156,7 @@ export type Action =
     | ScrollAction
     | SelectAction
     | SnoozeAction
+    | SwitchAction
     | TransformAction
     | WaitForAction
     | YieldAction;
@@ -159,6 +169,7 @@ export interface QueryParams {
     format?: SelectFormat;
     pattern?: string;
     limit?: number | null;
+    negate?: boolean;
     hits?: number | null;
 }
 
@@ -270,6 +281,7 @@ interface ResolveQueryParams {
     type?: SelectType;
     format?: SelectFormat;
     pattern?: string;
+    negate?: boolean;
     result?: QueryResult;
 }
 
@@ -283,6 +295,7 @@ interface ResolveQueryOpsParams {
     limit?: number | null;
     format?: SelectFormat;
     pattern?: string;
+    negate?: boolean;
 }
 
 interface SelectContext {
@@ -1052,7 +1065,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined): QueryResult {
+        private evaluateNumber(input: unknown, params: Record<string, unknown> = {}): number {
+            const result = this.evaluate(input, params);
+            return typeof result === "number" ? result : 0;
+        }
+
+        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined, negate: boolean | undefined): QueryResult {
             const $ = this.jquery;
             const regexp = createRegExp(pattern);
 
@@ -1101,6 +1119,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             else if (type === "number") {
                 result.value = coerceValue(result.value, "number");
+            }
+
+            if (negate) {
+                if (typeof result.value === "boolean")
+                    result.value = !result.value;
+                else if (result.value instanceof Array && result.value.every(value => typeof value === "boolean"))
+                    result.value = result.value.map(value => !value);
             }
 
             return result;
@@ -1244,7 +1269,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`>>> ${this.contextKeyInfo()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)} ${stack.length}`);
         }
 
-        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits }: QueryParams): QueryResult | undefined {
+        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits, negate }: QueryParams): QueryResult | undefined {
             if (query instanceof Array && query.every(stage => stage instanceof Array) && query[0].length > 0 && !!query[0][0]) {
                 if (limit === undefined && type === "string" && !repeated && !all) {
                     limit = 1;
@@ -1255,7 +1280,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 let hit = 0;
                 let result: QueryResult | undefined = undefined;
                 for (const stage of query) {
-                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, result });
+                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, negate, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
                         //this.log(`[${query.indexOf(stage) + 1}/${query.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
@@ -1322,9 +1347,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return [pass, result];
         }
 
-        private async repeat({ name = "", actions, limit = 100, errors = 1, when, active = true }: Repeat): Promise<void> {
+        private async repeat({ name = "", actions, limit, errors = 1, when, active = true }: Repeat): Promise<void> {
             if (name)
                 name = " " + name;
+            if (limit === undefined)
+                limit = 10;
+            else if (typeof limit === "string")
+                limit = this.evaluateNumber(limit);
             if (active) {
                 if (this.when(when, `REPEAT${name}`)) {
                     const state = this.acquireRepeatState();
@@ -1385,7 +1414,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQuery({ query, type, repeated, all, limit, format, pattern, result }: ResolveQueryParams): QueryResult | undefined {
+        private resolveQuery({ query, type, repeated, all, limit, format, pattern, negate, result }: ResolveQueryParams): QueryResult | undefined {
+            if (!(query instanceof Array)) {
+                this.appendError("eval-error", "Invalid selector query, query is not an array", 0);
+                return undefined;
+            }
+
             const $ = this.jquery;
             let selector = query[0];
             const ops = query.slice(1) as SelectQueryOp[];
@@ -1393,7 +1427,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
             let nodes: JQueryResult;
             let value: unknown;
-            if (selector === "." && context) {
+            if (typeof selector !== "string") {
+                nodes = $();
+                value = null;
+                this.appendError("eval-error", "Invalid selector query, first element is not a string", 0);
+            }
+            else if (selector === "." && context) {
                 nodes = $(context.nodes);
                 value = context.value;
                 this.log(`QUERY $(".", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
@@ -1445,7 +1484,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
             if (ops.length > 0 && nodes.length > 0) {
                 try {
-                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value });
+                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, value });
                 }
                 catch (err) {
                     this.appendError("eval-error", `Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
@@ -1454,14 +1493,18 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             else if (type === "boolean") {
                 // if type is boolean then result is based on whether the query resulted in any hits
+                let value = !repeated ? nodes.length > 0 : [nodes.length > 0];
+                if (negate) {
+                    value = !value;
+                }
                 return {
                     nodes,
                     key: this.contextKey(),
-                    value: !repeated ? nodes.length > 0 : [nodes.length > 0]
+                    value
                 }
             }
             else if (nodes.length > 0) {
-                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern);
+                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern, negate);
             }
             else {
                 return undefined;
@@ -1480,7 +1523,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, value }: ResolveQueryOpsParams): QueryResult {
+        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, value }: ResolveQueryOpsParams): QueryResult {
             const $ = this.jquery;
             const result: QueryResult = { nodes, key: this.contextKey(), value };
             if (!this.validateOperators(ops)) {
@@ -1754,7 +1797,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     break;
                 }
             }
-            return this.formatResult(result, type, all, limit, format, pattern);
+            return this.formatResult(result, type, all, limit, format, pattern, negate);
         }
 
         async run(actions: Action[], label = "", wraparound = false): Promise<DispatchResult | undefined> {

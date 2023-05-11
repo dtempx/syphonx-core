@@ -17,6 +17,12 @@ const test = {
                     "name": "a2",
                     "type": "boolean",
                     "query": [["#a2"]]
+                },
+                {
+                    "name": "a3",
+                    "type": "boolean",
+                    "negate": true,
+                    "query": [["#a2"]]
                 }
             ]
         }
@@ -28,6 +34,7 @@ describe("boolean/1", () => {
     before(async () => result = await offline(test));
     it("a1 has expected value", () => expect(result.data.a1).to.be.true);
     it("a2 has expected value", () => expect(result.data.a2).to.be.false);
+    it("a3 has expected value", () => expect(result.data.a3).to.be.true);
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

@@ -54,3 +54,10 @@ resolveQueryOps
         when "split" ->
         when "text" ->
         else -> dispatch to jquery
+
+selectResolveSelector
+    query
+        resolveQuery
+            formatResult
+            resolveQueryOps
+                formatResult
