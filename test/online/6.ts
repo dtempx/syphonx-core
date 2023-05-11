@@ -18,7 +18,7 @@ const test = {
         },
         {
             "scroll": {
-                "query": [[".startupLogos"]]
+                "query": [["span:contains('We help founders')"]]
             }
         },
         {

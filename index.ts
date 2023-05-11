@@ -950,6 +950,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else if (action.hasOwnProperty("snooze")) {
                 await this.snooze((action as SnoozeAction).snooze);
             }
+            else if (action.hasOwnProperty("switch")) {
+                await this.switch((action as SwitchAction).switch);
+            }
             else if (action.hasOwnProperty("transform")) {
                 await this.transform((action as TransformAction).transform);
             }
@@ -2081,6 +2084,25 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private async snooze(interval: Snooze): Promise<void> {
             this.log(`SNOOZE ${interval[0]}s`);
             await sleep(interval[0] * 1000);
+        }
+
+        private async switch(switches: Switch[]): Promise<void> {
+            let i = 0;
+            for (const { when, name, query, actions } of switches) {
+                const label = `SWITCH CASE ${++i}/${switches.length}${name ? ` ${name}` : ""}`;
+                if (this.when(when, label)) {
+                    const result = query ? this.query({ query, type: "boolean", repeated: false }) : { value: true };
+                    if (result?.value === true) {
+                        this.log(`${label} SELECTED`);
+                        await this.run(actions, label, true);
+                        return;
+                    }
+                    else {
+                        this.log(`${label} SKIPPED`);
+                    }
+                }
+            }
+            this.log("SWITCH: NONE SELECTED");
         }
 
         private text(nodes: JQuery<HTMLElement>, format?: SelectFormat): string[] {
