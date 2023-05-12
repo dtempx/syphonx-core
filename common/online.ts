@@ -1,7 +1,8 @@
 import playwright, { Browser, BrowserContext, Page } from "playwright";
 import * as syphonx from "../index.js";
 import * as fs from "fs";
-import { evaluateFormula, unwrap } from "./utilities.js";
+import { evaluateFormula } from "./formula.js";
+import { unwrap } from "./unwrap.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
 
 const jquery = fs.readFileSync(new URL("../node_modules/jquery/dist/jquery.slim.min.js", import.meta.url), "utf8");
