@@ -1,11 +1,12 @@
 import playwright, { Browser, BrowserContext, Page } from "playwright";
 import * as syphonx from "../index.js";
+import { ExtractState } from "../index.js";
 import * as fs from "fs";
 import { evaluateFormula } from "./formula.js";
 import { unwrap } from "./unwrap.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
 
-const jquery = fs.readFileSync(new URL("../node_modules/jquery/dist/jquery.slim.min.js", import.meta.url), "utf8");
+const script = fs.readFileSync(new URL("../dist/iife/syphonx-jquery.js", import.meta.url), "utf8");
 
 interface OnlineOptions {
     actions: syphonx.Action[];
@@ -54,22 +55,22 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             await page.waitForURL(originalUrl, { timeout, waitUntil });
 
         options.vars.__status = status;
-        await page.evaluate(jquery);
 
         let html = "";
         if (outputHTML === "pre")
             html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
 
         const debug = options.debug || !!process.env.DEBUG;
-        let { url, domain, origin, ...state } = await page.evaluate(syphonx.extract, { ...options as any, originalUrl, debug });
+
+        const f = new Function("obj", `return ${script}`);
+        let { url, domain, origin, ...state } = await page.evaluate<ExtractState, ExtractState>(f as any, { ...options as any, originalUrl, debug });
         while (state.yield) {
             if (state.yield.params?.waitUntil)
                 await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.params.timeout || timeout });
-            await page.evaluate(jquery);
             state.yield === undefined;
             state.vars.__status = status;
             state.debug = debug;
-            state = await page.evaluate(syphonx.extract, { ...state as any, originalUrl });
+            state = await page.evaluate(f as any, { ...state as any, originalUrl });
         }
 
         if (outputHTML === "post")
