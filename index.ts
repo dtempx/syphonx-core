@@ -1,5 +1,8 @@
 import { CheerioAPI } from "cheerio";
 
+export { unwrap } from "./common/unwrap.js";
+export { evaluateFormula } from "./common/formula.js";
+
 export interface Break {
     name?: string;
     query?: SelectQuery[];
