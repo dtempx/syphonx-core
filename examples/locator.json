@@ -1,0 +1,22 @@
+{
+    "url": "https://www.example.com/",
+    "actions": [
+        {
+            "select": [
+                { "query": [["p"]] }
+            ]
+        },
+        {
+            "locator": {
+                "selector": "iframe",
+                "actions": [
+                    {
+                        "select": [
+                            { "query": [["h1"]] }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

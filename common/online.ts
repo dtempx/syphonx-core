@@ -67,6 +67,18 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         while (state.yield) {
             if (state.yield.params?.waitUntil)
                 await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.params.timeout || timeout });
+
+            if (state.yield.params?.locator) {
+                const { selector, actions } = state.yield.params.locator;
+                const locator = await page.locator(selector);
+                const obj = {
+                    actions,
+                    url: "", //todo: get url from locator
+                    params: options.params
+                };
+                state.vars.__locator = await locator.evaluate<ExtractState, Partial<ExtractState>>(f as any, obj);
+            }
+
             state.yield === undefined;
             state.vars.__status = status;
             state.debug = debug;

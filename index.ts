@@ -43,6 +43,13 @@ export interface Error {
     active?: boolean;
 }
 
+export interface Locator {
+    name?: string;
+    selector: string;
+    actions: Action[];
+    when?: string;
+}
+
 export interface Repeat {
     name?: string;
     actions: Action[];
@@ -142,6 +149,7 @@ export type BreakAction = { break: Break };
 export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
 export type ErrorAction = { error: Error };
+export type LocatorAction = { locator: Locator };
 export type RepeatAction = { repeat: Repeat };
 export type ScrollAction = { scroll: Scroll };
 export type SelectAction = { select: Select[] };
@@ -156,6 +164,7 @@ export type Action =
     | ClickAction
     | EachAction
     | ErrorAction
+    | LocatorAction
     | RepeatAction
     | ScrollAction
     | SelectAction
@@ -244,6 +253,12 @@ export type ExtractErrorCode =
 export interface YieldParams extends Record<string, unknown> {
     timeout?: number;
     waitUntil?: DocumentLoadState;
+    locator?: YieldLocator;
+}
+
+export interface YieldLocator {
+    selector: string;
+    actions: Action[];
 }
 
 export interface YieldState {
@@ -751,6 +766,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 state.url = window.location.href;
             const { domain, origin } = parseUrl(state.url);
 
+            if (state.__locator) {
+                state.data = merge(state.data, state.__locator); // merge locator data into state data
+                state.__locator = undefined; // clear out the locator state
+            }
+
             this.state = {
                 params: {},
                 errors: [],
@@ -947,6 +967,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
             else if (action.hasOwnProperty("error")) {
                 this.error((action as ErrorAction).error);
+            }
+            else if (action.hasOwnProperty("locator")) {
+                await this.locator((action as LocatorAction).locator);
             }
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
@@ -1413,6 +1436,19 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private clearRepeatState(): void {
             const depth = this.state.vars.__step.length;
             this.state.vars.__repeat[depth] = undefined;
+        }
+
+        private locator({ name, selector, actions, when }: Locator): void {
+            this.yield({
+                name: `LOCATOR ${name ? ` ${name}` : ""}`,
+                params: {
+                    locator: {
+                        selector,
+                        actions
+                    }
+                },
+                when
+            });
         }
 
         private resolveOperands(operands: unknown[], result: QueryResult): void {
