@@ -2149,7 +2149,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return {
                 nodes: [],
                 key: this.contextKey(),
-                value: select.repeated ? [value] : value
+                value: select.repeated && !(value instanceof Array) ? [value] : value
             };
         }
 
