@@ -50,6 +50,13 @@ export interface Locator {
     when?: string;
 }
 
+export interface Navigate {
+    name?: string;
+    url: string;
+    waitUntil?: DocumentLoadState;
+    when?: string;
+}
+
 export interface Repeat {
     name?: string;
     actions: Action[];
@@ -150,6 +157,7 @@ export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
 export type ErrorAction = { error: Error };
 export type LocatorAction = { locator: Locator };
+export type NavigateAction = { navigate: Navigate };
 export type RepeatAction = { repeat: Repeat };
 export type ScrollAction = { scroll: Scroll };
 export type SelectAction = { select: Select[] };
@@ -165,6 +173,7 @@ export type Action =
     | EachAction
     | ErrorAction
     | LocatorAction
+    | NavigateAction
     | RepeatAction
     | ScrollAction
     | SelectAction
@@ -254,17 +263,25 @@ export interface YieldParams extends Record<string, unknown> {
     timeout?: number;
     waitUntil?: DocumentLoadState;
     locator?: YieldLocator;
+    navigate?: YieldNavigate;
 }
 
 export interface YieldLocator {
+    frame?: boolean;
     selector: string;
     actions: Action[];
+}
+
+export interface YieldNavigate {
+    url: string;
+    waitUntil?: DocumentLoadState;
 }
 
 export interface YieldState {
     step: number[];
     params?: YieldParams;
     level?: number;
+    result?: unknown;
 }
 
 type SelectContextAction = "each" | "pivot" | "subselect" | "union"
@@ -286,6 +303,7 @@ interface ExtractStateInternalVars extends Record<string, unknown> {
     __repeat: Record<number, RepeatState | undefined>;
     __step: number[];
     __yield: number[] | undefined;
+    __yield_result?: unknown;
 }
 
 interface RepeatState {
@@ -971,6 +989,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else if (action.hasOwnProperty("locator")) {
                 await this.locator((action as LocatorAction).locator);
             }
+            else if (action.hasOwnProperty("navigate")) {
+                await this.navigate((action as NavigateAction).navigate);
+            }
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
             }
@@ -1441,12 +1462,16 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private locator({ name, selector, actions, when }: Locator): void {
             this.yield({
                 name: `LOCATOR ${name ? ` ${name}` : ""}`,
-                params: {
-                    locator: {
-                        selector,
-                        actions
-                    }
-                },
+                params: { locator: { selector, actions } },
+                when
+            });
+        }
+
+        private navigate({ name, url, waitUntil, when }: Navigate): void {
+            //url = this.evaluate(url);
+            this.yield({
+                name: `NAVIGATE ${name ? ` ${name}` : ""} ${url}`,
+                params: { navigate: { url, waitUntil } },
                 when
             });
         }
@@ -2399,6 +2424,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     this.state.vars.__step[0] += 1; // advance to next step on re-entry
                     const step = this.state.vars.__step;
                     this.log(`YIELD${name} step=${JSON.stringify(step)} params=${JSON.stringify(params || {})}`);
+                    params = { ...params };
+                    for (const key of Object.keys(params))
+                        params[key] = this.evaluate(params[key]);
                     this.state.yield = { step, params };
                     throw "YIELD";
                 }

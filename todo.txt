@@ -1,5 +1,20 @@
 allow a selector with no query and no value so long as there is a sub-select with a query or a value
 
+4 new syphonx actions
+1. locator
+2. navigate
+3. goback
+4. refresh
+
+can use existing editor
+will use yield actions to configure the above new actions
+locator will support two methods: extracting text for words and image attirbutes
+
+eta 2pm pst
+
+
+screenshot
+click.yield
 
 
 DONE: setup dist folder and package.json to hold different builds for node and browser

@@ -1,0 +1,19 @@
+{
+    "url": "https://www.w3schools.com/",
+    "actions": [
+        {
+            "locator": {
+                "frame": true,
+                "selector": "#howto_iframe",
+                "call": ["allInnerTexts"]
+            }
+        },
+        {
+            "locator": {
+                "frame": false,
+                "selector": "img.shadow-root",
+                "call": ["getAttribute", ["src"]]
+            }
+        }
+    ]
+}
