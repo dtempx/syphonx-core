@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.20",
+  "version": "1.2.21",
   "description": "Embeddable core for SyphonX web data extractor",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",

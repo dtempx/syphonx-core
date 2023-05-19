@@ -373,8 +373,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
     }
 
-    function coerceValue(value: unknown, type: SelectType): unknown {
-        if (type === "string") {
+    function coerceValue(value: unknown, type: SelectType, repeated?: boolean): unknown {
+        if (repeated) {
+            return value instanceof Array ? value.map(v => coerceValue(v, type, false)) : [coerceValue(value, type, false)];
+        }            
+        else if (type === "string") {
             return typeof value === "string" ? value : typeof value === "number" || typeof value === "boolean" ? value.toString() : null;
         }
         else if (type === "number") {
@@ -2145,11 +2148,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
             const result = this.evaluate(select.value, { data });
-            const value = coerceValue(result, select.type || "string");
+            const value = coerceValue(result, select.type || "string", select.repeated);
             return {
                 nodes: [],
                 key: this.contextKey(),
-                value: select.repeated && !(value instanceof Array) ? [value] : value
+                value
             };
         }
 
