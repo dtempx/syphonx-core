@@ -21,13 +21,13 @@ const test = {
     ] as syphonx.Action[]
 };
 
-describe("custom-errors/3", () => {
+describe("errors/5", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
     it("not ok", () => expect(result.ok).to.be.false);
     it("errors is of expected length", () => expect(result.errors).to.have.lengthOf(1));
     it("errors has expected value", () => expect(result.errors).to.eql([{
-        code: "custom-error",
+        code: "app-error",
         key: "",
         message: "h2 not found",
         level: 2,

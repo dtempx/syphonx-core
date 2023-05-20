@@ -5,11 +5,10 @@ export { evaluateFormula } from "./common/formula.js";
 
 export interface Break {
     name?: string;
-    query?: SelectQuery[];
+    query?: SelectQuery[]; // boolean
     on?: SelectOn; // only used with query
     pattern?: string; // only used with query, waits for a specific text pattern if specified
     when?: When; // if when is specified then when is evaluated first, and then query is evaluated next if specified, if when not specified then query is evaluated by itself
-    active?: boolean;
 }
 
 export interface Click {
@@ -20,27 +19,30 @@ export interface Click {
     required?: boolean;
     retry?: number;
     when?: When;
-    active?: boolean;
 }
 
 export interface Each {
     name?: string;
-    query: SelectQuery[];
+    query: SelectQuery[]; // boolean, an error is produced if no element is found.
     actions: Action[];
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
     when?: When;
-    active?: boolean;
 }
 
 export interface Error {
     name?: string;
-    message: string;
-    code?: ExtractErrorCode; // default is "custom-error"
+    code?: ExtractErrorCode; // required, default is "app-error"
+    message: string; // optional default based on code
     level?: number; // indicates error level, 0 is non-retryable, 1 or above is retryable (default=1)
     stop?: boolean; // stops processing, default is false if level is 0 or not specified, otherwise true
-    query?: SelectQuery[];
+    query?: SelectQuery[]; // boolean
+    negate?: boolean; // Negates the query, producing an error if an element is found.
     when?: When;
-    active?: boolean;
+}
+
+export interface GoBack {
+    name?: string;
+    when?: When;
 }
 
 export interface Locator {
@@ -57,13 +59,17 @@ export interface Navigate {
     when?: string;
 }
 
+export interface Reload {
+    name?: string;
+    when?: When;
+}
+
 export interface Repeat {
     name?: string;
     actions: Action[];
     limit?: number | string; // max # of repitions (default=100) or a forumla to calculate the limit
     errors?: number; // error limit (default=1)
     when?: When;
-    active?: boolean;
 }
 
 export interface Scroll {
@@ -74,7 +80,6 @@ export interface Scroll {
     block?: ScrollLogicalPosition; // Determines vertical alignment (default=start)
     inline?: ScrollLogicalPosition; // Determines horizontal alignment (default=nearest)
     when?: When;
-    active?: boolean;
 }
 
 export interface SelectTarget {
@@ -96,7 +101,6 @@ export interface SelectTarget {
     negate?: boolean; // negates a boolean result
     removeNulls?: boolean; // removes null values from arrays
     when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
-    active?: boolean;
 }
 
 export interface Select extends SelectTarget {
@@ -118,7 +122,6 @@ export interface Transform {
     name?: string;
     query: SelectQuery;
     when?: When;
-    active?: boolean;
 }
 
 export interface WaitFor {
@@ -130,14 +133,12 @@ export interface WaitFor {
     pattern?: string; // waits for a specific text pattern if specified
     required?: boolean; // indicates whether processing should stop with an error on timeout
     when?: When; // if when is specified then when is evaluated first, and then query or select is evaluated next if specified, if when not specified then query or select are evaluated by itself
-    active?: boolean;
 }
 
 export interface Yield {
     name?: string;
     params?: YieldParams;
     when?: When;
-    active?: boolean;
 }
 
 export type ScrollTarget = "top" | "bottom";
@@ -156,8 +157,10 @@ export type BreakAction = { break: Break };
 export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
 export type ErrorAction = { error: Error };
+export type GoBackAction = { goback: GoBack };
 export type LocatorAction = { locator: Locator };
 export type NavigateAction = { navigate: Navigate };
+export type ReloadAction =  { reload: Reload };
 export type RepeatAction = { repeat: Repeat };
 export type ScrollAction = { scroll: Scroll };
 export type SelectAction = { select: Select[] };
@@ -172,8 +175,10 @@ export type Action =
     | ClickAction
     | EachAction
     | ErrorAction
+    | GoBackAction
     | LocatorAction
     | NavigateAction
+    | ReloadAction
     | RepeatAction
     | ScrollAction
     | SelectAction
@@ -246,9 +251,9 @@ export interface ExtractError {
 }
 
 export type ExtractErrorCode = 
+    "app-error" |
     "click-timeout" |
     "click-required" |
-    "custom-error" |
     "error-limit" |
     "eval-error" |
     "external-error" |
@@ -259,11 +264,27 @@ export type ExtractErrorCode =
     "select-required" |
     "waitfor-timeout";
 
+const errorCodeMessageMap: Record<string, string> = {
+    "app-error": "An application defined error occured.",
+    "click-timeout": "Timeout waiting for click result.",
+    "click-required": "Could not find click target on the page.",
+    "error-limit": "Error limit exceeded.",
+    "eval-error": "Error evaluating formula.",
+    "fatal-error": "An unexpected error occurred.",
+    "invalid-select": "Invalid selector query found.",
+    "invalid-operator": "Invalid jQuery formula.",
+    "invalid-operand": "Invalid argument to a jQuery formula.",
+    "select-required": "Could not find target of a required selector on the page.",
+    "waitfor-timeout": "Timeout waiting for selector."
+};
+    
 export interface YieldParams extends Record<string, unknown> {
     timeout?: number;
     waitUntil?: DocumentLoadState;
+    goback?: {};
     locator?: YieldLocator;
     navigate?: YieldNavigate;
+    reload?: {};
 }
 
 export interface YieldLocator {
@@ -818,10 +839,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(text);
         }
 
-        private break({ name = "", query, on = "any", pattern, when, active = true }: Break): boolean {
+        private break({ name = "", query, on = "any", pattern, when }: Break): boolean {
             if (name)
                 name = " " + name;
-            if (this.online && active) {
+            if (this.online) {
                 if (this.when(when, "BREAK")) {
                     if (query) {
                         this.log(`BREAK${name} WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
@@ -847,8 +868,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return false;
         }
 
-        private async click({ name, query, waitfor, snooze, required, retry, when, active = true }: Click): Promise<"timeout" | "not-found" | null> {
-            if (this.online && active) {
+        private async click({ name, query, waitfor, snooze, required, retry, when }: Click): Promise<"timeout" | "not-found" | null> {
+            if (this.online) {
                 if (this.when(when, `CLICK${name ? ` ${name}` : ""}`)) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
                     if (snooze && (mode === "before" || mode === "before-and-after")) {
@@ -989,11 +1010,17 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else if (action.hasOwnProperty("error")) {
                 this.error((action as ErrorAction).error);
             }
+            else if (action.hasOwnProperty("goback")) {
+                await this.goback((action as GoBackAction).goback);
+            }
             else if (action.hasOwnProperty("locator")) {
                 await this.locator((action as LocatorAction).locator);
             }
             else if (action.hasOwnProperty("navigate")) {
                 await this.navigate((action as NavigateAction).navigate);
+            }
+            else if (action.hasOwnProperty("reload")) {
+                await this.reload((action as ReloadAction).reload);
             }
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
@@ -1023,27 +1050,25 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return null;
         }
 
-        private async each({ name, query, actions, context, when, active = true }: Each): Promise<void> {
+        private async each({ name, query, actions, context, when }: Each): Promise<void> {
             const $ = this.jquery;
-            if (active) {
-                const label = `EACH${name ? ` ${name}` : ""}`;
-                if (this.when(when, label)) {
-                    const result = this.query({ query, repeated: true });
-                    if (result && result.nodes.length > 0) {                        
-                        const elements = result.nodes.toArray();
-                        for (const element of elements) {
-                            const nodes = $(element);
-                            this.pushContext({
-                                nodes,
-                                value: this.text(nodes),
-                                action: "each",
-                                index: elements.indexOf(element)
-                            }, context);
-                            const code = await this.run(actions, label, true);
-                            this.popContext();
-                            if (code === "break") {
-                                break;
-                            }
+            const label = `EACH${name ? ` ${name}` : ""}`;
+            if (this.when(when, label)) {
+                const result = this.query({ query, repeated: true });
+                if (result && result.nodes.length > 0) {                        
+                    const elements = result.nodes.toArray();
+                    for (const element of elements) {
+                        const nodes = $(element);
+                        this.pushContext({
+                            nodes,
+                            value: this.text(nodes),
+                            action: "each",
+                            index: elements.indexOf(element)
+                        }, context);
+                        const code = await this.run(actions, label, true);
+                        this.popContext();
+                        if (code === "break") {
+                            break;
                         }
                     }
                 }
@@ -1062,22 +1087,23 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private error({ query, code = "custom-error", message = "Custom template error", level = 1, stop, when, active = true }: Error): void {
-            if (active) {
-                if (query) {
-                    const result = this.query({ query, type: "boolean", repeated: false });
-                    if (result?.value === false) {
-                        this.appendError(code, String(this.evaluate(message)), level);
-                        if (stop === true || (stop === undefined && level === 0)) {
-                            throw "STOP";
-                        }
-                    }
-                }
-                else if (this.when(when, "ERROR")) {
+        private error({ query, code = "app-error", message, level = 1, negate, stop, when }: Error): void {
+            if (!message)
+                message = errorCodeMessageMap[code] || "Unknown error.";
+            if (query) {
+                const result = this.query({ query, type: "boolean", repeated: false });
+                const hit = !negate ? result?.value === false : result?.value === true;
+                if (hit) {
                     this.appendError(code, String(this.evaluate(message)), level);
                     if (stop === true || (stop === undefined && level === 0)) {
                         throw "STOP";
                     }
+                }
+            }
+            else if (this.when(when, "ERROR")) {
+                this.appendError(code, String(this.evaluate(message)), level);
+                if (stop === true || (stop === undefined && level === 0)) {
+                    throw "STOP";
                 }
             }
         }
@@ -1190,6 +1216,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
 
             return result;
+        }
+
+        private goback({ name, when }: GoBack): void {
+            this.yield({
+                name: `GOBACK ${name ? ` ${name}` : ""}`,
+                params: { goback: {} },
+                when
+            });
         }
 
         log(text: string): void {
@@ -1408,42 +1442,45 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return [pass, result];
         }
 
-        private async repeat({ name = "", actions, limit, errors = 1, when, active = true }: Repeat): Promise<void> {
+        private reload({ name, when }: Reload): void {
+            this.yield({
+                name: `RELOAD ${name ? ` ${name}` : ""}`,
+                params: { reload: {} },
+                when
+            });
+        }
+
+        private async repeat({ name = "", actions, limit, errors = 1, when }: Repeat): Promise<void> {
             if (name)
                 name = " " + name;
             if (limit === undefined)
                 limit = 10;
             else if (typeof limit === "string")
                 limit = this.evaluateNumber(limit);
-            if (active) {
-                if (this.when(when, `REPEAT${name}`)) {
-                    const state = this.acquireRepeatState();
-                    let errorOffset = 0;
-                    while (state.index < limit) {
-                        const label = `REPEAT${name} #${++state.index}`;
-                        this.log(`${label} (limit=${limit})`);
-                        const code = await this.run(actions, label, true);
-                        if (!code) {
-                            this.log(`${label} -> ${actions.length} steps completed`);
-                            errorOffset = this.state.errors.length - state.errors;
-                            if (errorOffset >= errors) {
-                                this.appendError("error-limit", `${errorOffset} errors in repeat (error limit of ${errors} exceeded)`, 1);
-                                break;
-                            }
-                        }
-                        else {
+            if (this.when(when, `REPEAT${name}`)) {
+                const state = this.acquireRepeatState();
+                let errorOffset = 0;
+                while (state.index < limit) {
+                    const label = `REPEAT${name} #${++state.index}`;
+                    this.log(`${label} (limit=${limit})`);
+                    const code = await this.run(actions, label, true);
+                    if (!code) {
+                        this.log(`${label} -> ${actions.length} steps completed`);
+                        errorOffset = this.state.errors.length - state.errors;
+                        if (errorOffset >= errors) {
+                            this.appendError("error-limit", `${errorOffset} errors in repeat (error limit of ${errors} exceeded)`, 1);
                             break;
                         }
                     }
-                    this.clearRepeatState();
-                    this.log(`REPEAT${name} ${state.index} iterations completed (limit=${limit}, errors=${errorOffset}/${errors})`);
+                    else {
+                        break;
+                    }
                 }
-                else {
-                    this.log(`REPEAT${name} SKIPPED ${when}`);
-                }
+                this.clearRepeatState();
+                this.log(`REPEAT${name} ${state.index} iterations completed (limit=${limit}, errors=${errorOffset}/${errors})`);
             }
             else {
-                this.log(`REPEAT${name} BYPASSED ${when}`);
+                this.log(`REPEAT${name} SKIPPED ${when}`);
             }
         }
 
@@ -1921,8 +1958,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return index;
         }
 
-        private async scroll({ name, query, target, behavior = "smooth", block, inline, when, active = true }: Scroll): Promise<void> {
-            if (this.online && active) {
+        private async scroll({ name, query, target, behavior = "smooth", block, inline, when }: Scroll): Promise<void> {
+            if (this.online) {
                 if (this.when(when, `SCROLL${name ? ` ${name}` : ""}`)) {
                     if (target === "top" || target === "bottom") {
                         const top = target === "bottom" ? document.body.scrollHeight : 0;
@@ -1962,46 +1999,44 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private select(selects: Select[], pivot = false): unknown {
             const data = {} as Record<string, DataItem | null>;
             for (const select of selects) {
-                if (select.active ?? true) {
-                    this.validateSelect(select);
-                    let item: DataItem | null = null;
-                    if (this.when(select.when)) {
-                        if (select.pivot) {
-                            item = this.selectResolvePivot(select, item);
-                        }
-                        else {
-                            if (!pivot) {
-                                this.pushContext({ name: select.name }, select.context);
-                            }
-
-                            if (select.union) {
-                                item = this.selectResolveUnion(select, item, data);
-                            }                        
-                            else if (select.query) {
-                                item = this.selectResolveSelector(select, item);
-                            }
-                            else if (select.value) {
-                                item = this.selectResolveValue(select, data);
-                            }
-    
-                            if (!pivot) {
-                                if (isEmpty(item?.value) && select.required) {
-                                    this.appendError("select-required", `Required select '${this.contextKey()}' not found`, 0);
-                                }    
-                                this.popContext();
-                            }
-                        }
-                    }
-
-                    if (select.name?.startsWith("_") && item) {
-                        this.state.vars[select.name] = item.value;
-                    }
-                    else if (select.name) {
-                        data[select.name] = item;
+                //this.validateSelect(select);
+                let item: DataItem | null = null;
+                if (this.when(select.when)) {
+                    if (select.pivot) {
+                        item = this.selectResolvePivot(select, item);
                     }
                     else {
-                        return item;
+                        if (!pivot) {
+                            this.pushContext({ name: select.name }, select.context);
+                        }
+
+                        if (select.union) {
+                            item = this.selectResolveUnion(select, item, data);
+                        }                        
+                        else if (select.query) {
+                            item = this.selectResolveSelector(select, item);
+                        }
+                        else if (select.value) {
+                            item = this.selectResolveValue(select, data);
+                        }
+
+                        if (!pivot) {
+                            if (isEmpty(item?.value) && select.required) {
+                                this.appendError("select-required", `Required select '${this.contextKey()}' not found`, 0);
+                            }    
+                            this.popContext();
+                        }
                     }
+                }
+
+                if (select.name?.startsWith("_") && item) {
+                    this.state.vars[select.name] = item.value;
+                }
+                else if (select.name) {
+                    data[select.name] = item;
+                }
+                else {
+                    return item;
                 }
             }
             return data;
@@ -2117,29 +2152,24 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             const { union, ...superselect } = select;
             if (union) {
                 for (const subselect of union) {
-                    if (subselect.active ?? true) {
-                        if (this.when(subselect.when)) {
-                            this.pokeContext({
-                                action: "union",
-                                union: union.indexOf(subselect)
-                            });
-                            this.log(`UNION ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
-                            if (subselect.pivot) {
-                                item = this.selectResolvePivot({ ...superselect, ...subselect }, item);
-                            }
-                            else if (subselect.query) {
-                                item = this.selectResolveSelector({ ...superselect, ...subselect }, item);
-                            }
-                            else if (subselect.value) {
-                                item = this.selectResolveValue(subselect);
-                            }
+                    if (this.when(subselect.when)) {
+                        this.pokeContext({
+                            action: "union",
+                            union: union.indexOf(subselect)
+                        });
+                        this.log(`UNION ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
+                        if (subselect.pivot) {
+                            item = this.selectResolvePivot({ ...superselect, ...subselect }, item);
                         }
-                        else {
-                            this.log(`UNION SKIPPED ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
+                        else if (subselect.query) {
+                            item = this.selectResolveSelector({ ...superselect, ...subselect }, item);
+                        }
+                        else if (subselect.value) {
+                            item = this.selectResolveValue(subselect);
                         }
                     }
                     else {
-                        this.log(`UNION BYPASSED ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
+                        this.log(`UNION SKIPPED ${this.contextKey()} ${union.indexOf(subselect) + 1}/${union.length}`);
                     }
                 }
             }
@@ -2210,34 +2240,29 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
         private async transform(transforms: Transform[]): Promise<void> {
             for (const transform of transforms) {
-                if (transform.active ?? true) {
-                    if (this.when(transform.when, `TRANSFORM${transform.name ? ` ${transform.name}` : ""}`)) {
-                        const query = transform.query;
-                        const selector = query[0];
-                        const [operands] = query.slice(1) as SelectQueryOp[];
-                        if (selector === "{window}" && operands[0] === "scrollBottom") {
-                            const delay = typeof operands[1] === "number" ? operands[1] : undefined;
-                            const max = typeof operands[2] === "number" ? operands[2] : undefined;
-                            const pagedowns = await $scrollToBottom(delay, max);
-                            this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${$statement(query)} (${pagedowns}x)`);
-                        }
-                        else {
-                            try {
-                                const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
-                                this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${$statement(query)} -> (${result?.nodes?.length || 0} nodes)`);
-                            }
-                            catch (err) {
-                                this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ERROR ${$statement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
-                            }
-                        }
+                if (this.when(transform.when, `TRANSFORM${transform.name ? ` ${transform.name}` : ""}`)) {
+                    const query = transform.query;
+                    const selector = query[0];
+                    const [operands] = query.slice(1) as SelectQueryOp[];
+                    if (selector === "{window}" && operands[0] === "scrollBottom") {
+                        const delay = typeof operands[1] === "number" ? operands[1] : undefined;
+                        const max = typeof operands[2] === "number" ? operands[2] : undefined;
+                        const pagedowns = await $scrollToBottom(delay, max);
+                        this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${$statement(query)} (${pagedowns}x)`);
                     }
                     else {
-                        this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} SKIPPED ${$statement(transform.query)}`);
+                        try {
+                            const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
+                            this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${$statement(query)} -> (${result?.nodes?.length || 0} nodes)`);
+                        }
+                        catch (err) {
+                            this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ERROR ${$statement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+                        }
                     }
                 }
                 else {
-                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} BYPASSED ${$statement(transform.query)}`);
-                }    
+                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} SKIPPED ${$statement(transform.query)}`);
+                }
             }
         }
 
@@ -2266,6 +2291,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return valid;
         }
 
+        /*
         private validateSelect(select: Select): boolean {
             const n = (select.query !== undefined ? 1 : 0) + (select.union !== undefined ? 1 : 0) + (select.value !== undefined ? 1 : 0);
             if (n !== 1) {
@@ -2276,11 +2302,12 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 return true;
             }
         }
+        */
 
-        private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when, active = true }: WaitFor, label = ""): Promise<"timeout" | "invalid" | null> {
+        private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when }: WaitFor, label = ""): Promise<"timeout" | "invalid" | null> {
             if (label)
                 label += " ";
-            if (this.online && active) {
+            if (this.online) {
                 if (this.when(when, `WAITFOR${name ? ` ${name}` : ""}`)) {
                     if (timeout === undefined) {
                         timeout = 30;
@@ -2419,10 +2446,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return true;
         }
 
-        private yield({ name = "", params, when, active = true }: Yield): void {
+        private yield({ name = "", params, when }: Yield): void {
             if (name)
                 name = " " + name;
-            if (this.online && active) {
+            if (this.online) {
                 if (this.when(when, `YIELD${name}`)) {
                     this.state.vars.__step[0] += 1; // advance to next step on re-entry
                     const step = this.state.vars.__step;
