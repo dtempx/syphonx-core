@@ -17,7 +17,9 @@ export interface Click {
     waitfor?: WaitFor; // skip if no nodes selected
     snooze?: SnoozeInterval;
     required?: boolean;
-    retry?: number;
+    retry?: number; // not implemented
+    yield?: boolean;
+    waitUntil?: DocumentLoadState;
     when?: When;
 }
 
@@ -45,10 +47,16 @@ export interface GoBack {
     when?: When;
 }
 
+export type LocatorMethod = string; // https://playwright.dev/docs/api/class-locator
+
 export interface Locator {
-    name?: string;
-    selector: string;
-    actions: Action[];
+    name: string; // name of the intermediate property for the host to feed forward into next syphonx extract iteration via state.vars
+    frame?: string; // the selector to pass to page.frameLocator()
+    selector: string; // the selector to pass to page.locator()
+    method?: LocatorMethod; // name of a playwright locator method such as "getAttribute", "allTextContents", etc. (see https://playwright.dev/docs/api/class-locator)
+    params?: unknown[]; // method parameters for the locator method
+    promote?: boolean; // directs the host to promote the shadow root from the element out into the top level DOM
+    chain?: boolean; // chains a locator to the previous locator, default is false
     when?: string;
 }
 
@@ -61,6 +69,7 @@ export interface Navigate {
 
 export interface Reload {
     name?: string;
+    waitUntil?: DocumentLoadState;
     when?: When;
 }
 
@@ -69,6 +78,12 @@ export interface Repeat {
     actions: Action[];
     limit?: number | string; // max # of repitions (default=100) or a forumla to calculate the limit
     errors?: number; // error limit (default=1)
+    when?: When;
+}
+
+export interface Screenshot {
+    name?: string;
+    selector?: string;
     when?: When;
 }
 
@@ -86,7 +101,7 @@ export interface SelectTarget {
     query?: SelectQuery[];
     pivot?: SelectTarget;
     select?: Select[];
-    value?: unknown;
+    value?: unknown; // if both query and value are used, value executes after query
     all?: boolean; // includes all query stage hits instead of just the first stage (default=false)
         // if values are arrays then results are merged
         // if values are strings then results are concatenated with newlines
@@ -98,6 +113,7 @@ export interface SelectTarget {
     pattern?: string; // validation pattern (only applies if type=string)
     collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
+    distinct?: boolean; // removes duplicate values from arrays
     negate?: boolean; // negates a boolean result
     removeNulls?: boolean; // removes null values from arrays
     when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
@@ -158,10 +174,11 @@ export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
 export type ErrorAction = { error: Error };
 export type GoBackAction = { goback: GoBack };
-export type LocatorAction = { locator: Locator };
+export type LocatorAction = { locator: Locator[] };
 export type NavigateAction = { navigate: Navigate };
 export type ReloadAction =  { reload: Reload };
 export type RepeatAction = { repeat: Repeat };
+export type ScreenshotAction = { screenshot: Screenshot };
 export type ScrollAction = { scroll: Scroll };
 export type SelectAction = { select: Select[] };
 export type SnoozeAction = { snooze: Snooze };
@@ -180,6 +197,7 @@ export type Action =
     | NavigateAction
     | ReloadAction
     | RepeatAction
+    | ScreenshotAction
     | ScrollAction
     | SelectAction
     | SnoozeAction
@@ -196,6 +214,7 @@ export interface QueryParams {
     format?: SelectFormat;
     pattern?: string;
     limit?: number | null;
+    distinct?: boolean;
     negate?: boolean;
     removeNulls?: boolean;
     hits?: number | null;
@@ -281,21 +300,27 @@ const errorCodeMessageMap: Record<string, string> = {
 export interface YieldParams extends Record<string, unknown> {
     timeout?: number;
     waitUntil?: DocumentLoadState;
+    click?: {};
     goback?: {};
     locator?: YieldLocator;
     navigate?: YieldNavigate;
     reload?: {};
+    screenshot?: YieldScreenshot;
 }
 
 export interface YieldLocator {
-    frame?: boolean;
+    frame?: string;
     selector: string;
-    actions: Action[];
+    method: LocatorMethod;
+    params: unknown[];
 }
 
 export interface YieldNavigate {
     url: string;
-    waitUntil?: DocumentLoadState;
+}
+
+export interface YieldScreenshot {
+    selector?: string;
 }
 
 export interface YieldState {
@@ -340,6 +365,7 @@ interface ResolveQueryParams {
     type?: SelectType;
     format?: SelectFormat;
     pattern?: string;
+    distinct?: boolean;
     negate?: boolean;
     removeNulls?: boolean;
     result?: QueryResult;
@@ -355,6 +381,7 @@ interface ResolveQueryOpsParams {
     limit?: number | null;
     format?: SelectFormat;
     pattern?: string;
+    distinct?: boolean;
     negate?: boolean;
     removeNulls?: boolean;
 }
@@ -394,7 +421,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         }
     }
 
-    function coerceValue(value: unknown, type: SelectType, repeated?: boolean): unknown {
+    function coerceValue(value: unknown, type: SelectType | undefined, repeated?: boolean): unknown {
         if (repeated) {
             return value instanceof Array ? value.map(v => coerceValue(v, type, false)) : [coerceValue(value, type, false)];
         }            
@@ -408,7 +435,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return typeof value === "boolean" ? value : typeof value === "string" ? value.trim().length > 0 : typeof value === "number" && !isNaN(value) ? value !== 0 : null;
         }
         else {
-            return null;
+            return value;
         }    
     }
 
@@ -745,6 +772,29 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         });
     }
 
+    function $filter($: JQueryStatic & CheerioAPI, result: QueryResult, predicate: (value: unknown, index: number, array: unknown[]) => boolean) {
+        if (result.value instanceof Array) {
+            const input = {
+                elements: result.nodes.toArray(),
+                values: result.value
+            };
+            const output = {
+                elements: [] as any[],
+                values: [] as unknown[]
+            };
+            const n = input.elements.length;
+            for (let i = 0; i < n; ++i) {
+                const hit = predicate(input.values[i], i, input.values);
+                if (hit) {
+                    output.elements.push(input.elements[i]);
+                    output.values.push(input.values[i]);
+                }
+            }
+            result.nodes = $(output.elements);
+            result.value = output.values;
+        }
+    }
+
     function $merge(source: JQuery<HTMLElement>, target: JQuery<HTMLElement>): void {
         for (const targetAttr of Array.from(target[0].attributes)) {
             const sourceAttr = Array.from(source[0].attributes).find(attr => attr.name === targetAttr.name);
@@ -868,7 +918,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return false;
         }
 
-        private async click({ name, query, waitfor, snooze, required, retry, when }: Click): Promise<"timeout" | "not-found" | null> {
+        private async click({ name, query, waitfor, snooze, required, retry, when, ...options }: Click): Promise<"timeout" | "not-found" | null> {
             if (this.online) {
                 if (this.when(when, `CLICK${name ? ` ${name}` : ""}`)) {
                     const mode = snooze ? snooze[2] || "before" : undefined;
@@ -896,6 +946,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                                 else if (code === "invalid") {
                                     // error already recorded, do nothing more
                                 }
+                            }
+                            else if (options.yield) {
+                                this.yield({
+                                    name: `CLICK ${name ? ` ${name}` : ""}`,
+                                    params: {
+                                        click: {},
+                                        waitUntil: options.waitUntil
+                                    }
+                                });
                             }
                         }
                     }
@@ -1025,6 +1084,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             else if (action.hasOwnProperty("repeat")) {
                 await this.repeat((action as RepeatAction).repeat);
             }
+            else if (action.hasOwnProperty("screenshot")) {
+                await this.screenshot((action as ScreenshotAction).screenshot);
+            }
             else if (action.hasOwnProperty("scroll")) {
                 await this.scroll((action as ScrollAction).scroll);
             }
@@ -1153,7 +1215,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return typeof result === "number" ? result : 0;
         }
 
-        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined, negate: boolean | undefined, removeNulls: boolean | undefined): QueryResult {
+        private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined, distinct: boolean | undefined, negate: boolean | undefined, removeNulls: boolean | undefined): QueryResult {
             const $ = this.jquery;
             const regexp = createRegExp(pattern);
 
@@ -1212,7 +1274,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
 
             if (removeNulls && result.value instanceof Array) {
-                result.value = result.value.filter(value => value !== null && value !== undefined);
+                $filter($, result, value => value !== null);
+            }
+
+            if (distinct && result.value instanceof Array) {
+                $filter($, result, (value, index, array) => array.indexOf(value) === index);
             }
 
             return result;
@@ -1221,7 +1287,10 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
         private goback({ name, when }: GoBack): void {
             this.yield({
                 name: `GOBACK ${name ? ` ${name}` : ""}`,
-                params: { goback: {} },
+                params: {
+                    goback: {},
+                    action: "goBack" // legacy shim
+                },
                 when
             });
         }
@@ -1364,7 +1433,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.log(`>>> ${this.contextKeyInfo()} [${this.nodeKey(stack[stack.length - 1].nodes)}] ${trunc(stack[stack.length - 1].value)} ${stack.length}`);
         }
 
-        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits, negate, removeNulls }: QueryParams): QueryResult | undefined {
+        private query({ query, type, repeated = false, all = false, format, pattern, limit, hits, distinct, negate, removeNulls }: QueryParams): QueryResult | undefined {
             if (query instanceof Array && query.every(stage => stage instanceof Array) && query[0].length > 0 && !!query[0][0]) {
                 if (limit === undefined && type === "string" && !repeated && !all) {
                     limit = 1;
@@ -1375,7 +1444,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 let hit = 0;
                 let result: QueryResult | undefined = undefined;
                 for (const stage of query) {
-                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, negate, removeNulls, result });
+                    const subresult = this.resolveQuery({ query: stage, type, repeated, all, limit, format, pattern, distinct, negate, removeNulls, result });
                     if (subresult) {
                         result = this.mergeQueryResult(result, subresult);
                         //this.log(`[${query.indexOf(stage) + 1}/${query.length}] ${$statement(query)} -> ${trunc(subresult.value)} (${subresult.nodes.length} nodes) ${subresult !== result ? ` (merged ${result!.nodes.length} nodes)` : ""}${pattern ? `, pattern=${pattern}, hit=${hit}, valid=${subresult.valid}` : ""}`);
@@ -1442,10 +1511,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return [pass, result];
         }
 
-        private reload({ name, when }: Reload): void {
+        private reload({ name, waitUntil, when }: Reload): void {
             this.yield({
                 name: `RELOAD ${name ? ` ${name}` : ""}`,
-                params: { reload: {} },
+                params: {
+                    reload: {},
+                    action: "reload", // legacy shim
+                    waitUntil
+                },
                 when
             });
         }
@@ -1499,19 +1572,44 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             this.state.vars.__repeat[depth] = undefined;
         }
 
-        private locator({ name, selector, actions, when }: Locator): void {
-            this.yield({
-                name: `LOCATOR ${name ? ` ${name}` : ""}`,
-                params: { locator: { selector, actions } },
-                when
-            });
+        private locator(locators: Locator[]): void {
+            const activeLocators = locators.filter(locator => 
+                this.when(locator.when, `LOCATOR${locator.name ? ` ${locator.name}` : ""}`));
+            if (activeLocators.length > 0) {
+                const [locator] = activeLocators;
+                this.yield({
+                    name: `LOCATOR ${locator.name ? ` ${locator.name}` : ""}${activeLocators.length > 1 ? ` (+${activeLocators.length - 1} more)`: ""}`,
+                    params: {
+                        locators: activeLocators.map(locator => ({
+                            name: locator.name,
+                            frame: locator.frame,
+                            selector: locator.selector,
+                            method: locator.method,
+                            params: locator.params,
+                            promote: locator.promote,
+                            chain: locator.chain
+                        })),
+                        action: "locator", // legacy shim (only supports a single locator)
+                        name: locator.name, // legacy shim
+                        frame: locator.frame, // legacy shim
+                        selector: locator.selector, // legacy shim
+                        promote: locator.promote, // legacy shim
+                        arg0: locator.params ? locator.params[0] : undefined // legacy shim
+                    }
+                });
+            }
         }
 
         private navigate({ name, url, waitUntil, when }: Navigate): void {
-            //url = this.evaluate(url);
             this.yield({
                 name: `NAVIGATE ${name ? ` ${name}` : ""} ${url}`,
-                params: { navigate: { url, waitUntil } },
+                
+                params: {
+                    navigate: { url },
+                    type: "navigate", // legacy shim
+                    url, // legacy shim
+                    waitUntil
+                },
                 when
             });
         }
@@ -1529,7 +1627,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQuery({ query, type, repeated, all, limit, format, pattern, negate, removeNulls, result }: ResolveQueryParams): QueryResult | undefined {
+        private resolveQuery({ query, type, repeated, all, limit, format, pattern, distinct, negate, removeNulls, result }: ResolveQueryParams): QueryResult | undefined {
             if (!(query instanceof Array)) {
                 this.appendError("eval-error", "Invalid selector query, query is not an array", 0);
                 return undefined;
@@ -1599,7 +1697,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
             if (ops.length > 0 && nodes.length > 0) {
                 try {
-                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, removeNulls, value });
+                    return this.resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, distinct, negate, removeNulls, value });
                 }
                 catch (err) {
                     this.appendError("eval-error", `Failed to resolve operation for "${$statement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
@@ -1619,7 +1717,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
             }
             else if (nodes.length > 0) {
-                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern, negate, removeNulls);
+                return this.formatResult({ nodes, key: this.contextKey(), value }, type, all, limit, format, pattern, distinct, negate, removeNulls);
             }
             else {
                 return undefined;
@@ -1638,7 +1736,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             }
         }
 
-        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, negate, removeNulls, value }: ResolveQueryOpsParams): QueryResult {
+        private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, distinct, negate, removeNulls, value }: ResolveQueryOpsParams): QueryResult {
             const $ = this.jquery;
             const result: QueryResult = { nodes, key: this.contextKey(), value };
             if (!this.validateOperators(ops)) {
@@ -1705,6 +1803,14 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         break;
                     }
                     if (result.value instanceof Array) {
+                        const count = result.nodes.length;
+                        /*
+                        $filter($, result, (value, index) => {
+                            const hit = this.evaluateBoolean(operands[0], { value, index, count });
+                            return hit || false;
+                        });
+                        */
+                        /**/
                         const input = {
                             elements: result.nodes.toArray(),
                             values: result.value
@@ -1723,6 +1829,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         }
                         result.nodes = $(output.elements);
                         result.value = output.values;
+                        /**/
                     }
                     else {
                         const hit = this.evaluateBoolean(operands[0], { value: result.value });
@@ -1755,6 +1862,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     if (!this.validateOperands(operator, operands, ["string"])) {
                         break;
                     }
+                    const count = result.nodes.length;
+                    /*
+                    $filter($, result, (value, index) => {
+                        const obj = this.evaluate(operands[0], { value, index, count });
+                        const hit = obj !== null && obj !== undefined;
+                        return hit;
+                    });
+                    */
+                    /**/
                     const input = {
                         elements: result.nodes.toArray(),
                         values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
@@ -1773,6 +1889,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     }
                     result.nodes = $(output.elements);
                     result.value = output.values;
+                    /**/
                 }
                 else if (operator === "nonblank") {
                     result.nodes = $(result.nodes.toArray().filter(element => $(element).text().trim().length > 0));
@@ -1912,7 +2029,7 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     break;
                 }
             }
-            return this.formatResult(result, type, all, limit, format, pattern, negate, removeNulls);
+            return this.formatResult(result, type, all, limit, format, pattern, distinct, negate, removeNulls);
         }
 
         async run(actions: Action[], label = "", wraparound = false): Promise<DispatchResult | undefined> {
@@ -1956,6 +2073,18 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 }
             }
             return index;
+        }
+
+        private screenshot({ name, selector, when }: Screenshot): void {
+            this.yield({
+                name: `SCREENSHOT ${name ? ` ${name}` : ""}`,
+                params: {
+                    screenshot: { selector},
+                    action: "screenshot", // legacy shim
+                    selector // legacy shim
+                },
+                when
+            });
         }
 
         private async scroll({ name, query, target, behavior = "smooth", block, inline, when }: Scroll): Promise<void> {
@@ -2012,12 +2141,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
 
                         if (select.union) {
                             item = this.selectResolveUnion(select, item, data);
-                        }                        
-                        else if (select.query) {
-                            item = this.selectResolveSelector(select, item);
                         }
-                        else if (select.value) {
-                            item = this.selectResolveValue(select, data);
+                        else {
+                            if (select.query) {
+                                item = this.selectResolveSelector(select, item);
+                            }
+                            
+                            if (select.value) {
+                                item = this.selectResolveValue(select, { data, value: item?.value });
+                            }
                         }
 
                         if (!pivot) {
@@ -2161,11 +2293,13 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                         if (subselect.pivot) {
                             item = this.selectResolvePivot({ ...superselect, ...subselect }, item);
                         }
-                        else if (subselect.query) {
-                            item = this.selectResolveSelector({ ...superselect, ...subselect }, item);
-                        }
-                        else if (subselect.value) {
-                            item = this.selectResolveValue(subselect);
+                        else {
+                            if (subselect.query) {
+                                item = this.selectResolveSelector({ ...superselect, ...subselect }, item);
+                            }
+                            if (subselect.value) {
+                                item = this.selectResolveValue(subselect, { value: item?.value });
+                            }
                         }
                     }
                     else {
@@ -2176,9 +2310,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             return item;
         }
 
-        private selectResolveValue(select: Select, data?: Record<string, DataItem | null>): DataItem {
-            const result = this.evaluate(select.value, { data });
-            const value = coerceValue(result, select.type || "string", select.repeated);
+        private selectResolveValue(select: Select, context?: Partial<{ data: Record<string, DataItem | null>, value: unknown }>): DataItem {
+            const result = this.evaluate(select.value, context);
+            const value = coerceValue(result, select.type, select.repeated);
             return {
                 nodes: [],
                 key: this.contextKey(),

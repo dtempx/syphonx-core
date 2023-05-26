@@ -1,25 +1,17 @@
 export function unwrap(obj: unknown): unknown {
-    if (obj instanceof Array) {
-        return obj.map(item => unwrap(item));
-    }
-    else if (isObject(obj) && (obj as {}).hasOwnProperty("value")) {
+    if (isUnwrappable(obj)) {
         return unwrap((obj as { value: unknown }).value);
     }
     else if (isObject(obj)) {
         const source = obj as Record<string, unknown>;
         const target = {} as Record<string, unknown>;
-        for (const key of Object.keys(obj as {})) {
-            if (isObject(source[key])) {
-                if ((source![key] as { value: unknown }).value !== undefined)
-                    target[key] = unwrap((source[key] as { value: unknown }).value); // unwrap value
-                else
-                    target[key] = null;
-            }
-            else {
-                target[key] = null;
-            }
-        }
+        const keys = Object.keys(obj as {});
+        for (const key of keys)
+            target[key] = unwrap(source[key])
         return target;
+    }
+    else if (obj instanceof Array) {
+        return obj.map(item => unwrap(item));
     }
     else {
         return obj;
@@ -28,5 +20,9 @@ export function unwrap(obj: unknown): unknown {
 
 function isObject(obj: unknown): boolean {
     return typeof obj === "object" && obj !== null && !(obj instanceof Array) && !(obj instanceof Date);
+}
+
+function isUnwrappable(obj: unknown): boolean {
+    return isObject(obj) && (obj as {}).hasOwnProperty("value") && (obj as {}).hasOwnProperty("nodes");
 }
 

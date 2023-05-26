@@ -3,7 +3,7 @@ import * as syphonx from "../index.js";
 import { ExtractState } from "../index.js";
 import * as fs from "fs";
 import { evaluateFormula } from "./formula.js";
-import { unwrap } from "./unwrap.js";
+import { unwrap as _unwrap } from "./unwrap.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
 
 const script = fs.readFileSync(new URL("../dist/iife/syphonx-jquery.js", import.meta.url), "utf8");
@@ -20,11 +20,11 @@ interface OnlineOptions {
     headers?: Record<string, string>;
     viewport?: { width: number, height: number };
     waitUntil?: syphonx.DocumentLoadState;
-    includeDOMRefs?: boolean;
+    unwrap?: boolean;
     outputHTML?: "pre" | "post";
 }
 
-export async function online({ show = false, includeDOMRefs = false, outputHTML = "pre", ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
+export async function online({ show = false, unwrap = true, outputHTML = "pre", ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
     if (!options.url || typeof options.url !== "string")
         throw new Error("url not specified");
     if (!options.vars)
@@ -68,8 +68,9 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             if (state.yield.params?.waitUntil)
                 await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.params.timeout || timeout });
 
+            /*
             if (state.yield.params?.locator) {
-                const { selector, frame, actions } = state.yield.params.locator;
+                const { selector } = state.yield.params.locator;
                 const obj = {
                     actions,
                     url: "", //todo: get url from locator
@@ -82,11 +83,13 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
                 const result = await locator.evaluate<ExtractState, Partial<ExtractState>>(f as any, obj);
                 state.vars.__locator = result.data;
             }
+            */
 
-            if (state.yield.params?.navigate) {
-                const { url, waitUntil: navigateWaitUntil } = state.yield.params.navigate;
-                await page.goto(url, { timeout, waitUntil: navigateWaitUntil || waitUntil });
-            }
+            if (state.yield.params?.navigate)
+                await page.goto(
+                    state.yield.params.navigate.url,
+                    { timeout, waitUntil: state.yield.params.waitUntil || waitUntil }
+                );
 
             state.yield === undefined;
             state.vars.__status = status;
@@ -102,6 +105,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
         if (process.env.DEBUG)
             console.log(state.log);
 
+        const data = unwrap ? _unwrap(state.data) : state.data;
         return {
             ...state,
             ok: state.errors.length === 0,
@@ -112,7 +116,7 @@ export async function online({ show = false, includeDOMRefs = false, outputHTML 
             originalUrl,
             html,
             online: true,
-            data: includeDOMRefs ? state.data : unwrap(state.data)
+            data
         };
     }
     finally {

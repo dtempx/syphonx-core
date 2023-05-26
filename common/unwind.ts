@@ -1,5 +1,4 @@
 export function unwind(obj: {}) {
-    debugger;
     const [key] = Object.keys(obj);
     if (key.includes(".")) {
         const value = (obj as Record<string, unknown>)[key];

@@ -22,6 +22,11 @@ const test = {
                 {
                     "name": "a4",
                     "value": "{url}"
+                },
+                {
+                    "name": "a5",
+                    "query": [["div"]],
+                    "value": "{value.toUpperCase()}" // value executes after query
                 }
             ]
         }
@@ -35,6 +40,7 @@ describe("value/1", () => {
     it("a2 has expected value", () => expect(result.data.a2).to.be.equal("ipsum"));
     it("a3 has expected value", () => expect(result.data.a3).to.be.equal("lorum ipsum"));
     it("a4 has expected value", () => expect(result.data.a4).to.be.equal("https://www.example.com/"));
+    it("a5 has expected value", () => expect(result.data.a5).to.be.equal("LORUM"));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

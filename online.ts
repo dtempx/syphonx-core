@@ -27,7 +27,7 @@ const args = parseArgs({
             url: evaluateFormula(`\`${url}\``, template.params),
             show: !!args.show,
             debug: out.includes("log"),
-            includeDOMRefs: !!args.metadata,
+            unwrap: !args.metadata,
             outputHTML: "post"
         });
 
