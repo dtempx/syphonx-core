@@ -252,6 +252,7 @@ export interface ExtractState {
     yield?: YieldState;
     root?: unknown;
     originalUrl?: string;
+    version: string;
 }
 
 export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
@@ -398,6 +399,7 @@ interface SelectContext {
 }
 
 export async function extract(state: ExtractState): Promise<ExtractState> {
+    const version = "";
 
     function collapseWhitespace(text: string, newlines = true): string | null {
         if (typeof text === "string" && text.trim().length === 0) {
@@ -878,7 +880,8 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                     __yield: state.yield?.step
                 },
                 domain,
-                origin
+                origin,
+                version
             } as ExtractStateInternal;
         }
 
