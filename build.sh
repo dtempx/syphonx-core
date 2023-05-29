@@ -3,12 +3,12 @@ npx tsc
 # ESM BUILD
 npx tsc -p tsconfig.esm.json
 echo '{"type":"module"}' > dist/esm/package.json
-node build-tools/version-stamp dist/esm/extract/index.js
+node build-tools/version-stamp dist/esm/extract/ExtractContext.js
 
 # COMMONJS BUILD
 npx tsc -p tsconfig.cjs.json
 echo '{"type":"commonjs"}' > dist/cjs/package.json
-node build-tools/version-stamp dist/cjs/extract/index.js
+node build-tools/version-stamp dist/cjs/extract/ExtractContext.js
 
 # UMD BUILD
 npx rollup index.js --format umd --name syphonx --file dist/umd/syphonx.js

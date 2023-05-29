@@ -10,6 +10,5 @@ dist
 .parcel-cache
 .DS_Store
 Thumbs.db
-private
 test*.json
 test*.html
