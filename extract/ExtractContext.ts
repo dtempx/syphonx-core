@@ -848,6 +848,7 @@ export class ExtractContext {
                     frame: locator.frame, // legacy shim
                     selector: locator.selector, // legacy shim
                     promote: locator.promote, // legacy shim
+                    method: locator.method, // legacy shim
                     arg0: locator.params ? locator.params[0] : undefined // legacy shim
                 }
             });
