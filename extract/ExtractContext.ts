@@ -79,6 +79,7 @@ import {
     isRegexp,
     merge,
     mergeElements,
+    parseBoolean,
     parseUrl,
     regexpExtract,
     regexpReplace,
@@ -1242,6 +1243,16 @@ export class ExtractContext {
                         result.value = result.value.map(value => value.trim()).filter(value => value.length > 0);
                     }
                 }
+            }
+            else if (operator === "shadow") {
+                result.nodes = $(result.nodes.toArray().map(element => element.shadowRoot).filter(obj => !!obj));
+            }
+            else if (operator === "slot") {
+                if (!this.validateOperands(operator, operands, [], ["boolean"])) {
+                    break;
+                }
+                const filter = parseBoolean(operands[0]);
+                result.nodes = $(result.nodes.toArray().map(element => element.assignedElements({ filter })).filter(obj => !!obj));
             }
             else if (operator === "text" && operands[0] === "inline") {
                 result.value = result.nodes.toArray().map((element: Element) => 

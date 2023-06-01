@@ -1,5 +1,5 @@
 import { SelectType } from "../index.js";
-import { parseNumber } from "./parseNumber.js";
+import { parseNumber } from "./parse.js";
 
 export function coerceValue(value: unknown, type: SelectType | undefined, repeated?: boolean): unknown {
     if (repeated) {
