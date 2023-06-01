@@ -862,7 +862,7 @@ export class ExtractContext {
             
             params: {
                 navigate: { url },
-                type: "navigate", // legacy shim
+                action: "navigate", // legacy shim
                 url, // legacy shim
                 waitUntil
             },
@@ -1251,8 +1251,8 @@ export class ExtractContext {
                 if (!this.validateOperands(operator, operands, [], ["boolean"])) {
                     break;
                 }
-                const filter = parseBoolean(operands[0]);
-                result.nodes = $(result.nodes.toArray().map(element => element.assignedElements({ filter })).filter(obj => !!obj));
+                const flatten = parseBoolean(operands[0]);
+                result.nodes = $(result.nodes.toArray().map(element => element.assignedElements({ flatten })).filter(obj => !!obj));
             }
             else if (operator === "text" && operands[0] === "inline") {
                 result.value = result.nodes.toArray().map((element: Element) => 

@@ -1,3 +1,6 @@
+test apply attr, filter, attr
+above only works when repeated is true
+
 add checks to deploy for version updated and committed
 
 allow a selector with no query and no value so long as there is a sub-select with a query or a value
