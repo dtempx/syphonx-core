@@ -454,20 +454,37 @@ export class ExtractContext {
         }
     }
 
-    private evaluateBoolean(input: unknown, params: Record<string, unknown> = {}): boolean | null {
-        if (isRegexp(input)) {
-            const result = regexpTest(params.value as string, input as string);
-            return result;
+    private evaluateBoolean(input: unknown, params: Record<string, unknown> = {}): boolean | undefined {
+        if (input !== undefined && input !== null) {
+            if (isRegexp(input)) {
+                const result = regexpTest(params.value as string, input as string);
+                return result !== null ? result : undefined;
+            }
+            else {
+                const result = this.evaluate(input, params);
+                if (typeof result === "boolean")
+                    return result;
+            }
         }
-        else {
-            const result = this.evaluate(input, params);
-            return typeof result === "boolean" ? result : null;
-        }
+        return undefined;
     }
 
-    private evaluateNumber(input: unknown, params: Record<string, unknown> = {}): number {
-        const result = this.evaluate(input, params);
-        return typeof result === "number" ? result : 0;
+    private evaluateNumber(input: unknown, params: Record<string, unknown> = {}): number | undefined {
+        if (input !== undefined && input !== null) {
+            const result = this.evaluate(input, params);
+            if (typeof result === "number")
+                return result;    
+        }
+        return undefined;
+    }
+
+    private evaluateString(input: unknown, params: Record<string, unknown> = {}): string | undefined {
+        if (input !== undefined && input !== null) {
+            const result = this.evaluate(input, params);
+            if (typeof result === "string")
+                return result;    
+        }
+        return undefined;
     }
 
     private formatResult(result: QueryResult, type: SelectType | undefined, all: boolean, limit: number | null | undefined, format: SelectFormat = "multiline", pattern: string | undefined, distinct: boolean | undefined, negate: boolean | undefined, removeNulls: boolean | undefined): QueryResult {
@@ -781,10 +798,9 @@ export class ExtractContext {
     private async repeat({ name = "", actions, limit, errors = 1, when }: Repeat): Promise<void> {
         if (name)
             name = " " + name;
+        limit = this.evaluateNumber(limit);
         if (limit === undefined)
-            limit = 10;
-        else if (typeof limit === "string")
-            limit = this.evaluateNumber(limit);
+            limit = 1;
         if (this.when(when, `REPEAT${name}`)) {
             const state = this.acquireRepeatState();
             let errorOffset = 0;
@@ -836,11 +852,11 @@ export class ExtractContext {
                 name: `LOCATOR ${locator.name ? ` ${locator.name}` : ""}${activeLocators.length > 1 ? ` (+${activeLocators.length - 1} more)`: ""}`,
                 params: {
                     locators: activeLocators.map(locator => ({
-                        name: locator.name,
-                        frame: locator.frame,
-                        selector: locator.selector,
-                        method: locator.method,
-                        params: locator.params,
+                        name: this.evaluateString(locator.name),
+                        frame: this.evaluateString(locator.frame),
+                        selector: this.evaluateString(locator.selector),
+                        method: this.evaluateString(locator.method),
+                        params: locator.params?.map(param => this.evaluate(param)),
                         promote: locator.promote,
                         chain: locator.chain
                     })),
@@ -859,9 +875,8 @@ export class ExtractContext {
     private navigate({ name, url, waitUntil, when }: Navigate): void {
         this.yield({
             name: `NAVIGATE ${name ? ` ${name}` : ""} ${url}`,
-            
             params: {
-                navigate: { url },
+                navigate: { url: this.evaluateString(url)! },
                 action: "navigate", // legacy shim
                 url, // legacy shim
                 waitUntil
@@ -1345,7 +1360,7 @@ export class ExtractContext {
         this.yield({
             name: `SCREENSHOT ${name ? ` ${name}` : ""}`,
             params: {
-                screenshot: { selector},
+                screenshot: { selector: this.evaluateString(selector) },
                 action: "screenshot", // legacy shim
                 selector // legacy shim
             },
