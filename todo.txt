@@ -10,6 +10,9 @@ add checks to deploy for version updated and committed
 
 allow a selector with no query and no value so long as there is a sub-select with a query or a value
 
+api documentation
+
+
 DONE: setup dist folder and package.json to hold different builds for node and browser
 https://esbuild.github.io/api/#main-fields
 
