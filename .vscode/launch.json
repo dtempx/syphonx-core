@@ -47,6 +47,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/test/**/*.js",
+                "--require", "./esm.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors"
@@ -66,6 +67,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/test/**/*.js",
+                "--require", "./esm.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors",
@@ -86,6 +88,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/**/*.test.js",
+                "--require", "./esm.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors"

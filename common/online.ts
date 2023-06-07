@@ -1,12 +1,8 @@
-import playwright, { Browser, BrowserContext, Page } from "playwright";
+import playwright, { Browser } from "playwright";
 import * as syphonx from "../index.js";
-import { ExtractState } from "../index.js";
-import * as fs from "fs";
-import { evaluateFormula } from "./formula.js";
-import { unwrap as _unwrap } from "./unwrap.js";
+import { ExtractState, YieldParams } from "../index.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
-
-const script = fs.readFileSync(new URL("../dist/iife/syphonx-jquery.js", import.meta.url), "utf8");
+import { execute } from "../execute.js";
 
 interface OnlineOptions {
     actions: syphonx.Action[];
@@ -21,107 +17,87 @@ interface OnlineOptions {
     viewport?: { width: number, height: number };
     waitUntil?: syphonx.DocumentLoadState;
     unwrap?: boolean;
-    outputHTML?: "pre" | "post";
+    html?: boolean;
 }
 
-export async function online({ show = false, unwrap = true, outputHTML = "pre", ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
-    if (!options.url || typeof options.url !== "string")
-        throw new Error("url not specified");
-    if (!options.vars)
-        options.vars = {};
-
-    const originalUrl = encodeURI(evaluateFormula(`\`${options.url}\``, { params: options.params }) as string);
+export async function online({ url, show = false, unwrap = true, ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
     let browser: Browser | undefined = undefined;
-    let context: BrowserContext | undefined = undefined;
-    let page: Page | undefined = undefined;
     try {
         browser = await playwright.chromium.launch({ headless: !show, args });
-        context = await browser.newContext({ userAgent: options.useragent || userAgent });
-        page = await context.newPage();
+        const context = await browser.newContext({ userAgent: options.useragent || userAgent });
+        const page = await context.newPage();
         await page.setExtraHTTPHeaders({ ...headers, ...options.headers });
         await page.setViewportSize({ ...viewport, ...options.viewport });
 
-        let status = 0;
-        await page.on("response", response => {
-            if (response.url() === originalUrl) {
-                status = response.status();
+        const result = await execute({
+            url,
+            unwrap,
+            html: options.html,
+            template: {
+                actions: options.actions,
+                params: options.params,
+                vars: options.vars,
+                debug: options.debug
+            },
+            onExtract: async (state: ExtractState, script: string) => {
+                const fn = new Function("state", `return ${script}`);
+                const result = await page.evaluate<ExtractState, ExtractState>(fn as any, state);
+                return result;
+            },
+            onGoback: async () => {
+                await page.goBack();
+            },
+            onHtml: async () => {
+                const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
+                return html;
+            },
+            onLocator: async (locators: syphonx.YieldLocator[]) => {
+                const result: Record<string, unknown> = {};
+                for (const { name, selector, frame, method, params } of locators) {
+                    let locator = undefined as playwright.Locator | undefined;
+                    if (frame)
+                        locator = await page.frameLocator(frame).locator(selector);
+                    else
+                        locator = await page.locator(selector);
+                    result[name] = await invokeAsyncMethod(locator, method, params);
+                }
+                return result;
+
+                async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {
+                    const fn = (obj as Record<string, (...args: unknown[]) => unknown>)[method];
+                    if (typeof fn === "function") {
+                        const result = await fn(...args);
+                        return result;
+                    }
+                }
+            },
+            onNavigate: async ({ url, timeout, waitUntil }: syphonx.YieldNavigate & { timeout?: number, waitUntil?: syphonx.DocumentLoadState }) => {
+                let status = 0;
+                const listener = (response: playwright.Response) => {
+                    if (response.url() === url)
+                        status = response.status();
+                };
+                await page.on("response", listener);
+                await page.goto(url, { timeout, waitUntil });
+                if (waitUntil)
+                    await page!.waitForURL(url, { timeout, waitUntil });
+                await page.off("response", listener);
+                return { status };
+            },
+            onReload: async () => {
+                await page.reload();
+            },
+            onScreenshot: async (selector?: string) => {
+    
+            },
+            onYield: async (params: YieldParams) => {
+                const { waitUntil, timeout } = params;
+                await page.waitForLoadState(waitUntil, { timeout });
             }
         });
-
-        const timeout = typeof options.timeout === "number" ? options.timeout * 1000 : undefined;
-        const waitUntil = options.waitUntil;
-        await page.goto(originalUrl, { timeout, waitUntil });
-        if (waitUntil)
-            await page.waitForURL(originalUrl, { timeout, waitUntil });
-
-        options.vars.__status = status;
-
-        let html = "";
-        if (outputHTML === "pre")
-            html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
-
-        const debug = options.debug || !!process.env.DEBUG;
-
-        const f = new Function("obj", `return ${script}`);
-        let { url, domain, origin, ...state } = await page.evaluate<ExtractState, ExtractState>(f as any, { ...options as any, originalUrl, debug });
-        while (state.yield) {
-            if (state.yield.params?.waitUntil)
-                await page.waitForLoadState(state.yield.params.waitUntil, { timeout: state.yield.params.timeout || timeout });
-
-            /*
-            if (state.yield.params?.locator) {
-                const { selector } = state.yield.params.locator;
-                const obj = {
-                    actions,
-                    url: "", //todo: get url from locator
-                    params: options.params,
-                    test: true
-                };
-
-                const locator = await page.frameLocator(selector).locator("html");
-                //const result = await locator.evaluate<ExtractState, Partial<ExtractState>>(f as any, obj);
-                const result = await locator.evaluate<ExtractState, Partial<ExtractState>>(f as any, obj);
-                state.vars.__locator = result.data;
-            }
-            */
-
-            if (state.yield.params?.navigate)
-                await page.goto(
-                    state.yield.params.navigate.url,
-                    { timeout, waitUntil: state.yield.params.waitUntil || waitUntil }
-                );
-
-            state.yield === undefined;
-            state.vars.__status = status;
-            state.debug = debug;
-            state = await page.evaluate(f as any, { ...state as any, originalUrl });
-        }
-
-        if (outputHTML === "post")
-            html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
-
-        await page.close();
-
-        if (process.env.DEBUG)
-            console.log(state.log);
-
-        const data = unwrap ? _unwrap(state.data) : state.data;
-        return {
-            ...state,
-            ok: state.errors.length === 0,
-            status,
-            url,
-            domain,
-            origin,
-            originalUrl,
-            html,
-            online: true,
-            data
-        };
+        return result;
     }
     finally {
-        if (page)
-            await page.close();
         if (browser)
             await browser.close();
     }

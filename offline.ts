@@ -1,5 +1,8 @@
 import * as fs from "fs";
 import { browser, evaluateFormula, loadJSON, offline, parseArgs } from "./common/index.js";
+import { setScript } from "./execute.js";
+
+setScript(fs.readFileSync(new URL("./dist/iife/syphonx-jquery.js", import.meta.url), "utf8"));
 
 const args = parseArgs({
     required: {

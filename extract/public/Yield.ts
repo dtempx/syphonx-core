@@ -13,17 +13,18 @@ export interface YieldParams extends Record<string, unknown> {
     waitUntil?: DocumentLoadState;
     click?: {};
     goback?: {};
-    locator?: YieldLocator;
+    locators?: YieldLocator[];
     navigate?: YieldNavigate;
     reload?: {};
     screenshot?: YieldScreenshot;
 }
 
 export interface YieldLocator {
-    frame?: string;
+    name: string;
     selector: string;
     method: LocatorMethod;
-    params: unknown[];
+    params?: unknown[];
+    frame?: string;
 }
 
 export interface YieldNavigate {

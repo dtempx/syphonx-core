@@ -1,4 +1,8 @@
+import * as fs from "fs";
 import { evaluateFormula, loadJSON, online, parseArgs } from "./common/index.js";
+import { setScript } from "./execute.js";
+
+setScript(fs.readFileSync(new URL("./dist/iife/syphonx-jquery.js", import.meta.url), "utf8"));
 
 const args = parseArgs({
     required: {
@@ -28,7 +32,7 @@ const args = parseArgs({
             show: !!args.show,
             debug: out.includes("log"),
             unwrap: !args.metadata,
-            outputHTML: "post"
+            html: out.includes("html")
         });
 
         if (out.includes("data")) {

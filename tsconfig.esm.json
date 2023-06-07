@@ -4,6 +4,6 @@
         "outDir": "./dist/esm"
     },
     "files": [
-        "./index.ts"
+        "./esm.ts"
     ]
 }

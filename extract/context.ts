@@ -19,6 +19,7 @@ import {
     JQueryResult,
     Locator,
     LocatorAction,
+    LocatorMethod,
     Navigate,
     NavigateAction,
     QueryParams,
@@ -852,11 +853,11 @@ export class ExtractContext {
                 name: `LOCATOR ${locator.name ? ` ${locator.name}` : ""}${activeLocators.length > 1 ? ` (+${activeLocators.length - 1} more)`: ""}`,
                 params: {
                     locators: activeLocators.map(locator => ({
-                        name: this.evaluateString(locator.name),
-                        frame: this.evaluateString(locator.frame),
-                        selector: this.evaluateString(locator.selector),
-                        method: this.evaluateString(locator.method),
+                        name: this.evaluateString(locator.name) || "_value",
+                        selector: this.evaluateString(locator.selector)!,
+                        method: this.evaluateString(locator.method) as LocatorMethod,
                         params: locator.params?.map(param => this.evaluate(param)),
+                        frame: this.evaluateString(locator.frame),
                         promote: locator.promote,
                         chain: locator.chain
                     })),

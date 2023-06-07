@@ -7,12 +7,12 @@
   "repository": "github:dtempx/syphonx-core",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/cjs/index.js",
+  "main": "./dist/cjs/cjs.js",
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/esm.js",
+      "require": "./dist/cjs/cjs.js",
       "browser": "./dist/umd/syphonx.js"
     }
   },
@@ -22,7 +22,7 @@
   "scripts": {
     "build": "bash ./build.sh",
     "clean": "bash ./clean.sh",
-    "test": "npx mocha"
+    "test": "npx mocha -r ./esm.js"
   },
   "keywords": [
     "scrape"

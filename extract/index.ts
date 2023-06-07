@@ -1,4 +1,4 @@
-import { ExtractContext } from "./ExtractContext.js";
+import { ExtractContext } from "./context.js";
 import { ExtractState } from "./public/index.js";
 
 export * from "./public/index.js";
