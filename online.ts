@@ -1,8 +1,5 @@
 import * as fs from "fs";
 import { evaluateFormula, loadJSON, online, parseArgs } from "./common/index.js";
-import { setScript } from "./execute.js";
-
-setScript(fs.readFileSync(new URL("./dist/iife/syphonx-jquery.js", import.meta.url), "utf8"));
 
 const args = parseArgs({
     required: {
@@ -15,6 +12,8 @@ const args = parseArgs({
         out: "determines output (data, html, log)"
     }
 });
+
+(global as unknown as { script: string }).script = fs.readFileSync(new URL("./dist/iife/syphonx-jquery.min.js", import.meta.url), "utf8");
 
 (async () => {
     try {

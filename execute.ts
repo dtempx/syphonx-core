@@ -21,6 +21,7 @@ export interface ExecuteOptions {
     unwrap?: boolean;
     debug?: boolean;
     html?: boolean;
+    maxYields?: number;
     onExtract: (state: ExtractState, script: string) => Promise<ExtractState>;
     onGoback: () => Promise<void>;
     onHtml: () => Promise<string>;
@@ -31,10 +32,7 @@ export interface ExecuteOptions {
     onYield: (params: YieldParams) => Promise<void>;
 }
 
-export async function execute(options: ExecuteOptions): Promise<ExtractResult> {
-    if (!script)
-        throw new Error("script not initialized");
-
+export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): Promise<ExtractResult> {
     let url = options.url || options.template.url;
     if (!url || typeof url !== "string")
         throw new Error("url not specified");
@@ -54,8 +52,10 @@ export async function execute(options: ExecuteOptions): Promise<ExtractResult> {
         url,
         debug: options.debug || options.template.debug
     } as ExtractState;
-    state = await options.onExtract(state, script);
-    while (state.yield) {
+
+    let i = 0;
+    state = await options.onExtract(state, script || (global as unknown as { script: string }).script);
+    while (state.yield && i++ < maxYields) {
         if (state.yield.params?.click) {
             await options.onYield({ waitUntil: state.yield.params.waitUntil });
         }
@@ -83,7 +83,7 @@ export async function execute(options: ExecuteOptions): Promise<ExtractResult> {
             await options.onYield(state.yield.params);
         }
 
-        state = await options.onExtract(state, script);
+        state = await options.onExtract(state, script || (global as unknown as { script: string }).script);
     }
 
     let html = "";
@@ -103,8 +103,4 @@ export async function execute(options: ExecuteOptions): Promise<ExtractResult> {
     };
 }
 
-let script = "";
-
-export function setScript(value: string): void {
-    script = value;
-}
+export const script = "";

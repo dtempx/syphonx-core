@@ -1,5 +1,6 @@
 # DevNotes
 
+
 ## Setup
 ```
 git clone https://github.com/dtempx/syphonx-core.git
@@ -7,6 +8,7 @@ cd syphonx-core
 yarn build
 yarn test
 ```
+
 
 ## Run
 * `node online examples/1.json` extract data from a live online page using a script
@@ -19,11 +21,6 @@ yarn test
 * `yarn test` to run all tests
 * `yarn test --grep online/3` to run a specific test
 
-## Debug Profiles
-* **Online** debug an online capture by specifying a script and a URL (or use the URL in the script)
-* **Offline** debug an offline capture by specifying a script and an HTML file
-* **Run Tests** debug all tests
-* **Run Selected Test** debug a specific test (highlight a test name in the editor first)
 
 ## Deploy
 ```
@@ -36,9 +33,28 @@ npm publish
 
 
 ## Debug in browser
-1. Hit F12 in browser to open developer tools
-2. Paste contents of file `dist/iife/syphonx.js` into the console
-3. Execute the following command to add jQuery to the page
+1. Open the developer console in any browser by hitting F12
+
+2. Type `syphonx=` and paste the contents of file `dist/iife/syphonx-jquery.js` into the console
+    > This assigns the library to a function named `syphonx`
+
+    > Tip: Add a `debugger` statement anywhere in the code if you need to debug the library
+
+3. Execute a syphonx query like so: `result = await syphonx({ actions: [ { select: [{ name: "title", query: [["h1"]] }] } ] })`
+
+
+## VSCode Debug Profiles
+* **Run File** debug the active source file in the editor
+* **Online** debug an online capture by specifying a script and a URL (or use the URL in the script)
+* **Offline** debug an offline capture by specifying a script and an HTML file
+* **Run Tests** debug all tests
+* **Run Selected Test** debug a specific test (highlight a test name in the editor first)
+
+
+
+## Alternate debugging techniques
+
+### Add jQuery to the browser
 ```
 (() => {
     const script = document.createElement('script');
@@ -47,10 +63,6 @@ npm publish
     //jQuery.noConflict();
 })();
 ```
-4. Execute the following command in the console
-```
-await syphonx.extract({ actions: [{ select: [{ query: [["h1"]] }] }] })
-```
 
-## Debug code running in the browser
+### Debug code running in the browser
 Try https://www.builder.io/blog/debug-nodejs

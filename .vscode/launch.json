@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Program",
+            "name": "Run File",
             "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
@@ -47,7 +47,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/test/**/*.js",
-                "--require", "./esm.js",
+                "--require", "./mocha.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors"
@@ -67,7 +67,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/test/**/*.js",
-                "--require", "./esm.js",
+                "--require", "./mocha.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors",
@@ -88,7 +88,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/**/*.test.js",
-                "--require", "./esm.js",
+                "--require", "./mocha.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors"
@@ -108,6 +108,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
                 "${workspaceFolder}/**/*.test.js",
+                "--require", "./mocha.js",
                 "--timeout", "999999",
                 "--slow", "5000",
                 "--colors",

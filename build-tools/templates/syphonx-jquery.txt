@@ -6,4 +6,4 @@
 var $ = jQuery.noConflict(true);
 return syphonx.extract(obj, $);
 
-})(...arguments);
+})

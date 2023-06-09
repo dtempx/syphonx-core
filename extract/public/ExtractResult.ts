@@ -4,4 +4,5 @@ export interface ExtractResult extends Omit<ExtractState, "yield" | "root"> {
     ok: boolean;
     status: number;
     html: string;
+    version: string;
 }

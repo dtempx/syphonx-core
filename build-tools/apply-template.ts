@@ -7,7 +7,7 @@ if (!process.argv[2] || process.argv[2] === "-h" || process.argv[2] === "--help"
 
 for (const file of process.argv.slice(2)) {
     if (!fs.existsSync(file)) {
-        console.error(`${file} does not exist`);
+        console.error(`apply-template: ${file} does not exist`);
         process.exit();
     }
 }

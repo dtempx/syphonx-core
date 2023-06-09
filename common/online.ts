@@ -1,5 +1,5 @@
-import playwright, { Browser } from "playwright";
 import * as syphonx from "../index.js";
+import playwright, { Browser } from "playwright";
 import { ExtractState, YieldParams } from "../index.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
 import { execute } from "../execute.js";
@@ -40,7 +40,7 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                 debug: options.debug
             },
             onExtract: async (state: ExtractState, script: string) => {
-                const fn = new Function("state", `return ${script}`);
+                const fn = new Function("state", `return ${script}(state)`);
                 const result = await page.evaluate<ExtractState, ExtractState>(fn as any, state);
                 return result;
             },

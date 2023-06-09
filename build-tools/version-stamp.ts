@@ -7,7 +7,7 @@ if (!file || file === "-h" || file === "--help") {
 }
 
 if (!fs.existsSync(file)) {
-    console.error(`${file} does not exist`);
+    console.error(`version-stamp: ${file} does not exist`);
     process.exit();
 }
 
@@ -18,7 +18,7 @@ const input = fs.readFileSync(file, "utf-8");
 
 const pattern = /version = "[^"]*"/;
 if (!pattern.test(input)) {
-    console.error(`version pattern not found in file`);
+    console.error(`version-stamp: version pattern not found in file`);
     process.exit();
 }
 

@@ -7,6 +7,6 @@
         "outDir": "./dist/cjs"
     },
     "files": [
-        "./cjs.ts"
+        "./index.ts"
     ]
 }
