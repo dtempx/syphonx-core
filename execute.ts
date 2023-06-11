@@ -1,4 +1,5 @@
-import { evaluateFormula, unwrap } from "./common/index.js";
+import { evaluateFormula } from "./lib/formula.js";
+import { unwrap } from "./lib/unwrap.js";
 import { parseUrl } from "./extract/lib/index.js";
 import { Template } from "./template.js";
 

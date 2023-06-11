@@ -23,15 +23,18 @@ if (i === -1) {
     process.exit();
 }
 
-const embed = "`" + source.replace(/`/g, "\\`") + "`";
-const j = target.indexOf(`"`, i);
+const embed = source
+    .replace(/\\/g, `\\\\`) // escape backslashes
+    .replace(/"/g, `\\"`) // escape double-quotes
+    .replace(/\r?\n/g, `\\n`); // escape newlines
+const j = target.indexOf(`"`, i) + 1;
 
 if (outputFile) {
-    fs.writeFileSync(outputFile, `${target.slice(0, j)}${embed}${target.slice(j + 2)}`);
+    fs.writeFileSync(outputFile, `${target.slice(0, j)}${embed}${target.slice(j)}`);
     console.log(`${outputFile} embedded ${sourceFile}`);
 }
 else {
     process.stdout.write(target.slice(0, j));
     process.stdout.write(embed);
-    process.stdout.write(target.slice(j + 2));
+    process.stdout.write(target.slice(j));
 }

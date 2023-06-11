@@ -2,7 +2,9 @@
 # https://mochajs.org/#command-line-usage
 
 color: true
+require: './mocha.js'
 spec:
   - './test/**/*.js'
+  - '**/*.test.js'
 slow: 30000
 timeout: 0

@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import * as syphonx from "../index.js";
-import { unwrap as _unwrap } from "./unwrap.js";
+import { unwrap as _unwrap } from "../lib/unwrap.js";
 
 export interface OfflineOptions {
     actions: syphonx.Action[];

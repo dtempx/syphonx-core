@@ -16,5 +16,5 @@ export * from "./sleep.js";
 export * from "./trim.js";
 export * from "./trunc.js";
 export * from "./typeName.js";
-export * from "../../common/formula.js";
-export * from "../../common/unwrap.js";
+export * from "../../lib/formula.js";
+export * from "../../lib/unwrap.js";
