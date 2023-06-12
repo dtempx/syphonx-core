@@ -97,7 +97,7 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
         originalUrl,
         domain,
         origin,
-        data: options.unwrap ?? true ? unwrap(state.data) : state.data,
+        data: options.unwrap ? unwrap(state.data) : state.data,
         online: true
     };
 }
