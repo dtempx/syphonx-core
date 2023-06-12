@@ -1,5 +1,5 @@
 import { CheerioAPI } from "cheerio";
-import { QueryResult } from "../index.js";
+import { QueryResult } from "../private/index.js";
 
 export function filterQueryResult($: JQueryStatic & CheerioAPI, result: QueryResult, predicate: (value: unknown, index: number, array: unknown[]) => boolean) {
     if (result.value instanceof Array) {

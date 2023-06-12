@@ -1,4 +1,4 @@
-import { JQueryResult } from "../public/index.js";
+import { JQueryResult } from "./JQuery.js";
 
 export type SelectContextAction = "each" | "pivot" | "subselect" | "union"
 

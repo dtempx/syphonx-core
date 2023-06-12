@@ -1,9 +1,5 @@
-import {
-    JQueryResult,
-    SelectFormat,
-    SelectQueryOp,
-    SelectType
-} from "../public/index.js";
+import { SelectFormat, SelectQueryOp, SelectType } from "../public/index.js";
+import { JQueryResult } from "./JQuery.js";
 
 export interface ResolveQueryOpsParams {
     ops: SelectQueryOp[];

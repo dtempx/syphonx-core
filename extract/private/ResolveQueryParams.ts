@@ -1,9 +1,5 @@
-import {
-    QueryResult,
-    SelectFormat,
-    SelectQuery,
-    SelectType
-} from "../public/index.js";
+import { SelectFormat, SelectQuery, SelectType } from "../public/index.js";
+import { QueryResult } from "./QueryResult.js";
 
 export interface ResolveQueryParams {
     query: SelectQuery;

@@ -1,4 +1,4 @@
-import { SelectFormat, SelectQuery, SelectType } from "./Select.js";
+import { SelectFormat, SelectQuery, SelectType } from "../public/index.js";
 
 export interface QueryParams {
     query?: SelectQuery[];
