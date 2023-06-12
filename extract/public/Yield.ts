@@ -32,7 +32,10 @@ export interface YieldNavigate {
 }
 
 export interface YieldScreenshot {
+    [key: string]: unknown;
+    name?: string;
     selector?: string;
+    fullPage?: boolean;
 }
 
 export interface YieldState {

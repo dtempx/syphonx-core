@@ -87,8 +87,12 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
             onReload: async () => {
                 await page.reload();
             },
-            onScreenshot: async (selector?: string) => {
-    
+            onScreenshot: async ({ selector, fullPage, ...options }) => {
+                const path = `./screenshots/${new Date().toLocaleString("en-US", { hour12: false }).replace(/:/g, "-").replace(/\//g, "-").replace(/,/g, "")}.png`;
+                let clip: { x: number, y: number, height: number, width: number } | undefined = undefined;
+                if (selector)
+                    clip = await page.evaluate(() => document.querySelector(selector)?.getBoundingClientRect());
+                await page.screenshot({ ...options, path, clip, fullPage });
             },
             onYield: async (params: YieldParams) => {
                 const { waitUntil, timeout } = params;

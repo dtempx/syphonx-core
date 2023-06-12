@@ -1357,11 +1357,15 @@ export class ExtractContext {
         return index;
     }
 
-    private screenshot({ name, selector, when }: Screenshot): void {
+    private screenshot({ name, selector, params, when }: Screenshot): void {
         this.yield({
             name: `SCREENSHOT ${name ? ` ${name}` : ""}`,
             params: {
-                screenshot: { selector: this.evaluateString(selector) },
+                screenshot: {
+                    ...params,
+                    name,
+                    selector: this.evaluateString(selector)
+                },
                 action: "screenshot", // legacy shim
                 selector // legacy shim
             },

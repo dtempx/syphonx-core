@@ -9,7 +9,8 @@ import {
     ExtractState,
     YieldLocator,
     YieldNavigate,
-    YieldParams
+    YieldParams,
+    YieldScreenshot
 } from "./extract/index.js";
 
 export interface NavigateResult {
@@ -24,13 +25,13 @@ export interface ExecuteOptions {
     html?: boolean;
     maxYields?: number;
     onExtract: (state: ExtractState, script: string) => Promise<ExtractState>;
-    onGoback: () => Promise<void>;
-    onHtml: () => Promise<string>;
+    onGoback?: () => Promise<void>;
+    onHtml?: () => Promise<string>;
     onLocator?: (options: YieldLocator[]) => Promise<Record<string, unknown>>;
     onNavigate: (options: YieldNavigate & { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
-    onReload: () => Promise<void>;
-    onScreenshot?: (selector?: string) => Promise<void>;
-    onYield: (params: YieldParams) => Promise<void>;
+    onReload?: () => Promise<void>;
+    onScreenshot?: (options: YieldScreenshot) => Promise<void>;
+    onYield?: (params: YieldParams) => Promise<void>;
 }
 
 export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): Promise<ExtractResult> {
@@ -57,16 +58,13 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
     let i = 0;
     state = await options.onExtract(state, script || (global as unknown as { script: string }).script);
     while (state.yield && i++ < maxYields) {
-        if (state.yield.params?.click) {
-            await options.onYield({ waitUntil: state.yield.params.waitUntil });
-        }
-        else if (state.yield.params?.goback) {
+        if (state.yield.params?.goback && options.onGoback) {
             await options.onGoback();
         }
         else if (state.yield.params?.locators && options.onLocator) {
             await options.onLocator(state.yield.params.locators);
         }
-        else if (state.yield.params?.navigate) {
+        else if (state.yield.params?.navigate && options.onNavigate) {
             state.url = state.yield.params.navigate.url;
             navigation = await options.onNavigate({
                 ...state.yield.params.navigate,
@@ -78,9 +76,9 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
             await options.onReload();
         }
         else if (state.yield.params?.screenshot && options.onScreenshot) {
-            await options.onScreenshot(state.yield.params.screenshot.selector);
+            await options.onScreenshot(state.yield.params.screenshot);
         }
-        else if (state.yield.params?.waitUntil) {
+        else if (state.yield.params?.waitUntil && options.onYield) {
             await options.onYield(state.yield.params);
         }
 
@@ -99,7 +97,7 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
         originalUrl,
         domain,
         origin,
-        data: options.unwrap ? unwrap(state.data) : state.data,
+        data: options.unwrap ?? true ? unwrap(state.data) : state.data,
         online: true
     };
 }
