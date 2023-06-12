@@ -14,7 +14,7 @@ import {
 } from "./extract/index.js";
 
 export interface NavigateResult {
-    status: number;
+    status?: number;
 }
 
 export interface ExecuteOptions {
@@ -29,7 +29,7 @@ export interface ExecuteOptions {
     onHtml?: () => Promise<string>;
     onLocator?: (options: YieldLocator) => Promise<unknown>;
     onNavigate: (options: YieldNavigate & { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
-    onReload?: () => Promise<void>;
+    onReload?: (options: { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onScreenshot?: (options: YieldScreenshot) => Promise<void>;
     onYield?: (params: YieldParams) => Promise<void>;
 }
@@ -46,7 +46,7 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
     const timeout = typeof options.template.timeout === "number" ? options.template.timeout * 1000 : undefined;
     const waitUntil = options.template.waitUntil;
     
-    let navigation = await options.onNavigate({ url, timeout, waitUntil });
+    let lastNavigationResult = await options.onNavigate({ url, timeout, waitUntil });
     let state = {
         params: {},
         vars: {},
@@ -67,14 +67,17 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
         }
         else if (state.yield.params?.navigate && options.onNavigate) {
             state.url = state.yield.params.navigate.url;
-            navigation = await options.onNavigate({
+            lastNavigationResult = await options.onNavigate({
                 ...state.yield.params.navigate,
                 timeout: state.yield.params.timeout || timeout,
                 waitUntil: state.yield.params.waitUntil || waitUntil
             });
         }
         else if (state.yield.params?.reload && options.onReload) {
-            await options.onReload();
+            lastNavigationResult = await options.onReload({
+                timeout: state.yield.params.timeout || timeout,
+                waitUntil: state.yield.params.waitUntil || waitUntil
+            });
         }
         else if (state.yield.params?.screenshot && options.onScreenshot) {
             await options.onScreenshot(state.yield.params.screenshot);
@@ -93,7 +96,7 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
     return { 
         ...state,
         ok: state.errors.length === 0,
-        status: navigation.status,
+        status: lastNavigationResult.status,
         html,
         originalUrl,
         domain,

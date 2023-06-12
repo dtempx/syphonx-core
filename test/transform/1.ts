@@ -25,8 +25,8 @@ const test = {
 describe("transform/1", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
-    it("html1 has expected output", () => expect(result.html.replace(/>\s*</g, "><")).to.contain(`<h3 class="alpha">Lorum:</h3><p>Credat</p>`));
-    it("html2 has expected output", () => expect(result.html.replace(/>\s*</g, "><")).to.contain(`<h3 class="alpha">Ipsum:</h3><p>Judias</p>`));
+    it("html1 has expected output", () => expect(result.html?.replace(/>\s*</g, "><")).to.contain(`<h3 class="alpha">Lorum:</h3><p>Credat</p>`));
+    it("html2 has expected output", () => expect(result.html?.replace(/>\s*</g, "><")).to.contain(`<h3 class="alpha">Ipsum:</h3><p>Judias</p>`));
     it("html3 has expected output", () => expect(result.html).to.contain(`<div><a href="#">Vino</a></div>`));
     it("html4 has expected output", () => expect(result.html).to.contain(`<b class="omega">Veritas</b>`));
     it("ok is true", () => expect(result.ok).to.be.true);
