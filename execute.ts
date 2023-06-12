@@ -27,7 +27,7 @@ export interface ExecuteOptions {
     onExtract: (state: ExtractState, script: string) => Promise<ExtractState>;
     onGoback?: () => Promise<void>;
     onHtml?: () => Promise<string>;
-    onLocator?: (options: YieldLocator[]) => Promise<Record<string, unknown>>;
+    onLocator?: (options: YieldLocator) => Promise<unknown>;
     onNavigate: (options: YieldNavigate & { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onReload?: () => Promise<void>;
     onScreenshot?: (options: YieldScreenshot) => Promise<void>;
@@ -62,7 +62,8 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
             await options.onGoback();
         }
         else if (state.yield.params?.locators && options.onLocator) {
-            await options.onLocator(state.yield.params.locators);
+            for (const locator of state.yield.params.locators)
+                state.vars[locator.name] = await options.onLocator(locator);
         }
         else if (state.yield.params?.navigate && options.onNavigate) {
             state.url = state.yield.params.navigate.url;
@@ -100,6 +101,14 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
         data: options.unwrap ? unwrap(state.data) : state.data,
         online: true
     };
+}
+
+export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {
+    const fn = (obj as Record<string, (...args: unknown[]) => unknown>)[method];
+    if (typeof fn === "function") {
+        const result = await fn(...args);
+        return result;
+    }
 }
 
 export const script = "";

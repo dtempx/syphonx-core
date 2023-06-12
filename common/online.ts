@@ -1,8 +1,8 @@
 import * as syphonx from "../index.js";
 import playwright, { Browser } from "playwright";
-import { ExtractState, YieldParams } from "../index.js";
+import { ExtractState } from "../index.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
-import { execute } from "../execute.js";
+import { execute, invokeAsyncMethod } from "../execute.js";
 
 interface OnlineOptions {
     actions: syphonx.Action[];
@@ -51,25 +51,14 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                 const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
                 return html;
             },
-            onLocator: async (locators: syphonx.YieldLocator[]) => {
-                const result: Record<string, unknown> = {};
-                for (const { name, selector, frame, method, params } of locators) {
-                    let locator = undefined as playwright.Locator | undefined;
-                    if (frame)
-                        locator = await page.frameLocator(frame).locator(selector);
-                    else
-                        locator = await page.locator(selector);
-                    result[name] = await invokeAsyncMethod(locator, method, params);
-                }
+            onLocator: async ({ frame, selector, method, params }) => {
+                let locator = undefined as playwright.Locator | undefined;
+                if (frame)
+                    locator = await page.frameLocator(frame).locator(selector);
+                else
+                    locator = await page.locator(selector);
+                const result = await invokeAsyncMethod(locator, method, params);
                 return result;
-
-                async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {
-                    const fn = (obj as Record<string, (...args: unknown[]) => unknown>)[method];
-                    if (typeof fn === "function") {
-                        const result = await fn(...args);
-                        return result;
-                    }
-                }
             },
             onNavigate: async ({ url, timeout, waitUntil }: syphonx.YieldNavigate & { timeout?: number, waitUntil?: syphonx.DocumentLoadState }) => {
                 let status = 0;
@@ -94,8 +83,7 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                     clip = await page.evaluate(() => document.querySelector(selector)?.getBoundingClientRect());
                 await page.screenshot({ ...options, path, clip, fullPage });
             },
-            onYield: async (params: YieldParams) => {
-                const { waitUntil, timeout } = params;
+            onYield: async ({ timeout, waitUntil }) => {
                 await page.waitForLoadState(waitUntil, { timeout });
             }
         });
