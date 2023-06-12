@@ -25,7 +25,7 @@ export interface ExecuteOptions {
     html?: boolean;
     maxYields?: number;
     onExtract: (state: ExtractState, script: string) => Promise<ExtractState>;
-    onGoback?: () => Promise<void>;
+    onGoback?: (options: { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onHtml?: () => Promise<string>;
     onLocator?: (options: YieldLocator) => Promise<unknown>;
     onNavigate: (options: YieldNavigate & { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
@@ -59,7 +59,10 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
     state = await options.onExtract(state, script || (global as unknown as { script: string }).script);
     while (state.yield && i++ < maxYields) {
         if (state.yield.params?.goback && options.onGoback) {
-            await options.onGoback();
+            lastNavigationResult = await options.onGoback({
+                timeout: state.yield.params.timeout || timeout,
+                waitUntil: state.yield.params.waitUntil || waitUntil
+            });
         }
         else if (state.yield.params?.locators && options.onLocator) {
             for (const locator of state.yield.params.locators)

@@ -44,8 +44,10 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                 const result = await page.evaluate<ExtractState, ExtractState>(fn as any, state);
                 return result;
             },
-            onGoback: async () => {
-                await page.goBack();
+            onGoback: async ({ timeout, waitUntil }) => {
+                const response = await page.goBack({ timeout, waitUntil });
+                const status = response?.status();
+                return { status };
             },
             onHtml: async () => {
                 const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
@@ -60,11 +62,9 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                 const result = await invokeAsyncMethod(locator, method, params);
                 return result;
             },
-            onNavigate: async ({ url, timeout, waitUntil }: syphonx.YieldNavigate & { timeout?: number, waitUntil?: syphonx.DocumentLoadState }) => {
+            onNavigate: async ({ url, timeout, waitUntil }) => {
                 const response = await page.goto(url, { timeout, waitUntil });
                 const status = response?.status();
-                if (waitUntil)
-                    await page.waitForURL(url, { timeout, waitUntil });
                 return { status };
             },
             onReload: async ({ timeout, waitUntil }) => {
