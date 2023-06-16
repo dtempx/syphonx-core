@@ -66,15 +66,18 @@ export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): 
         }
         else if (state.yield.params?.locators && options.onLocator) {
             for (const locator of state.yield.params.locators)
-                state.vars[locator.name] = await options.onLocator(locator);
+                if (locator.name?.startsWith("_") && locator.selector && locator.method)
+                    state.vars[locator.name] = await options.onLocator(locator);
         }
         else if (state.yield.params?.navigate && options.onNavigate) {
-            state.url = state.yield.params.navigate.url;
-            lastNavigationResult = await options.onNavigate({
-                ...state.yield.params.navigate,
-                timeout: state.yield.params.timeout || timeout,
-                waitUntil: state.yield.params.waitUntil || waitUntil
-            });
+            if (state.yield.params.navigate.url) {
+                state.url = state.yield.params.navigate.url;
+                lastNavigationResult = await options.onNavigate({
+                    ...state.yield.params.navigate,
+                    timeout: state.yield.params.timeout || timeout,
+                    waitUntil: state.yield.params.waitUntil || waitUntil
+                });
+            }
         }
         else if (state.yield.params?.reload && options.onReload) {
             lastNavigationResult = await options.onReload({

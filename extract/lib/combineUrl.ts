@@ -1,16 +1,7 @@
-import { ltrim, rtrim } from "./trim.js";
-
-export function combineUrl(url: string, path: string): string {
-    if (url && path) {
-        return `${rtrim(url, "/")}/${ltrim(path, "/")}`;
-    }
-    else if (url) {
-        return url;
-    }
-    else if (path) {
-        return path;
-    }
-    else {
-        return "";
-    }
+export function combineUrl(base: string, relative: string): string {
+    if (!relative)
+        return base;
+    if (!base)
+        return relative;  
+    return new URL(relative, base).toString();
 }
