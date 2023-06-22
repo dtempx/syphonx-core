@@ -101,7 +101,7 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
 
     return { 
         ...state,
-        ok: state.errors.length === 0,
+        ok: state.errors ? state.errors.length === 0 : true,
         status: lastNavigationResult.status,
         html,
         originalUrl,
