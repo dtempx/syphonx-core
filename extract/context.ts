@@ -620,15 +620,15 @@ export class ExtractContext {
         const elements = $(node && node.length > 1 ? node[0] : node).parents().addBack().not("html").toArray().reverse();
         for (const element of elements) {
             const $parent = $(element).parent();
-            const tag = element.tagName.toLowerCase();
+            const tag = element.tagName?.toLowerCase();
             const id = $(element).attr('id') || "";
             const className = $(element).attr('class')?.split(' ')[0] || "";
             const n = $(element).index() + 1;
 
             const uniqueId = /^[A-Za-z0-9_-]+$/.test(id) ? $(`#${id}`).length === 1 : false;
-            const uniqueClassName = /^[A-Za-z0-9_-]+$/.test(className) ? $(`${tag}.${className}`).length === 1 : false;
+            const uniqueClassName = tag && /^[A-Za-z0-9_-]+$/.test(className) ? $(`${tag}.${className}`).length === 1 : false;
             const onlyTag = $parent.children(tag).length === 1;
-            const onlyClassName = /^[A-Za-z0-9_-]+$/.test(className) ? $parent.children(`${tag}.${className}`).length === 1 : false;
+            const onlyClassName = tag && /^[A-Za-z0-9_-]+$/.test(className) ? $parent.children(`${tag}.${className}`).length === 1 : false;
 
             if (uniqueId) {
                 path.push(`#${id}`);
@@ -1647,7 +1647,7 @@ export class ExtractContext {
             // a<i>b</i>c -> a b c 
             nodes.find("*").each((index, element) => {
                 const node = $(element);
-                const tag = node.prop("tagName").toLowerCase();
+                const tag = node.prop("tagName")?.toLowerCase();
                 const whitespace = tag === "br" || tag === "p" ? "\n" : " ";
                 node.append(whitespace);
                 if (index === 0) {

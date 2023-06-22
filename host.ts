@@ -17,7 +17,7 @@ export interface NavigateResult {
     status?: number;
 }
 
-export interface ExecuteOptions {
+export interface HostOptions {
     template: Template;
     url?: string;
     unwrap?: boolean;
@@ -34,7 +34,7 @@ export interface ExecuteOptions {
     onYield?: (params: YieldParams) => Promise<void>;
 }
 
-export async function execute({ maxYields = 1000, ...options}: ExecuteOptions): Promise<ExtractResult> {
+export async function host({ maxYields = 1000, ...options}: HostOptions): Promise<ExtractResult> {
     let url = options.url || options.template.url;
     if (!url || typeof url !== "string")
         throw new Error("url not specified");

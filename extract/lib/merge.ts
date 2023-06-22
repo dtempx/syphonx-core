@@ -9,7 +9,7 @@ export function merge<T = unknown>(source: T, target: T): T {
         const obj = {} as Record<string, unknown>;
         const keys = Array.from(new Set([...Object.keys(source as {}), ...Object.keys(target as {})]));
         for (const key of keys) {
-            obj[key] = merge((source  as Record<string, unknown>)[key], (target as Record<string, unknown>)[key]);
+            obj[key] = merge((source as Record<string, unknown>)[key], (target as Record<string, unknown>)[key]);
         }
         return obj as T;
     }

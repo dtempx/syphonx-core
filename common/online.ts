@@ -2,7 +2,7 @@ import * as syphonx from "../index.js";
 import playwright, { Browser } from "playwright";
 import { ExtractState } from "../index.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
-import { execute, invokeAsyncMethod } from "../execute.js";
+import { host, invokeAsyncMethod } from "../host.js";
 
 interface OnlineOptions {
     actions: syphonx.Action[];
@@ -29,7 +29,7 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
         await page.setExtraHTTPHeaders({ ...headers, ...options.headers });
         await page.setViewportSize({ ...viewport, ...options.viewport });
 
-        const result = await execute({
+        const result = await host({
             url,
             unwrap,
             html: options.html,
