@@ -32,7 +32,7 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
         const result = await host({
             url,
             unwrap,
-            html: options.html,
+            extractHtml: options.html,
             template: {
                 actions: options.actions,
                 params: options.params,

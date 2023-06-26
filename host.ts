@@ -22,7 +22,7 @@ export interface HostOptions {
     url?: string;
     unwrap?: boolean;
     debug?: boolean;
-    html?: boolean;
+    extractHtml?: boolean;
     maxYields?: number;
     onExtract: (state: ExtractState, script: string) => Promise<ExtractState>;
     onGoback?: (options: { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
@@ -35,9 +35,15 @@ export interface HostOptions {
 }
 
 export async function host({ maxYields = 1000, ...options}: HostOptions): Promise<ExtractResult> {
+    if (!options.template)
+        throw new Error("template not specified");
+
     let url = options.url || options.template.url;
     if (!url || typeof url !== "string")
         throw new Error("url not specified");
+
+    if (!options.onExtract)
+        throw new Error("onExtract not specified");
 
     url = encodeURI(evaluateFormula(`\`${url}\``, { params: options.template.params }) as string);
     const originalUrl = url;
@@ -96,7 +102,7 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
     }
 
     let html = "";
-    if (options.html && options.onHtml)
+    if (options.extractHtml && options.onHtml)
         html = await options.onHtml();
 
     return { 

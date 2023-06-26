@@ -23,13 +23,13 @@ node build-tools/apply-template \
 npx tsc -p tsconfig.esm.json
 echo '{"type":"module"}' > dist/esm/package.json
 node build-tools/version-stamp dist/esm/extract/context.js
-node build-tools/embed-script dist/esm/execute.js dist/iife/syphonx-jquery.min.js -o dist/esm/execute.js
+node build-tools/embed-script dist/esm/host.js dist/iife/syphonx-jquery.min.js -o dist/esm/host.js
 
 # COMMONJS BUILD
 npx tsc -p tsconfig.cjs.json
 echo '{"type":"commonjs"}' > dist/cjs/package.json
 node build-tools/version-stamp dist/cjs/extract/context.js
-node build-tools/embed-script dist/cjs/execute.js dist/iife/syphonx-jquery.min.js -o dist/cjs/execute.js
+node build-tools/embed-script dist/cjs/host.js dist/iife/syphonx-jquery.min.js -o dist/cjs/host.js
 
 # UMD BUILD
 npx rollup extract/index.js --format umd --name syphonx --file dist/umd/syphonx.js
