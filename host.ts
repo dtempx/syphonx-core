@@ -1,6 +1,6 @@
 import { evaluateFormula } from "./lib/formula.js";
 import { unwrap } from "./lib/unwrap.js";
-import { parseUrl, isFormula } from "./extract/lib/index.js";
+import { parseUrl, isFormula, merge } from "./extract/lib/index.js";
 import { Template } from "./template.js";
 
 import {
@@ -20,6 +20,7 @@ export interface NavigateResult {
 export interface HostOptions {
     template: Template;
     url?: string;
+    params?: Record<string, unknown>;
     unwrap?: boolean;
     debug?: boolean;
     extractHtml?: boolean;
@@ -51,15 +52,16 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
     const originalUrl = url;
     const { domain, origin } = parseUrl(url); // take domain and origin from the original url
 
+    const params = merge(options.template.params, options.params); // options.params overrides template.params
     const timeout = typeof options.template.timeout === "number" ? options.template.timeout * 1000 : undefined;
     const waitUntil = options.template.waitUntil;
-    
+
     let lastNavigationResult = await options.onNavigate({ url, timeout, waitUntil });
     let state = {
-        params: {},
-        vars: {},
         ...options.template,
         url,
+        params,
+        vars: {},
         debug: options.debug || options.template.debug
     } as ExtractState;
 
