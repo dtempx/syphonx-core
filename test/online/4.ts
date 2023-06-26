@@ -6,7 +6,7 @@ import chaiString from "chai-string";
 chai.use(chaiString);
 
 const test = {
-    url: "https://www.amazon.com/dp/${params.asin}/",
+    url: "{`https://www.amazon.com/dp/${params.asin}/`}",
     params: {
         asin: "B081FGTPB7"
     },

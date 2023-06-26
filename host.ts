@@ -1,6 +1,6 @@
 import { evaluateFormula } from "./lib/formula.js";
 import { unwrap } from "./lib/unwrap.js";
-import { parseUrl } from "./extract/lib/index.js";
+import { parseUrl, isFormula } from "./extract/lib/index.js";
 import { Template } from "./template.js";
 
 import {
@@ -45,7 +45,9 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
     if (!options.onExtract)
         throw new Error("onExtract not specified");
 
-    url = encodeURI(evaluateFormula(`\`${url}\``, { params: options.template.params }) as string);
+    if (isFormula(url))
+        url = encodeURI(evaluateFormula(url.slice(1, -1), { params: options.template.params }) as string);
+
     const originalUrl = url;
     const { domain, origin } = parseUrl(url); // take domain and origin from the original url
 
