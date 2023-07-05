@@ -25,11 +25,11 @@ export interface HostOptions {
     debug?: boolean;
     extractHtml?: boolean;
     maxYields?: number;
-    onExtract: (state: ExtractState, script: string) => Promise<ExtractState>;
+    onExtract?: (state: ExtractState, script: string) => Promise<ExtractState>;
     onGoback?: (options: { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onHtml?: () => Promise<string>;
     onLocator?: (options: YieldLocator) => Promise<unknown>;
-    onNavigate: (options: YieldNavigate & { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
+    onNavigate?: (options: YieldNavigate & { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onReload?: (options: { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onScreenshot?: (options: YieldScreenshot) => Promise<void>;
     onYield?: (params: YieldParams) => Promise<void>;
@@ -42,6 +42,9 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
     let url = options.url || options.template.url;
     if (!url || typeof url !== "string")
         throw new Error("url not specified");
+
+    if (!options.onNavigate)
+        throw new Error("onNavigate not specified");
 
     if (!options.onExtract)
         throw new Error("onExtract not specified");
