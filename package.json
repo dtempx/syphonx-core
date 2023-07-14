@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.48",
+  "version": "1.2.49",
   "description": "Embeddable core for SyphonX web data extractor",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
@@ -45,7 +45,7 @@
     "jquery": "^3.6.0",
     "json5": "^2.2.1",
     "mocha": "^9.2.2",
-    "playwright": "1.32.1",
+    "playwright": "^1.36.0",
     "rollup": "^3.18.0",
     "terser": "^5.17.7",
     "typescript": "^4.6.2",

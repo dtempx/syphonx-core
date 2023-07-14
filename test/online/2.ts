@@ -25,7 +25,7 @@ const test = {
             }
         ] },
         { "click": { "query": [["a"]] }},
-        { "yield": null },
+        { "yield": {} },
         { "select": [
             {
                 "name": "title2",
@@ -51,14 +51,14 @@ describe("online/2", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await online(test));
     it("result.data.title1 has expected value", () => expect(result.data.title1).to.be.equal("Example Domain"));
-    it("result.data.title2 has expected value", () => expect(result.data.title2).to.be.equal("IANA-managed Reserved Domains"));
+    it("result.data.title2 has expected value", () => expect(result.data.title2).to.be.equal("Example Domains"));
     it("result.data.url1 has expected value", () => expect(result.data.url1).to.be.equal("https://www.example.com/"));
-    it("result.data.url2 has expected value", () => expect(result.data.url2).to.be.equal("https://www.iana.org/domains/reserved"));
+    it("result.data.url2 has expected value", () => expect(result.data.url2).to.be.equal("https://www.iana.org/help/example-domains"));
     it("result.data.domain1 has expected value", () => expect(result.data.domain1).to.be.equal("example.com"));
     it("result.data.domain2 has expected value", () => expect(result.data.domain2).to.be.equal("iana.org"));
     it("result.data.origin1 has expected value", () => expect(result.data.origin1).to.be.equal("https://www.example.com"));
     it("result.data.origin2 has expected value", () => expect(result.data.origin2).to.be.equal("https://www.iana.org"));
-    it("result.url has expected value", () => expect(result.url).to.be.equal("https://www.iana.org/domains/reserved"));
+    it("result.url has expected value", () => expect(result.url).to.be.equal("https://www.iana.org/help/example-domains"));
     it("result.domain has expected value", () => expect(result.domain).to.be.equal("example.com"));
     it("result.origin has expected value", () => expect(result.origin).to.be.equal("https://www.example.com"));
     it("result.online is true", () => expect(result.online).to.be.true);

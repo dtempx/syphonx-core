@@ -1,4 +1,6 @@
+import { attempt } from "./lib/attempt.js";
 import { evaluateFormula } from "./lib/formula.js";
+import { sleep } from "./lib/sleep.js";
 import { unwrap } from "./lib/unwrap.js";
 import { parseUrl, isFormula, merge } from "./extract/lib/index.js";
 import { Template } from "./template.js";
@@ -13,6 +15,18 @@ import {
     YieldScreenshot
 } from "./extract/index.js";
 
+type ErrorCode =
+    "ERR_TARGET_CLOSED" |
+    "ERR_NAVIGATION" |  
+    "ERR_TIMEOUT" |
+    "ERR_UNKNOWN";
+
+const retryableErrorCodes: ErrorCode[] = [
+    "ERR_TARGET_CLOSED",
+    "ERR_NAVIGATION",
+    "ERR_TIMEOUT"
+];
+
 export interface NavigateResult {
     status?: number;
 }
@@ -25,6 +39,8 @@ export interface HostOptions {
     debug?: boolean;
     extractHtml?: boolean;
     maxYields?: number;
+    retries?: number;
+    retryDelay?: number[];
     onExtract?: (state: ExtractState, script: string) => Promise<ExtractState>;
     onGoback?: (options: { timeout?: number, waitUntil?: DocumentLoadState }) => Promise<NavigateResult>;
     onHtml?: () => Promise<string>;
@@ -35,7 +51,7 @@ export interface HostOptions {
     onYield?: (params: YieldParams) => Promise<void>;
 }
 
-export async function host({ maxYields = 1000, ...options}: HostOptions): Promise<ExtractResult> {
+export async function host({ maxYields = 1000, retries, retryDelay, ...options}: HostOptions): Promise<ExtractResult> {
     if (!options.template)
         throw new Error("template not specified");
 
@@ -59,7 +75,20 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
     const timeout = typeof options.template.timeout === "number" ? options.template.timeout * 1000 : undefined;
     const waitUntil = options.template.waitUntil;
 
-    let lastNavigationResult = await options.onNavigate({ url, timeout, waitUntil });
+    const attemptOptions = {
+        retries,
+        retryDelay
+    };
+
+    let lastNavigationResult: NavigateResult | undefined = undefined;
+    await attempt(
+        async () => {
+            lastNavigationResult = await options.onNavigate!({ url: url!, timeout, waitUntil });
+        },
+        attemptRetryable,
+        attemptOptions
+    );
+
     let state = {
         ...options.template,
         url,
@@ -68,8 +97,15 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
         debug: options.debug || options.template.debug
     } as ExtractState;
 
+    await attempt(
+        async () => {
+            state = await options.onExtract!(state, script || (global as unknown as { script: string }).script);
+        },
+        attemptRetryable,
+        attemptOptions
+    );
+    
     let i = 0;
-    state = await options.onExtract(state, script || (global as unknown as { script: string }).script);
     while (state.yield && i++ < maxYields) {
         if (state.yield.params?.goback && options.onGoback) {
             lastNavigationResult = await options.onGoback({
@@ -85,11 +121,18 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
         else if (state.yield.params?.navigate && options.onNavigate) {
             if (state.yield.params.navigate.url) {
                 state.url = state.yield.params.navigate.url;
-                lastNavigationResult = await options.onNavigate({
+                const obj = {
                     ...state.yield.params.navigate,
                     timeout: state.yield.params.timeout || timeout,
                     waitUntil: state.yield.params.waitUntil || waitUntil
-                });
+                };
+                await attempt(
+                    async () => {
+                        lastNavigationResult = await options.onNavigate!(obj);
+                    },
+                    attemptRetryable,
+                    attemptOptions
+                );
             }
         }
         else if (state.yield.params?.reload && options.onReload) {
@@ -102,10 +145,20 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
             await options.onScreenshot(state.yield.params.screenshot);
         }
         else if (state.yield.params?.waitUntil && options.onYield) {
+            await sleep(1000); // wait for the page to settle
             await options.onYield(state.yield.params);
         }
-
-        state = await options.onExtract(state, script || (global as unknown as { script: string }).script);
+        else {
+            await sleep(1000); // wait for the page to settle
+        }
+        
+        await attempt(
+            async () => {
+                state = await options.onExtract!(state, script || (global as unknown as { script: string }).script);    
+            },
+            attemptRetryable,
+            attemptOptions
+        );
     }
 
     let html = "";
@@ -115,7 +168,7 @@ export async function host({ maxYields = 1000, ...options}: HostOptions): Promis
     return { 
         ...state,
         ok: state.errors ? state.errors.length === 0 : true,
-        status: lastNavigationResult.status,
+        status: lastNavigationResult?.status,
         html,
         originalUrl,
         domain,
@@ -131,6 +184,37 @@ export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[]
         const result = await fn(...args);
         return result;
     }
+}
+
+function attemptRetryable(err: unknown): boolean {
+    const code = createErrorCode(err);
+    return retryableErrorCodes.includes(code);
+}
+
+function createErrorCode(err: unknown): ErrorCode {
+    let message = "";
+    if (err instanceof Error)
+        message = err.message;
+    else if (typeof err === "string")
+        message = err;
+    else
+        message = JSON.stringify(err);
+
+    const [code] = message.match(/ERR_[A-Z_]*/) || [];
+    if (code)
+        return code as ErrorCode;
+    else if (message.includes("Execution context was destroyed") || message.includes("Target closed") || message.includes("document.body is null"))
+        return "ERR_TARGET_CLOSED";
+    else if (message.toLowerCase().includes("timeout"))
+        return "ERR_TIMEOUT";
+    else if (message.toLowerCase().includes("navigation"))
+        return "ERR_NAVIGATION";
+    else
+        return "ERR_UNKNOWN";
+}
+
+export interface AttemptOptions {
+    retries: number;
 }
 
 export const script = "";

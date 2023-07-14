@@ -103,6 +103,8 @@ export class ExtractContext {
     lastLogLine = "";
     lastLogLength = 0;
     lastLogTimestamp = 0;
+    lastStep: number[] = [];
+    step: number[] = [];
 
     constructor(state: Partial<ExtractState>) {
         this.jquery = (state.root as JQueryStatic & CheerioAPI) || $;
@@ -299,7 +301,7 @@ export class ExtractContext {
         return info ? `${key} ${info}` : key;
     }
 
-    private async dispatch(action: Action, step: number): Promise<DispatchResult> {
+    private async dispatch(action: Action): Promise<DispatchResult> {
         if (action.hasOwnProperty("select")) {
             const data = this.select((action as SelectAction).select);
             this.state.data = merge(this.state.data, data);
@@ -1315,46 +1317,48 @@ export class ExtractContext {
     }
 
     async run(actions: Action[], label = "", wraparound = false): Promise<DispatchResult | undefined> {
+        this.step.unshift(0);
+        this.lastStep.unshift(actions.length);
+
         if (label)
             label += " ";
 
-        const steps = actions.length;
         this.state.vars.__step.unshift(0); // push step state
-        const j = this.runRestoreIndexFromYield(actions, label, wraparound);
+        const j = this.skipSteps(actions, label, wraparound);
         for (let i = j; i < actions.length; i++) {
             const action = actions[i];
-            const step = i + 1;
-            this.state.vars.__step[0] = step;
             const [key] = Object.keys(action);
-            this.log(`${label}STEP #${step}/${steps} {${key}}`);
-            const code = await this.dispatch(action, step);
+            const unit = (action as Record<string, { name: string }>)[key];
+
+            this.step[0] = i + 1;
+            const step = this.step.reverse().join(".");
+            this.log(`${label}STEP ${step}/${actions.length} {${key}}`);
+            if (this.online && this.state.debug)
+                window.postMessage({
+                    direction: "syhonx",
+                    message: {
+                        step,
+                        action: key,
+                        name: unit.name,
+                        last: this.lastStep.reverse().join(".")
+                    }
+                });
+
+            this.state.vars.__step[0] = i + 1;
+            const code = await this.dispatch(action);
             if (code) {
-                this.log(`${label}BREAK at step #${step}/${actions.length}, code=${code}`);
+                this.log(`${label}BREAK at STEP ${step} [${code}]`);
                 this.state.vars.__step.shift(); // pop step state
+                this.step.shift();
+                this.lastStep.shift();
                 return code;
             }
         }
         this.state.vars.__step.shift(); // pop step state
-        this.log(`${label}${steps} steps completed`);
-    }
+        this.log(`${label}${actions.length} steps completed`);
 
-    runRestoreIndexFromYield(actions: Action[], label: string, wraparound: boolean): number {
-        let index = 0;
-        if (this.state.vars.__yield) {
-            const step = this.state.vars.__yield.pop()!;
-            if (step > actions.length && wraparound) {
-                this.log(`${label}YIELD wraparound to step #1/${actions.length}, index=${index}`);
-            }
-            else {
-                index = step - 1;
-                this.log(`${label}YIELD skipping to step #${step}/${actions.length}, index=${index}`);
-            }
-            if (this.state.vars.__yield.length === 0) {
-                this.state.vars.__yield = undefined; // clear the yield state
-                this.log(`${label}YIELD state cleared`);
-            }
-        }
-        return index;
+        this.step.shift();
+        this.lastStep.shift();
     }
 
     private screenshot({ name, selector, params, when }: Screenshot): void {
@@ -1604,6 +1608,25 @@ export class ExtractContext {
             key: this.contextKey(),
             value
         };
+    }
+
+    private skipSteps(actions: Action[], label: string, wraparound: boolean): number {
+        let index = 0;
+        if (this.state.vars.__yield) {
+            const step = this.state.vars.__yield.pop()!;
+            if (step > actions.length && wraparound) {
+                this.log(`${label}YIELD wraparound to step #1/${actions.length}, index=${index}`);
+            }
+            else {
+                index = step - 1;
+                this.log(`${label}YIELD skipping to step #${step}/${actions.length}, index=${index}`);
+            }
+            if (this.state.vars.__yield.length === 0) {
+                this.state.vars.__yield = undefined; // clear the yield state
+                this.log(`${label}YIELD state cleared`);
+            }
+        }
+        return index;
     }
 
     private async snooze(interval: Snooze): Promise<void> {

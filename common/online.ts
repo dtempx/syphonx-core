@@ -33,6 +33,7 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
             url,
             unwrap,
             extractHtml: options.html,
+            //retries: 2,
             template: {
                 actions: options.actions,
                 params: options.params,
