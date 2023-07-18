@@ -17,5 +17,6 @@ export interface ExtractState {
     yield?: YieldState;
     root?: unknown;
     originalUrl?: string;
+    unpatch: string[];
     version: string;
 }

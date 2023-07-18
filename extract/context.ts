@@ -51,6 +51,7 @@ import {
 } from "./public";
 
 import {
+    ActionInfo,
     DataItem,
     DispatchResult,
     ExtractStateInternal,
@@ -95,6 +96,8 @@ import {
     unwrap,
     waitForScrollEnd
 } from "./lib/index.js";
+
+const defaultTimeout = 30; // seconds
 
 export class ExtractContext {
     jquery: JQueryStatic & CheerioAPI;
@@ -1327,20 +1330,18 @@ export class ExtractContext {
         const j = this.skipSteps(actions, label, wraparound);
         for (let i = j; i < actions.length; i++) {
             const action = actions[i];
-            const [key] = Object.keys(action);
-            const unit = (action as Record<string, { name: string }>)[key];
+            const info = this.actionInfo(action);
 
             this.step[0] = i + 1;
             const step = this.step.reverse().join(".");
-            this.log(`${label}STEP ${step}/${actions.length} {${key}}`);
+            this.log(`${label}STEP ${step}/${actions.length} {${info.action}}`);
             if (this.online && this.state.debug)
                 window.postMessage({
-                    direction: "syhonx",
+                    direction: "syphonx",
                     message: {
                         step,
-                        action: key,
-                        name: unit.name,
-                        last: this.lastStep.reverse().join(".")
+                        of: this.lastStep.reverse().join("."),
+                        ...info,
                     }
                 });
 
@@ -1359,6 +1360,33 @@ export class ExtractContext {
 
         this.step.shift();
         this.lastStep.shift();
+    }
+
+    private actionInfo(action: Action): ActionInfo {
+        const [key] = Object.keys(action);
+        const unit = (action as Record<string, { name: string }>)[key];
+        const result: ActionInfo = {
+            action: key,
+            name: unit.name
+        };
+
+        if (action.hasOwnProperty("snooze")) {
+            const obj = (action as SnoozeAction).snooze;
+            result.timeout = obj[1] || obj[0];
+        }
+        else if (action.hasOwnProperty("waitfor")) {
+            const obj = (action as WaitForAction).waitfor;
+            result.timeout = obj.timeout || defaultTimeout;
+        }
+        else if (action.hasOwnProperty("click")) {
+            const obj = (action as ClickAction).click;
+            result.timeout = 0;
+            if (obj.snooze)
+                result.timeout += obj.snooze[1] || obj.snooze[0];
+            if (obj.waitfor?.timeout)
+                result.timeout += obj.waitfor.timeout;
+        }
+        return result;
     }
 
     private screenshot({ name, selector, params, when }: Screenshot): void {
@@ -1753,7 +1781,7 @@ export class ExtractContext {
         if (this.online) {
             if (this.when(when, `WAITFOR${name ? ` ${name}` : ""}`)) {
                 if (timeout === undefined) {
-                    timeout = 30;
+                    timeout = defaultTimeout;
                 }
                 else if (timeout === null || timeout <= 0) {
                     timeout = Infinity;

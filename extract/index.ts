@@ -1,5 +1,6 @@
 import { ExtractContext } from "./context.js";
 import { ExtractState } from "./public/index.js";
+import { unpatch } from "./lib/index.js";
 
 export * from "./public/index.js";
 
@@ -9,6 +10,11 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
     }
     const obj = new ExtractContext(state);
     obj.log(`ENTRY #${obj.state.vars.__instance}${obj.online ? ` ${window.location.href}` : ""}`);
+
+    if (obj.state.unpatch) {
+        unpatch(obj.state.unpatch);
+        obj.log(`UNPATCHED ${obj.state.unpatch.join(", ")}`);
+    }
 
     try {
         await obj.run(obj.state.actions);

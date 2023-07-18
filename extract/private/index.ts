@@ -1,3 +1,4 @@
+export * from "./ActionInfo.js";
 export * from "./DispatchResult.js";
 export * from "./DataItem.js";
 export * from "./ExtractStateInternal.js";

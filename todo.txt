@@ -1,3 +1,12 @@
+add restoreJavascriptFunctions
+add timeout to syphonx post events
+
+
+add a flag to extract to return all elements instead of just the first one
+add a json function that does a JSON.parse without throwing if invalid
+add a test for parsing JSON
+
+
 click with yield defers waitfor checks to re-entry
 support dot format for selector names
 
