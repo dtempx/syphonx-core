@@ -9,6 +9,7 @@ export interface Template {
     useragent?: string;
     headers?: Record<string, string>;
     timeout?: number;
+    unpatch?: string[];
     viewport?: { width: number, height: number };
     waitUntil?: DocumentLoadState;
 }

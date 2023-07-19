@@ -92,6 +92,7 @@ import {
     sleep,
     trim,
     trunc,
+    tryParseJson,
     typeName,
     unwrap,
     waitForScrollEnd
@@ -1028,9 +1029,8 @@ export class ExtractContext {
                 result.value = this.text(result.nodes, format);
             }
             else if (operator === "cut") {
-                if (!this.validateOperands(operator, operands, ["string", "number"], ["number"])) {
+                if (!this.validateOperands(operator, operands, ["string", "number"], ["number"]))
                     break;
-                }
                 const splitter = operands[0] as string;
                 const n = operands[1] as number;
                 const limit = operands[2] as number | undefined;
@@ -1045,9 +1045,8 @@ export class ExtractContext {
                 }
             }
             else if (operator === "extract") {
-                if (!this.validateOperands(operator, operands, ["string"], ["boolean","boolean"])) {
+                if (!this.validateOperands(operator, operands, ["string"], ["boolean","boolean"]))
                     break;
-                }
                 const regexp = createRegExp(operands[0]);
                 const keepUnmatchedItems = operands[1] as boolean;
                 const trim = operands[2] as boolean ?? true;
@@ -1076,13 +1075,12 @@ export class ExtractContext {
                 }
             }
             else if (operator === "filter" && (isFormula(operands[0]) || isRegexp(operands[0]))) {
-                if (!this.validateOperands(operator, operands, ["string"])) {
+                if (!this.validateOperands(operator, operands, ["string"]))
                     break;
-                }
                 if (result.value instanceof Array) {
-                    const count = result.nodes.length;
                     /*
-                    $filter($, result, (value, index) => {
+                    const count = result.nodes.length;
+                    filterQueryResult($, result, (value, index) => {
                         const hit = this.evaluateBoolean(operands[0], { value, index, count });
                         return hit || false;
                     });
@@ -1135,19 +1133,34 @@ export class ExtractContext {
                     result.formatted = true;
                 }
             }
-            else if (operator === "map") {
-                if (!this.validateOperands(operator, operands, ["string"])) {
+            else if (operator === "json") {
+                if (!this.validateOperands(operator, operands, ["string"]))
                     break;
+                const input = {
+                    elements: result.nodes.toArray(),
+                    values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
+                };
+                const output = {
+                    elements: [] as any[],
+                    values: [] as unknown[]
+                };
+                const n = input.elements.length;
+                for (let i = 0; i < n; ++i) {
+                    const json = tryParseJson(input.values[i]);
+                    if (json !== undefined) {
+                        const value = this.evaluate(operands[0], { value: json, index: i, count: n });
+                        if (value !== null && value !== undefined) {
+                            output.elements.push(input.elements[i]);
+                            output.values.push(value);
+                        }
+                    }
                 }
-                const count = result.nodes.length;
-                /*
-                $filter($, result, (value, index) => {
-                    const obj = this.evaluate(operands[0], { value, index, count });
-                    const hit = obj !== null && obj !== undefined;
-                    return hit;
-                });
-                */
-                /**/
+                result.nodes = $(output.elements);
+                result.value = output.values;    
+            }
+            else if (operator === "map") {
+                if (!this.validateOperands(operator, operands, ["string"]))
+                    break;
                 const input = {
                     elements: result.nodes.toArray(),
                     values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
@@ -1166,16 +1179,14 @@ export class ExtractContext {
                 }
                 result.nodes = $(output.elements);
                 result.value = output.values;
-                /**/
             }
             else if (operator === "nonblank") {
                 result.nodes = $(result.nodes.toArray().filter(element => $(element).text().trim().length > 0));
                 result.value = this.text(result.nodes, format);
             }
             else if (operator === "replace") {
-                if (!this.validateOperands(operator, operands, ["string", "string"])) {
+                if (!this.validateOperands(operator, operands, ["string", "string"]))
                     break;
-                }
                 const regexp = createRegExp(operands[0]);
                 if (!regexp) {
                     this.appendError("invalid-operand", `Invalid regular expression for "replace"`, 0);
@@ -1188,9 +1199,8 @@ export class ExtractContext {
                 }
             }
             else if (operator === "replaceHTML") {
-                if (!this.validateOperands(operator, operands, ["string"])) {
+                if (!this.validateOperands(operator, operands, ["string"]))
                     break;
-                }
                 this.eachNode(result, (node, value) => {
                     const content = String(this.evaluate(operands[0], { value }));
                     node.html(content);
@@ -1198,9 +1208,8 @@ export class ExtractContext {
                 result.value = null;
             }
             else if (operator === "replaceTag") {
-                if (!this.validateOperands(operator, operands, ["string"], ["boolean"])) {
+                if (!this.validateOperands(operator, operands, ["string"], ["boolean"]))
                     break;
-                }
                 const newTag = String(this.evaluate(operands[0], { value: operands[0] }));
                 const keepProps = operands[1] as boolean ?? true;
                 this.eachNode(result, node => {
@@ -1215,9 +1224,8 @@ export class ExtractContext {
                 result.value = null;
             }
             else if (operator === "replaceText") {
-                if (!this.validateOperands(operator, operands, ["string"])) {
+                if (!this.validateOperands(operator, operands, ["string"]))
                     break;
-                }
                 this.eachNode(result, (node, value) => {
                     const content = String(this.evaluate(operands[0], { value }));
                     node.text(content);
@@ -1225,9 +1233,8 @@ export class ExtractContext {
                 result.value = null;
             }
             else if (operator === "replaceWith") {
-                if (!this.validateOperands(operator, operands, ["string"])) {
+                if (!this.validateOperands(operator, operands, ["string"]))
                     break;
-                }
                 this.eachNode(result, (node, value) => {
                     const content = String(this.evaluate(operands[0], { value }));
                     node.replaceWith(content);
@@ -1235,9 +1242,8 @@ export class ExtractContext {
                 result.value = null;
             }
             else if (operator === "reverse") {
-                if (!this.validateOperands(operator, operands, [], [])) {
+                if (!this.validateOperands(operator, operands, [], []))
                     break;
-                }
                 result.nodes = $(result.nodes.toArray().reverse());
                 result.value = this.text(result.nodes, format);
             }
@@ -1269,9 +1275,8 @@ export class ExtractContext {
                 result.nodes = $(result.nodes.toArray().map(element => element.shadowRoot).filter(obj => !!obj));
             }
             else if (operator === "slot") {
-                if (!this.validateOperands(operator, operands, [], ["boolean"])) {
+                if (!this.validateOperands(operator, operands, [], ["boolean"]))
                     break;
-                }
                 const flatten = parseBoolean(operands[0]);
                 result.nodes = $(result.nodes.toArray().map(element => element.assignedElements({ flatten })).filter(obj => !!obj));
             }

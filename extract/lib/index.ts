@@ -6,6 +6,7 @@ export * from "./filterQueryResult.js";
 export * from "./formatHTML.js";
 export * from "./formatStringValue.js";
 export * from "./is.js";
+export * from "./json.js";
 export * from "./merge.js";
 export * from "./mergeElements.js";
 export * from "./parse.js";

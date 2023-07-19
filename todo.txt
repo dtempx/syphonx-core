@@ -1,10 +1,9 @@
-add restoreJavascriptFunctions
-add timeout to syphonx post events
-
-
-add a flag to extract to return all elements instead of just the first one
+add a flag to extract to return all elements instead of just the first one (#syphonx 7/14, Taylor)
 add a json function that does a JSON.parse without throwing if invalid
 add a test for parsing JSON
+
+bug: harvester #315
+bug: navigate stops immediately in a switch statement (#syphonx 7/18, Justin)
 
 
 click with yield defers waitfor checks to re-entry
