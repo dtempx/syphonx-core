@@ -13,6 +13,7 @@ import {
     ErrorAction,
     ExtractErrorCode,
     ExtractState,
+    ExtractStatus,
     GoBack,
     GoBackAction,
     Locator,
@@ -51,7 +52,6 @@ import {
 } from "./public";
 
 import {
-    ActionInfo,
     DataItem,
     DispatchResult,
     ExtractStateInternal,
@@ -1335,18 +1335,19 @@ export class ExtractContext {
         const j = this.skipSteps(actions, label, wraparound);
         for (let i = j; i < actions.length; i++) {
             const action = actions[i];
-            const info = this.actionInfo(action);
+            const status = this.runExtractStatus(action);
 
             this.step[0] = i + 1;
             const step = this.step.reverse().join(".");
-            this.log(`${label}STEP ${step}/${actions.length} {${info.action}}`);
+            this.log(`${label}STEP ${step}/${actions.length} {${status.action}}`);
             if (this.online && this.state.debug)
                 window.postMessage({
                     direction: "syphonx",
                     message: {
+                        ...status,
+                        key: "extract-status",
                         step,
-                        of: this.lastStep.reverse().join("."),
-                        ...info,
+                        of: this.lastStep.reverse().join(".")
                     }
                 });
 
@@ -1367,31 +1368,33 @@ export class ExtractContext {
         this.lastStep.shift();
     }
 
-    private actionInfo(action: Action): ActionInfo {
+    private runExtractStatus(action: Action): ExtractStatus {
         const [key] = Object.keys(action);
         const unit = (action as Record<string, { name: string }>)[key];
-        const result: ActionInfo = {
+        const status: ExtractStatus = {
+            step: "",
+            of: "",
             action: key,
             name: unit.name
         };
 
         if (action.hasOwnProperty("snooze")) {
             const obj = (action as SnoozeAction).snooze;
-            result.timeout = obj[1] || obj[0];
+            status.timeout = obj[1] || obj[0];
         }
         else if (action.hasOwnProperty("waitfor")) {
             const obj = (action as WaitForAction).waitfor;
-            result.timeout = obj.timeout || defaultTimeout;
+            status.timeout = obj.timeout || defaultTimeout;
         }
         else if (action.hasOwnProperty("click")) {
             const obj = (action as ClickAction).click;
-            result.timeout = 0;
+            status.timeout = 0;
             if (obj.snooze)
-                result.timeout += obj.snooze[1] || obj.snooze[0];
+                status.timeout += obj.snooze[1] || obj.snooze[0];
             if (obj.waitfor?.timeout)
-                result.timeout += obj.waitfor.timeout;
+                status.timeout += obj.waitfor.timeout;
         }
-        return result;
+        return status;
     }
 
     private screenshot({ name, selector, params, when }: Screenshot): void {

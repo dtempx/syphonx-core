@@ -8,6 +8,7 @@ export * from "./ExtractError.js";
 export * from "./ExtractErrorCode.js";
 export * from "./ExtractResult.js";
 export * from "./ExtractState.js";
+export * from "./ExtractStatus.js";
 export * from "./GoBack.js";
 export * from "./Locator.js";
 export * from "./Navigate.js";

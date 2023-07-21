@@ -31,5 +31,15 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
             obj.appendError("fatal-error", err instanceof Error ? err.message : JSON.stringify(err), 0, err instanceof Error ? err.stack : undefined);
         }
     }
+
+    if (obj.online && state.debug)
+        window.postMessage({
+            direction: "syphonx",
+            message: {
+                ...obj.state,
+                key: "extract-state"
+            }
+        });
+
     return obj.state;
 }
