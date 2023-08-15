@@ -13,7 +13,7 @@ export interface OfflineOptions {
 
 export async function offline({ html, unwrap = true, ...options }: OfflineOptions): Promise<syphonx.ExtractResult> {
     const root = cheerio.load(html);
-    const result = await syphonx.extract({ ...options, root, debug: process.env.DEBUG ? true : undefined } as syphonx.ExtractState);
+    const result = await syphonx.extract({ ...options, root, debug: process.env.DEBUG ? true : options.debug } as syphonx.ExtractState);
     if (process.env.DEBUG)
         console.log(result.log);
 

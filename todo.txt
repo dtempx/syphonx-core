@@ -1,6 +1,16 @@
+export select method that is synchronous in bundle
 add a flag to extract to return all elements instead of just the first one (#syphonx 7/14, Taylor)
 add a json function that does a JSON.parse without throwing if invalid
+
 add a test for parsing JSON
+add a test to ensure immediate return with sleeps in offline mode
+
+consider renaming extract to run
+consider changing snooze to an object that can be named
+
+
+add last waitfor time and whether it timed out
+add amount of time for sleep's and waitfor's, navigate's
 
 bug: harvester #315
 bug: navigate stops immediately in a switch statement (#syphonx 7/18, Justin)

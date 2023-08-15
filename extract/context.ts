@@ -1666,8 +1666,13 @@ export class ExtractContext {
     }
 
     private async snooze(interval: Snooze): Promise<void> {
-        this.log(`SNOOZE ${interval[0]}s`);
-        await sleep(interval[0] * 1000);
+        if (this.online) {
+            this.log(`SNOOZE ${interval[0]}s`);
+            await sleep(interval[0] * 1000);
+        }
+        else {
+            this.log(`SNOOZE ${interval[0]}s SKIPPED`);
+        }
     }
 
     private async switch(switches: Switch[]): Promise<void> {
