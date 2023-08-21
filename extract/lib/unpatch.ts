@@ -11,16 +11,27 @@ export function unpatch(keys: string[]): void {
                     const descriptor = Object.getOwnPropertyDescriptor(contentWindow, key);
                     if (descriptor)
                         Object.defineProperty(window, key, descriptor);
-                }    
-            }
-            else {
-                const [objectType, method] = key.split(".");
-                const obj = contentWindow[objectType];
+                }
+            } else {
+                const parts = key.split(".");
+                const objectType = parts.slice(0, -1).join(".");
+                const method = parts[parts.length - 1];
+
+                let obj = contentWindow;
+                for (const part of objectType.split('.')) {
+                    obj = obj[part];
+                }
+
                 if (obj) {
                     const descriptor = Object.getOwnPropertyDescriptor(obj, method);
-                    if (descriptor)
-                        Object.defineProperty((window as Record<string, any>)[objectType], method, descriptor);
-                }    
+                    if (descriptor) {
+                        let targetObj = window as Record<string, any>;
+                        for (const part of objectType.split('.')) {
+                            targetObj = targetObj[part];
+                        }
+                        Object.defineProperty(targetObj, method, descriptor);
+                    }
+                }
             }
         }
     }
