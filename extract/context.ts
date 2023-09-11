@@ -84,6 +84,7 @@ import {
     parseBoolean,
     parseUrl,
     regexpExtract,
+    regexpExtractAll,
     regexpReplace,
     regexpTest,
     scrollToBottom,
@@ -1045,30 +1046,39 @@ export class ExtractContext {
                 }
             }
             else if (operator === "extract") {
-                if (!this.validateOperands(operator, operands, ["string"], ["boolean","boolean"]))
+                if (!this.validateOperands(operator, operands, ["string"]))
                     break;
                 const regexp = createRegExp(operands[0]);
-                const keepUnmatchedItems = operands[1] as boolean;
-                const trim = operands[2] as boolean ?? true;
                 if (!regexp) {
                     this.appendError("invalid-operand", `Invalid regular expression for "extract"`, 0);
                 }
                 else if (result.value instanceof Array && result.value.every(value => typeof value === "string")) {
-                    const values = result.value.map(value => regexpExtract(value.trim(), regexp, trim));
-                    if (!keepUnmatchedItems) {
-                        const elements = result.nodes.toArray();
-                        for (let i = result.value.length - 1; i >= 0; --i) {
-                            if (values[i] === null) {
-                                elements.splice(i, 1);
-                                values.splice(i, 1);
-                            }
-                        }
-                        result.nodes = $(elements);
-                    }
-                    result.value = values;
+                    result.value = result.value.map(value => regexpExtract(value.trim(), regexp));
+                    filterQueryResult($, result, value => value !== null);
                 }
                 else if (typeof result.value === "string") {
-                    result.value = regexpExtract(result.value.trim(), regexp, trim);
+                    result.value = regexpExtract(result.value.trim(), regexp);
+                }
+                else {
+                    result.value = null;
+                }
+            }
+            else if (operator === "extractAll") {
+                if (!this.validateOperands(operator, operands, ["string"], ["string"]))
+                    break;
+                const regexp = createRegExp(operands[0]);
+                const delim = operands[1] as string ?? "\n";
+                if (!regexp) {
+                    this.appendError("invalid-operand", `Invalid regular expression for "extractAll"`, 0);
+                }
+                else if (result.value instanceof Array && result.value.every(value => typeof value === "string")) {
+                    result.value = result.value.map(value => regexpExtractAll(value.trim(), regexp)?.join(delim) || null);
+                    filterQueryResult($, result, value => value !== null);
+                }
+                else if (typeof result.value === "string") {
+                    result.value = regexpExtractAll(result.value.trim(), regexp);
+                    if (!trim)
+                        result.formatted = true;
                 }
                 else {
                     result.value = null;
@@ -1753,16 +1763,20 @@ export class ExtractContext {
     private validateOperands(operator: SelectQueryOperator, operands: SelectQueryOperand[], required: Array<"string" | "number" | "boolean">, optional: Array<"string" | "number" | "boolean"> = []): boolean {
         for (let i = 0; i < required.length; ++i) {
             if (typeof operands[i] !== required[i]) {
-                this.appendError("invalid-operand", `Operand #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`, 0);
+                this.appendError("invalid-operand", `Parameter #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`, 0);
                 return false;
             }
         }
         for (let i = 0; i < optional.length; ++i) {
             const j = i + required.length;
             if (operands[j] !== undefined && operands[j] !== null && typeof operands[j] !== optional[i]) {
-                this.appendError("invalid-operand", `Operand #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`, 0);
+                this.appendError("invalid-operand", `Parameter #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`, 0);
                 return false;
             }
+        }
+        if (operands.length > required.length + optional.length) {
+            this.appendError("invalid-operand", `Too many parameters specified for "${operator}"`, 0)
+            return false;
         }
         return true;
     }

@@ -36,7 +36,7 @@ describe("extract/2", () => {
     it("a1 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a1",
-        message: `Operand #1 of "extract" is invalid: "undefined" is not a string`,
+        message: `Parameter #1 of "extract" is invalid: "undefined" is not a string`,
         level: 0,
         stack: undefined
     }]));
@@ -44,7 +44,7 @@ describe("extract/2", () => {
     it("a2 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a2",
-        message: `Operand #1 of "extract" is invalid: "0" is not a string`,
+        message: `Parameter #1 of "extract" is invalid: "0" is not a string`,
         level: 0,
         stack: undefined
     }]));
@@ -52,7 +52,7 @@ describe("extract/2", () => {
     it("a3 has expected error", () => expect(result.errors).to.include.deep.members([{
         code: "invalid-operand",
         key: "a3",
-        message: `Operand #2 of "extract" is invalid: "???" is not a boolean`,
+        message: `Too many parameters specified for "extract"`,
         level: 0,
         stack: undefined
     }]));

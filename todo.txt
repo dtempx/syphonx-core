@@ -1,13 +1,22 @@
-export select method that is synchronous in bundle
-add a flag to extract to return all elements instead of just the first one (#syphonx 7/14, Taylor)
+export a new "select" method that is synchronous in bundle
+
+maxSnooze and maxWaitfor setting that limits amount of time spent in those actions
+
+info object that returns elapsed time for snooze, waitfor, yield, navigate, and total
+    also indicate how many timeouts occurred
+
+consider trimming all strings, and all html
+
+add a flag to extract function that returns all elements instead of just the first one (#syphonx 7/14, Taylor)
 add a json function that does a JSON.parse without throwing if invalid
 
 add a test for parsing JSON
 add a test to ensure immediate return with sleeps in offline mode
 
+type action that inputs text
+
 consider renaming extract to run
 consider changing snooze to an object that can be named
-
 
 add last waitfor time and whether it timed out
 add amount of time for sleep's and waitfor's, navigate's

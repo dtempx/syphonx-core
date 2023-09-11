@@ -1,7 +1,7 @@
 import { CheerioAPI } from "cheerio";
 import { QueryResult } from "../private/index.js";
 
-export function filterQueryResult($: JQueryStatic & CheerioAPI, result: QueryResult, predicate: (value: unknown, index: number, array: unknown[]) => boolean) {
+export function filterQueryResult($: JQueryStatic & CheerioAPI, result: QueryResult, predicate: (value: unknown, index: number, array: unknown[]) => boolean): void {
     if (result.value instanceof Array) {
         const input = {
             elements: result.nodes.toArray(),
