@@ -4,6 +4,7 @@ export * from "../lib/formula.js";
 export * from "./json.js";
 export * from "./offline.js";
 export * from "./online.js";
+export * from "./select.js";
 export * from "../lib/unwrap.js";
 
 export * as browser from "./browser.js";

@@ -22,13 +22,13 @@ node build-tools/apply-template \
 # ESM BUILD
 npx tsc -p tsconfig.esm.json
 echo '{"type":"module"}' > dist/esm/package.json
-node build-tools/version-stamp dist/esm/extract/context.js
+node build-tools/version-stamp dist/esm/extract/controller.js
 node build-tools/embed-script dist/esm/host.js dist/iife/syphonx-jquery.min.js -o dist/esm/host.js
 
 # COMMONJS BUILD
 npx tsc -p tsconfig.cjs.json
 echo '{"type":"commonjs"}' > dist/cjs/package.json
-node build-tools/version-stamp dist/cjs/extract/context.js
+node build-tools/version-stamp dist/cjs/extract/controller.js
 node build-tools/embed-script dist/cjs/host.js dist/iife/syphonx-jquery.min.js -o dist/cjs/host.js
 
 # UMD BUILD

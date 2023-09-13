@@ -101,7 +101,7 @@ import {
 
 const defaultTimeout = 30; // seconds
 
-export class ExtractContext {
+export class Controller {
     jquery: JQueryStatic & CheerioAPI;
     state: ExtractStateInternal;
     online: boolean;
@@ -143,6 +143,15 @@ export class ExtractContext {
             origin,
             version
         } as ExtractStateInternal;
+
+
+        // set select context for synchronous calls
+        if (this.state.context) {
+            const $ = this.jquery;
+            const nodes = $(this.state.context);
+            const value = this.text(nodes);
+            this.state.vars.__context = [{ name: "context", nodes, value }];
+        }
     }
 
     appendError(code: ExtractErrorCode, message: string, level: number, stack?: string): void {
@@ -1461,7 +1470,7 @@ export class ExtractContext {
         }
     }
 
-    private select(selects: Select[], pivot = false): unknown {
+    public select(selects: Select[], pivot = false): unknown {
         const data = {} as Record<string, DataItem | null>;
         for (const select of selects) {
             //this.validateSelect(select);
@@ -1704,7 +1713,7 @@ export class ExtractContext {
         this.log("SWITCH: NONE SELECTED");
     }
 
-    private text(nodes: JQuery<HTMLElement>, format?: SelectFormat): string[] {
+    public text(nodes: JQuery<HTMLElement>, format?: SelectFormat): string[] {
         const $ = this.jquery;
         format = format?.toLowerCase() as SelectFormat;
         if (this.online && format === "innertext") {
