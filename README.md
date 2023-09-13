@@ -1,1 +1,4 @@
-This is the core runtime for the SyphonX web/HTML data extractor, embeddable in any crawling infrastructure.
+# syphonx-core
+Advanced HTML parser and web data extractor
+
+[API Documentation](docs/modules.md)

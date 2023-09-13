@@ -34,3 +34,6 @@ node build-tools/embed-script dist/cjs/host.js dist/iife/syphonx-jquery.min.js -
 # UMD BUILD
 npx rollup extract/index.js --format umd --name syphonx --file dist/umd/syphonx.js
 node build-tools/version-stamp dist/umd/syphonx.js
+
+# DOC BUILD
+typedoc --plugin typedoc-plugin-markdown --out docs .
