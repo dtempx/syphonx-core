@@ -12,7 +12,7 @@ const args = parseArgs({
 });
 
 const url = args.url;
-const selector = args.selector || "*";
+const selector = args.selector;
 const headless = !args.show;
 
 const browser = await playwright.chromium.launch({ headless });
@@ -22,8 +22,14 @@ try {
     const response = await page.goto(url, { waitUntil: "domcontentloaded" });
     if (!response?.ok)
         console.warn(`status: ${response?.statusText}`);
-    const html = await page.evaluate(selector => Array.from(document.querySelectorAll(selector)).map(element => element.outerHTML), selector);
-    console.log(html.join("\n\n"));
+    if (selector) {
+        const html = await page.evaluate(selector => Array.from(document.querySelectorAll(selector)).map(element => element.outerHTML), selector);
+        console.log(html.join("\n\n"));
+    }
+    else {
+        const html = await page.evaluate(() => document.querySelector("*")?.outerHTML);
+        console.log(html);
+    }
 }
 catch (err) {
     console.error(err instanceof Error ? err.message : JSON.stringify(err));
