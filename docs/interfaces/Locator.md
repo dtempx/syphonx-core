@@ -23,7 +23,7 @@
 
 #### Defined in
 
-[extract/public/Locator.ts:10](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L10)
+[extract/public/Locator.ts:10](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L10)
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:5](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L5)
+[extract/public/Locator.ts:5](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L5)
 
 ___
 
@@ -43,7 +43,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:7](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L7)
+[extract/public/Locator.ts:7](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L7)
 
 ___
 
@@ -53,7 +53,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:4](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L4)
+[extract/public/Locator.ts:4](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L4)
 
 ___
 
@@ -63,7 +63,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:8](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L8)
+[extract/public/Locator.ts:8](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L8)
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:9](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L9)
+[extract/public/Locator.ts:9](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L9)
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:6](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L6)
+[extract/public/Locator.ts:6](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L6)
 
 ___
 
@@ -93,4 +93,4 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:11](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Locator.ts#L11)
+[extract/public/Locator.ts:11](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Locator.ts#L11)

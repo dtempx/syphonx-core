@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[extract/public/Reload.ts:5](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Reload.ts#L5)
+[extract/public/Reload.ts:5](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Reload.ts#L5)
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[extract/public/Reload.ts:6](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Reload.ts#L6)
+[extract/public/Reload.ts:6](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Reload.ts#L6)
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[extract/public/Reload.ts:7](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/Reload.ts#L7)
+[extract/public/Reload.ts:7](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Reload.ts#L7)

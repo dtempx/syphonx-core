@@ -12,26 +12,26 @@
             "args": []
         },
         {
-            "name": "Online",
+            "name": "Run tools/online",
             "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
             //"env": { "DEBUG": "1" },
-            "program": "${workspaceFolder}/online.js",
-            //"args": ["./examples/1.json", "--show"]
-            "args": ["./examples/locate.json", "--show"]
+            "program": "${workspaceFolder}/tools/online.js",
+            "args": ["examples/1.json", "--show"]
         },
         {
-            "name": "Offline",
+            "name": "Run tools/offline",
             "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "outFiles": ["${workspaceFolder}/**/*.js"],
             //"env": { "DEBUG": "1" },
-            "program": "${workspaceFolder}/offline.js",
-            //"args": ["./examples/1.json", "./examples/1.html"]
-            "args": ["./examples/2.json", "./examples/2.html"]
+            "program": "${workspaceFolder}/tools/offline.js",
+            "args": ["examples/1.json", "examples/1.html"]
+            //"args": ["examples/1.json", "--url=https://www.example.com/"]
+            //"args": ["examples/2.json", "examples/2.html"]
         },
         {
             "name": "Run Tests",

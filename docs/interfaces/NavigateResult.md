@@ -16,4 +16,4 @@
 
 #### Defined in
 
-[host.ts:31](https://github.com/dtempx/syphonx-core/blob/20fc1c8/host.ts#L31)
+[host.ts:31](https://github.com/dtempx/syphonx-core/blob/f3a2392/host.ts#L31)

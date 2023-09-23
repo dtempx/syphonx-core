@@ -2,19 +2,12 @@
 
 
 ## Setup
-```
+```bash
 git clone https://github.com/dtempx/syphonx-core.git
 cd syphonx-core
 yarn build
 yarn test
 ```
-
-
-## Run
-* `node online examples/1.json` extract data from a live online page using a script
-* `node offline examples/1.json examples/1.html` extract data from an offline HTML file
-* `node online examples/1.json --out=log` view the log (for troubleshooting)
-* `node online examples/1.json --out=data,log` view the extract data and the log
 
 
 ## Running tests
@@ -23,13 +16,24 @@ yarn test
 
 
 ## Deploy
-```
+```bash
 yarn upgrade playwright --latest
 yarn build
 yarn test
 npm publish
 ```
 > Publish requires authenticator code
+
+
+## Useful troubleshooting commands
+```bash
+node tools/online examples/1.json
+node tools/online examples/1.json --url=https://www.iana.org/
+node tools/online examples/1.json --out=log
+node tools/offline examples/1.json examples/1.html
+node tools/select-html --url=https://www.example.com
+node tools/select-html --url=https://www.example.com --selector=h1
+```
 
 
 ## Debug in browser
@@ -59,7 +63,7 @@ window.addEventListener("message", event => {
 ## Alternate debugging techniques
 
 ### Add jQuery to the browser
-```
+```javascript
 (() => {
     const script = document.createElement('script');
     script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.slim.min.js';

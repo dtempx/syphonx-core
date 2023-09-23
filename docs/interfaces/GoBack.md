@@ -17,7 +17,7 @@
 
 #### Defined in
 
-[extract/public/GoBack.ts:4](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/GoBack.ts#L4)
+[extract/public/GoBack.ts:4](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/GoBack.ts#L4)
 
 ___
 
@@ -27,4 +27,4 @@ ___
 
 #### Defined in
 
-[extract/public/GoBack.ts:5](https://github.com/dtempx/syphonx-core/blob/20fc1c8/extract/public/GoBack.ts#L5)
+[extract/public/GoBack.ts:5](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/GoBack.ts#L5)
