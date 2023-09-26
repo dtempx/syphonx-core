@@ -181,7 +181,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
 export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {
     const fn = (obj as Record<string, (...args: unknown[]) => unknown>)[method];
     if (typeof fn === "function") {
-        const result = await fn(...args);
+        const result = await fn.call(obj, ...args);
         return result;
     }
 }
