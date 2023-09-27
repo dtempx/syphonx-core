@@ -108,15 +108,28 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
     let i = 0;
     while (state.yield && i++ < maxYields) {
         if (state.yield.params?.goback && options.onGoback) {
-            lastNavigationResult = await options.onGoback({
+            const obj = {
                 timeout: state.yield.params.timeout || timeout,
                 waitUntil: state.yield.params.waitUntil || waitUntil
-            });
+            };
+            try {
+                lastNavigationResult = await options.onGoback(obj);
+            }
+            catch (err) {
+                console.warn(`ERROR onGoback`, err, obj);
+            }
         }
         else if (state.yield.params?.locators && options.onLocator) {
             for (const locator of state.yield.params.locators)
-                if (locator.name?.startsWith("_") && locator.selector && locator.method)
-                    state.vars[locator.name] = await options.onLocator(locator);
+                if (locator.name?.startsWith("_") && locator.selector && locator.method) {
+                    try {
+                        state.vars[locator.name] = await options.onLocator(locator);
+                    }
+                    catch (err) {
+                        console.warn(`ERROR onLocator`, err, locator);
+                        state.vars[locator.name] = null;
+                    }
+                }
         }
         else if (state.yield.params?.navigate && options.onNavigate) {
             if (state.yield.params.navigate.url) {
@@ -136,17 +149,34 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
             }
         }
         else if (state.yield.params?.reload && options.onReload) {
-            lastNavigationResult = await options.onReload({
+            const obj = {
                 timeout: state.yield.params.timeout || timeout,
                 waitUntil: state.yield.params.waitUntil || waitUntil
-            });
+            };
+            try {
+                lastNavigationResult = await options.onReload(obj);
+            }
+            catch (err) {
+                console.warn(`ERROR onReload`, err, obj);
+            }
+            
         }
         else if (state.yield.params?.screenshot && options.onScreenshot) {
-            await options.onScreenshot(state.yield.params.screenshot);
+            try {
+                await options.onScreenshot(state.yield.params.screenshot);
+            }
+            catch (err) {
+                console.warn(`ERROR onScreenshot`, err, state.yield.params.screenshot);
+            }
         }
         else if (state.yield.params?.waitUntil && options.onYield) {
             await sleep(1000); // wait for the page to settle
-            await options.onYield(state.yield.params);
+            try {
+                await options.onYield(state.yield.params);
+            }
+            catch (err) {
+                console.warn(`ERROR onYield`, err, state.yield.params);
+            }
         }
         else {
             await sleep(1000); // wait for the page to settle
