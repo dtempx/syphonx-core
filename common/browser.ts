@@ -18,9 +18,15 @@ export async function close(page: Page): Promise<void> {
         await browser.close();
 }
 
-export async function html(url: string, headless = true): Promise<string> {
-    const page = await open(url, headless);
-    const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
-    await close(page);
-    return html;
+export async function html(page: Page | string, headless = true): Promise<string> {
+    if (typeof page === "string") {
+        const _page = await open(page, headless);
+        const html = await _page.evaluate(() => document.querySelector("*")!.outerHTML);
+        await close(_page);
+        return html;
+    }
+    else {
+        const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
+        return html;
+    }
 }

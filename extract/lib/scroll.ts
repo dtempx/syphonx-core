@@ -12,17 +12,3 @@ export function waitForScrollEnd(): Promise<void> {
         addEventListener("scroll", onScroll);
     });
 }
-
-export function scrollToBottom(delay = 100, max = 100): Promise<number> {
-    let n = 0;
-    return new Promise(resolve => {
-        const timer = setInterval(() => {
-            window.scrollBy(0, window.innerHeight);
-            n += 1;
-            if ((window.scrollY >= document.body.scrollHeight - window.innerHeight) || (--max < 1)) {
-                clearInterval(timer);
-                resolve(n);
-            }
-        }, delay);
-    });
-}

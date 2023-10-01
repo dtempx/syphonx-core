@@ -1,4 +1,4 @@
-[Documentation](../README.md) / [Exports](../modules.md) / Screenshot
+[syphonx-core](../README.md) / [Exports](../modules.md) / Screenshot
 
 # Interface: Screenshot
 
@@ -20,7 +20,7 @@
 
 #### Defined in
 
-[extract/public/Screenshot.ts:6](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Screenshot.ts#L6)
+[extract/public/Screenshot.ts:6](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Screenshot.ts#L6)
 
 ___
 
@@ -30,7 +30,7 @@ ___
 
 #### Defined in
 
-[extract/public/Screenshot.ts:4](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Screenshot.ts#L4)
+[extract/public/Screenshot.ts:4](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Screenshot.ts#L4)
 
 ___
 
@@ -40,7 +40,7 @@ ___
 
 #### Defined in
 
-[extract/public/Screenshot.ts:7](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Screenshot.ts#L7)
+[extract/public/Screenshot.ts:7](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Screenshot.ts#L7)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-[extract/public/Screenshot.ts:5](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Screenshot.ts#L5)
+[extract/public/Screenshot.ts:5](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Screenshot.ts#L5)
 
 ___
 
@@ -60,4 +60,4 @@ ___
 
 #### Defined in
 
-[extract/public/Screenshot.ts:8](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Screenshot.ts#L8)
+[extract/public/Screenshot.ts:8](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Screenshot.ts#L8)

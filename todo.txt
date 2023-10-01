@@ -1,21 +1,26 @@
-export a new "select" method that is synchronous in bundle
+add new sync exports for select, transform, and extract
+
+locator: pass additional options object
+locator: append to controller log instead of console
 
 maxSnooze and maxWaitfor setting that limits amount of time spent in those actions
-
-info object that returns elapsed time for snooze, waitfor, yield, navigate, and total
-    also indicate how many timeouts occurred
+return metrics containing snooze, waitfor, navigate, yield, total timers, as well as number of steps executed and skipped, also indicate how many timeouts occurred
 
 consider trimming all strings, and all html
 
+cut should coerce strings to numbers for second arg
+split on \n doesn't always work (repro: sgrlaw)
+
+
 add a flag to extract function that returns all elements instead of just the first one (#syphonx 7/14, Taylor)
 add a json function that does a JSON.parse without throwing if invalid
+consider destructuring for json
 
 add a test for parsing JSON
 add a test to ensure immediate return with sleeps in offline mode
 
 type action that inputs text
 
-consider renaming extract to run
 consider changing snooze to an object that can be named
 
 add last waitfor time and whether it timed out
@@ -38,7 +43,6 @@ add checks to deploy for version updated and committed
 
 allow a selector with no query and no value so long as there is a sub-select with a query or a value
 
-api documentation
 
 
 DONE: setup dist folder and package.json to hold different builds for node and browser

@@ -19,9 +19,9 @@ const test = {
                         ]
                     },
                     {
-                        "transform": [
-                            { "query": ["{window}",["scrollBottom"]] }
-                        ]
+                        "scroll": {
+                            "target": "bottom"
+                        }
                     },
                     {
                         "waitfor": {

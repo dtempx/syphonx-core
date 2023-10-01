@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.57",
+  "version": "1.2.58",
   "description": "Advanced HTML parser and web data extractor",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
@@ -50,6 +50,7 @@
     "terser": "^5.17.7",
     "typedoc": "^0.25.1",
     "typedoc-plugin-markdown": "^3.16.0",
+    "typedoc-plugin-replace-text": "^3.2.0",
     "typescript": "^4.6.2",
     "word-wrap": "^1.2.3"
   }

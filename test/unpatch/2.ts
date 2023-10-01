@@ -11,6 +11,7 @@ describe("unpatch/2", async () => {
         const page = await browser.open("https://www.example.com/");
         await page.waitForTimeout(2000);
         val1 = await page.evaluate(async () => window.String.prototype.startsWith.toString());
+        await browser.close(page);
         return val1;
     });
     
@@ -20,6 +21,7 @@ describe("unpatch/2", async () => {
         const page = await browser.open("https://kakaku.com/item/K0001466409/");
         await page.waitForTimeout(2000);
         val2 = await page.evaluate(async () => window.String.prototype.startsWith.toString());
+        await browser.close(page);
         return val2;
     });
 
@@ -28,11 +30,11 @@ describe("unpatch/2", async () => {
         await page.waitForTimeout(2000);
         await page.exposeFunction("unpatch", unpatch);
         await page.addScriptTag({ content: `${unpatch}` });
-
         val3 = await page.evaluate(async () => {
             unpatch(["String.prototype.startsWith"]);
             return window.String.prototype.startsWith.toString();
         });
+        await browser.close(page);
         return val3;
     });
 

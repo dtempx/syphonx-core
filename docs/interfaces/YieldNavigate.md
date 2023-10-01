@@ -1,4 +1,4 @@
-[Documentation](../README.md) / [Exports](../modules.md) / YieldNavigate
+[syphonx-core](../README.md) / [Exports](../modules.md) / YieldNavigate
 
 # Interface: YieldNavigate
 
@@ -16,4 +16,4 @@
 
 #### Defined in
 
-[extract/public/Yield.ts:31](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Yield.ts#L31)
+[extract/public/Yield.ts:31](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Yield.ts#L31)

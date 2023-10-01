@@ -36,4 +36,4 @@ npx rollup extract/index.js --format umd --name syphonx --file dist/umd/syphonx.
 node build-tools/version-stamp dist/umd/syphonx.js
 
 # DOC BUILD
-typedoc --plugin typedoc-plugin-markdown --out docs .
+typedoc

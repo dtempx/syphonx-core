@@ -2,5 +2,13 @@
 ### JQUERY ###
 ### SYPHONX ###
 var $ = jQuery.noConflict(true);
-return syphonx.extract(obj, $);
+const { select, transform, sync, ...params } = obj;
+if (select)
+    return syphonx.select(select, params);
+else if (transform)
+    return syphonx.transform(transform, params);
+else if (sync)
+    return syphonx.extractSync(params);
+else
+    return syphonx.extract(params);
 })

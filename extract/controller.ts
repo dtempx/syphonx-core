@@ -87,7 +87,6 @@ import {
     regexpExtractAll,
     regexpReplace,
     regexpTest,
-    scrollToBottom,
     selectorStatement,
     selectorStatements,
     sleep,
@@ -369,7 +368,7 @@ export class Controller {
             await this.switch((action as SwitchAction).switch);
         }
         else if (action.hasOwnProperty("transform")) {
-            await this.transform((action as TransformAction).transform);
+            this.transform((action as TransformAction).transform);
         }
         else if (action.hasOwnProperty("waitfor")) {
             const required = (action as WaitForAction).waitfor.required;
@@ -1741,26 +1740,16 @@ export class Controller {
         }
     }
 
-    private async transform(transforms: Transform[]): Promise<void> {
+    public transform(transforms: Transform[]): void {
         for (const transform of transforms) {
             if (this.when(transform.when, `TRANSFORM${transform.name ? ` ${transform.name}` : ""}`)) {
                 const query = transform.query;
-                const selector = query[0];
-                const [operands] = query.slice(1) as SelectQueryOp[];
-                if (selector === "{window}" && operands[0] === "scrollBottom") {
-                    const delay = typeof operands[1] === "number" ? operands[1] : undefined;
-                    const max = typeof operands[2] === "number" ? operands[2] : undefined;
-                    const pagedowns = await scrollToBottom(delay, max);
-                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${selectorStatement(query)} (${pagedowns}x)`);
+                try {
+                    const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
+                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${selectorStatement(query)} -> (${result?.nodes?.length || 0} nodes)`);
                 }
-                else {
-                    try {
-                        const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
-                        this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${selectorStatement(query)} -> (${result?.nodes?.length || 0} nodes)`);
-                    }
-                    catch (err) {
-                        this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ERROR ${selectorStatement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
-                    }
+                catch (err) {
+                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ERROR ${selectorStatement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
                 }
             }
             else {

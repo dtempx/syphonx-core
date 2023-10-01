@@ -1,4 +1,4 @@
-[Documentation](../README.md) / [Exports](../modules.md) / Switch
+[syphonx-core](../README.md) / [Exports](../modules.md) / Switch
 
 # Interface: Switch
 
@@ -19,7 +19,7 @@
 
 #### Defined in
 
-[extract/public/Switch.ts:8](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Switch.ts#L8)
+[extract/public/Switch.ts:8](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Switch.ts#L8)
 
 ___
 
@@ -29,7 +29,7 @@ ___
 
 #### Defined in
 
-[extract/public/Switch.ts:6](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Switch.ts#L6)
+[extract/public/Switch.ts:6](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Switch.ts#L6)
 
 ___
 
@@ -39,7 +39,7 @@ ___
 
 #### Defined in
 
-[extract/public/Switch.ts:7](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Switch.ts#L7)
+[extract/public/Switch.ts:7](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Switch.ts#L7)
 
 ___
 
@@ -49,4 +49,4 @@ ___
 
 #### Defined in
 
-[extract/public/Switch.ts:9](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Switch.ts#L9)
+[extract/public/Switch.ts:9](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Switch.ts#L9)

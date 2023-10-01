@@ -1,10 +1,9 @@
-import * as fs from "fs";
-
 import {
     evaluateFormula,
     loadJSON,
     online,
-    parseArgs
+    parseArgs,
+    script
 } from "../common/index.js";
 
 const args = parseArgs({
@@ -19,7 +18,8 @@ const args = parseArgs({
     }
 });
 
-(global as unknown as { script: string }).script = fs.readFileSync(new URL("../dist/iife/syphonx-jquery.min.js", import.meta.url), "utf8");
+// set script into the global state for host function to fallback on when running internally for unit tests...
+(global as unknown as { script: string }).script = script;
 
 try {
     const out = args.out ? args.out.split(",") : ["data"];

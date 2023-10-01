@@ -1,4 +1,4 @@
-[Documentation](../README.md) / [Exports](../modules.md) / YieldScreenshot
+[syphonx-core](../README.md) / [Exports](../modules.md) / YieldScreenshot
 
 # Interface: YieldScreenshot
 
@@ -22,7 +22,7 @@
 
 #### Defined in
 
-[extract/public/Yield.ts:38](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Yield.ts#L38)
+[extract/public/Yield.ts:38](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Yield.ts#L38)
 
 ___
 
@@ -32,7 +32,7 @@ ___
 
 #### Defined in
 
-[extract/public/Yield.ts:36](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Yield.ts#L36)
+[extract/public/Yield.ts:36](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Yield.ts#L36)
 
 ___
 
@@ -42,4 +42,4 @@ ___
 
 #### Defined in
 
-[extract/public/Yield.ts:37](https://github.com/dtempx/syphonx-core/blob/f3a2392/extract/public/Yield.ts#L37)
+[extract/public/Yield.ts:37](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Yield.ts#L37)

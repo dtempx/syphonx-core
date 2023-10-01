@@ -1,0 +1,20 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["./index.ts"],
+    "out": "docs",
+    "plugin": [
+        "typedoc-plugin-markdown",
+        "typedoc-plugin-replace-text"
+    ],
+    "replaceText": {
+        "inCodeCommentText": true,
+        "inCodeCommentTags": true,
+        "inIncludedFiles": true,
+        "replacements": [
+            {
+                "pattern": "/blob/([0-9a-f]+)/",
+                "replace": "main"
+            }
+        ]
+    }
+}

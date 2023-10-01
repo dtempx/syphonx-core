@@ -1,4 +1,4 @@
-[Documentation](../README.md) / [Exports](../modules.md) / AttemptOptions
+[syphonx-core](../README.md) / [Exports](../modules.md) / AttemptOptions
 
 # Interface: AttemptOptions
 
@@ -16,4 +16,4 @@
 
 #### Defined in
 
-[host.ts:217](https://github.com/dtempx/syphonx-core/blob/f3a2392/host.ts#L217)
+[host.ts:247](https://github.com/dtempx/syphonx-core/blob/211cc18/host.ts#L247)
