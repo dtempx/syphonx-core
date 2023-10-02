@@ -16,4 +16,4 @@
 
 #### Defined in
 
-[extract/public/Yield.ts:31](https://github.com/dtempx/syphonx-core/blob/211cc18/extract/public/Yield.ts#L31)
+[extract/public/Yield.ts:31](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Yield.ts#L31)
