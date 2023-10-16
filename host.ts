@@ -1,9 +1,7 @@
-import { attempt } from "./lib/attempt.js";
-import { evaluateFormula } from "./lib/formula.js";
-import { sleep } from "./lib/sleep.js";
-import { unwrap } from "./lib/unwrap.js";
-import { parseUrl, isFormula, merge } from "./extract/lib/index.js";
+import { attempt, evaluateFormula, flatten, sleep, unwrap } from "./lib/index.js";
+import { isFormula, merge, parseUrl, Timer } from "./extract/lib/index.js";
 import { Template } from "./template.js";
+import { Metrics } from "./extract/public/index.js";
 
 import {
     DocumentLoadState,
@@ -60,34 +58,21 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
         throw new Error("url not specified");
 
     if (!options.onNavigate)
-        throw new Error("onNavigate not specified");
+        throw new Error("onNavigate not defined");
 
     if (!options.onExtract)
-        throw new Error("onExtract not specified");
+        throw new Error("onExtract not defined");
 
-    if (isFormula(url))
-        url = encodeURI(evaluateFormula(url.slice(1, -1), { params: options.template.params }) as string);
-
-    const originalUrl = url;
-    const { domain, origin } = parseUrl(url); // take domain and origin from the original url
-
+    const timer = new Timer();
     const params = merge(options.template.params, options.params); // options.params overrides template.params
     const timeout = typeof options.template.timeout === "number" ? options.template.timeout * 1000 : undefined;
     const waitUntil = options.template.waitUntil;
 
-    const attemptOptions = {
-        retries,
-        retryDelay
-    };
+    if (isFormula(url))
+        url = encodeURI(evaluateFormula(url.slice(1, -1), { params }) as string);
 
-    let lastNavigationResult: NavigateResult | undefined = undefined;
-    await attempt(
-        async () => {
-            lastNavigationResult = await options.onNavigate!({ url: url!, timeout, waitUntil });
-        },
-        attemptRetryable,
-        attemptOptions
-    );
+    const originalUrl = url;
+    const { domain, origin } = parseUrl(url); // take domain and origin from the original url
 
     let state = {
         ...options.template,
@@ -96,6 +81,30 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
         vars: {},
         debug: options.debug || options.template.debug
     } as ExtractState;
+
+    const actions = flatten(options.template.actions);
+    state.vars.__metrics = {
+        navigate: 0,
+        retries: 0,
+        actions: actions.length
+    };
+
+    const attemptOptions = {
+        retries,
+        retryDelay
+    };
+
+    let lastNavigationResult: NavigateResult = {};
+    const navigationTimer = new Timer();
+    await attempt(
+        async () => {
+            lastNavigationResult = await options.onNavigate!({ url: url!, timeout, waitUntil });
+        },
+        attemptRetryable,
+        attemptOptions
+    );
+    (state.vars.__metrics as Metrics).navigate += navigationTimer.elapsed();
+    state.vars.__status = lastNavigationResult?.status;
 
     await attempt(
         async () => {
@@ -112,12 +121,14 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
                 timeout: state.yield.params.timeout || timeout,
                 waitUntil: state.yield.params.waitUntil || waitUntil
             };
+            const gobackTimer = new Timer();
             try {
                 lastNavigationResult = await options.onGoback(obj);
             }
             catch (err) {
-                console.warn(`ERROR onGoback`, err, obj);
+                state.errors.push({ code: "host-error", message: `GOBACK ${err instanceof Error ? err.message : JSON.stringify(err)}`, level: 1 });
             }
+            (state.vars.__metrics as Metrics).navigate += gobackTimer.elapsed();
         }
         else if (state.yield.params?.locators && options.onLocator) {
             for (const locator of state.yield.params.locators)
@@ -126,7 +137,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
                         state.vars[locator.name] = await options.onLocator(locator);
                     }
                     catch (err) {
-                        console.warn(`ERROR onLocator`, err, locator);
+                        state.errors.push({ code: "host-error", message: `LOCATOR ${JSON.stringify(locator)} ${err instanceof Error ? err.message : JSON.stringify(err)}`, level: 1 });
                         state.vars[locator.name] = null;
                     }
                 }
@@ -139,6 +150,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
                     timeout: state.yield.params.timeout || timeout,
                     waitUntil: state.yield.params.waitUntil || waitUntil
                 };
+                const renavigationTimer = new Timer();
                 await attempt(
                     async () => {
                         lastNavigationResult = await options.onNavigate!(obj);
@@ -146,6 +158,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
                     attemptRetryable,
                     attemptOptions
                 );
+                (state.vars.__metrics as Metrics).navigate += renavigationTimer.elapsed();
             }
         }
         else if (state.yield.params?.reload && options.onReload) {
@@ -153,20 +166,21 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
                 timeout: state.yield.params.timeout || timeout,
                 waitUntil: state.yield.params.waitUntil || waitUntil
             };
+            const reloadTimer = new Timer();
             try {
                 lastNavigationResult = await options.onReload(obj);
             }
             catch (err) {
-                console.warn(`ERROR onReload`, err, obj);
+                state.errors.push({ code: "host-error", message: `RELOAD ${err instanceof Error ? err.message : JSON.stringify(err)}`, level: 1 });
             }
-            
+            (state.vars.__metrics as Metrics).navigate += reloadTimer.elapsed();
         }
         else if (state.yield.params?.screenshot && options.onScreenshot) {
             try {
                 await options.onScreenshot(state.yield.params.screenshot);
             }
             catch (err) {
-                console.warn(`ERROR onScreenshot`, err, state.yield.params.screenshot);
+                state.errors.push({ code: "host-error", message: `SCREENSHOT ${state.yield.params.screenshot} ${err instanceof Error ? err.message : JSON.stringify(err)}`, level: 1 });
             }
         }
         else if (state.yield.params?.waitUntil && options.onYield) {
@@ -175,7 +189,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
                 await options.onYield(state.yield.params);
             }
             catch (err) {
-                console.warn(`ERROR onYield`, err, state.yield.params);
+                state.errors.push({ code: "host-error", message: `YIELD ${JSON.stringify(state.yield.params)} ${err instanceof Error ? err.message : JSON.stringify(err)}`, level: 1 });
             }
         }
         else {
@@ -195,7 +209,11 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
     if (options.extractHtml && options.onHtml)
         html = await options.onHtml();
 
-    return { 
+    const metrics = state.vars.__metrics as Metrics;
+    metrics.elapsed = timer.elapsed();
+    metrics.errors = state.errors?.length ?? 0;
+
+    return {
         ...state,
         ok: state.errors ? state.errors.length === 0 : true,
         status: lastNavigationResult?.status,
@@ -203,9 +221,21 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
         originalUrl,
         domain,
         origin,
+        metrics,
         data: options.unwrap ? unwrap(state.data) : state.data,
         online: true
     };
+
+    function attemptRetryable(err: unknown): boolean {
+        const code = createErrorCode(err);
+        if (retryableErrorCodes.includes(code)) {
+            (state.vars.__metrics as Metrics).retries += 1;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }    
 }
 
 export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {
@@ -214,11 +244,6 @@ export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[]
         const result = await fn.call(obj, ...args);
         return result;
     }
-}
-
-function attemptRetryable(err: unknown): boolean {
-    const code = createErrorCode(err);
-    return retryableErrorCodes.includes(code);
 }
 
 function createErrorCode(err: unknown): ErrorCode {

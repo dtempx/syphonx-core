@@ -13,6 +13,7 @@
 ### Properties
 
 - [html](ExtractResult.md#html)
+- [metrics](ExtractResult.md#metrics)
 - [ok](ExtractResult.md#ok)
 - [status](ExtractResult.md#status)
 - [version](ExtractResult.md#version)
@@ -25,7 +26,17 @@
 
 #### Defined in
 
-[extract/public/ExtractResult.ts:5](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractResult.ts#L5)
+[extract/public/ExtractResult.ts:6](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractResult.ts#L6)
+
+___
+
+### metrics
+
+• **metrics**: [`Metrics`](Metrics.md)
+
+#### Defined in
+
+[extract/public/ExtractResult.ts:9](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractResult.ts#L9)
 
 ___
 
@@ -35,7 +46,7 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractResult.ts:4](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractResult.ts#L4)
+[extract/public/ExtractResult.ts:5](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractResult.ts#L5)
 
 ___
 
@@ -45,7 +56,7 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractResult.ts:6](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractResult.ts#L6)
+[extract/public/ExtractResult.ts:7](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractResult.ts#L7)
 
 ___
 
@@ -55,4 +66,4 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractResult.ts:7](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractResult.ts#L7)
+[extract/public/ExtractResult.ts:8](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractResult.ts#L8)

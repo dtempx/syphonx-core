@@ -22,7 +22,7 @@
 
 #### Defined in
 
-[extract/public/Scroll.ts:8](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L8)
+[extract/public/Scroll.ts:8](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L8)
 
 ___
 
@@ -32,7 +32,7 @@ ___
 
 #### Defined in
 
-[extract/public/Scroll.ts:9](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L9)
+[extract/public/Scroll.ts:9](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L9)
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 #### Defined in
 
-[extract/public/Scroll.ts:10](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L10)
+[extract/public/Scroll.ts:10](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L10)
 
 ___
 
@@ -52,7 +52,7 @@ ___
 
 #### Defined in
 
-[extract/public/Scroll.ts:5](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L5)
+[extract/public/Scroll.ts:5](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L5)
 
 ___
 
@@ -62,7 +62,7 @@ ___
 
 #### Defined in
 
-[extract/public/Scroll.ts:6](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L6)
+[extract/public/Scroll.ts:6](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L6)
 
 ___
 
@@ -72,7 +72,7 @@ ___
 
 #### Defined in
 
-[extract/public/Scroll.ts:7](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L7)
+[extract/public/Scroll.ts:7](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L7)
 
 ___
 
@@ -82,4 +82,4 @@ ___
 
 #### Defined in
 
-[extract/public/Scroll.ts:11](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/Scroll.ts#L11)
+[extract/public/Scroll.ts:11](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Scroll.ts#L11)

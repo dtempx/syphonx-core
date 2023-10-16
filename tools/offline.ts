@@ -49,6 +49,11 @@ try {
         console.log();
     }
 
+    if (result.log && out.includes("metrics")) {
+        console.log(JSON.stringify(result.metrics, null, 2));
+        console.log();
+    }
+
     if (result.html && out.includes("html")) {
         console.log(result.html);
         console.log();

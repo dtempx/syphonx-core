@@ -21,6 +21,10 @@ const test = {
                 {
                     "name": "color4",
                     "query": [["div",["cut",",",-2]]]
+                },
+                {
+                    "name": "color5",
+                    "query": [["div",["cut",",","1"]]] // test coersion
                 }
             ]
         }
@@ -34,6 +38,7 @@ describe("cut/1", () => {
     it("color2 has expected value", () => expect(result.data.color2).to.be.equal("orange"));
     it("color3 has expected value", () => expect(result.data.color3).to.be.equal("violet"));
     it("color4 has expected value", () => expect(result.data.color4).to.be.equal("indigo"));
+    it("color5 has expected value", () => expect(result.data.color5).to.be.equal("orange"));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

@@ -20,7 +20,7 @@
 
 #### Defined in
 
-[extract/public/ExtractStatus.ts:4](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractStatus.ts#L4)
+[extract/public/ExtractStatus.ts:4](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractStatus.ts#L4)
 
 ___
 
@@ -30,7 +30,7 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractStatus.ts:5](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractStatus.ts#L5)
+[extract/public/ExtractStatus.ts:5](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractStatus.ts#L5)
 
 ___
 
@@ -40,7 +40,7 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractStatus.ts:3](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractStatus.ts#L3)
+[extract/public/ExtractStatus.ts:3](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractStatus.ts#L3)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractStatus.ts:2](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractStatus.ts#L2)
+[extract/public/ExtractStatus.ts:2](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractStatus.ts#L2)
 
 ___
 
@@ -60,4 +60,4 @@ ___
 
 #### Defined in
 
-[extract/public/ExtractStatus.ts:6](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/ExtractStatus.ts#L6)
+[extract/public/ExtractStatus.ts:6](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/ExtractStatus.ts#L6)

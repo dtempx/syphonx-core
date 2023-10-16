@@ -6,6 +6,7 @@ export type ExtractErrorCode =
     | "eval-error"
     | "external-error"
     | "fatal-error"
+    | "host-error"
     | "invalid-select"
     | "invalid-operator"
     | "invalid-operand"

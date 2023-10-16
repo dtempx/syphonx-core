@@ -1,4 +1,4 @@
-export * from "./coerceValue.js";
+export * from "./coerce.js";
 export * from "./collapseWhitespace.js";
 export * from "./combineUrl.js";
 export * from "./cut.js";
@@ -14,6 +14,7 @@ export * from "./regexp.js";
 export * from "./scroll.js";
 export * from "./selector.js";
 export * from "./sleep.js";
+export * from "./timer.js";
 export * from "./trim.js";
 export * from "./trunc.js";
 export * from "./typeName.js";

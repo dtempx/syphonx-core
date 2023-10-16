@@ -23,7 +23,7 @@
 
 #### Defined in
 
-[extract/public/WaitFor.ts:5](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L5)
+[extract/public/WaitFor.ts:5](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L5)
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:8](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L8)
+[extract/public/WaitFor.ts:8](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L8)
 
 ___
 
@@ -43,7 +43,7 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:10](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L10)
+[extract/public/WaitFor.ts:10](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L10)
 
 ___
 
@@ -53,7 +53,7 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:6](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L6)
+[extract/public/WaitFor.ts:6](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L6)
 
 ___
 
@@ -63,7 +63,7 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:11](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L11)
+[extract/public/WaitFor.ts:11](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L11)
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:7](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L7)
+[extract/public/WaitFor.ts:7](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L7)
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:9](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L9)
+[extract/public/WaitFor.ts:9](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L9)
 
 ___
 
@@ -93,4 +93,4 @@ ___
 
 #### Defined in
 
-[extract/public/WaitFor.ts:12](https://github.com/dtempx/syphonx-core/blob/6f11d82/extract/public/WaitFor.ts#L12)
+[extract/public/WaitFor.ts:12](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/WaitFor.ts#L12)

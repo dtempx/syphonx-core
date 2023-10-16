@@ -14,7 +14,7 @@ const args = parseArgs({
         url: "URL to navigate to",
         show: "shows browser window",
         metadata: "include metadata",
-        out: "determines output (data, html, log)"
+        out: "determines output (data, html, log, metrics)"
     }
 });
 
@@ -49,6 +49,11 @@ try {
         console.log(`status: ${result.status}`);
         console.log(result.log);
         console.log(JSON.stringify(result.vars));
+        console.log();
+    }
+
+    if (out.includes("metrics")) {
+        console.log(JSON.stringify(result.metrics, null, 2));
         console.log();
     }
 

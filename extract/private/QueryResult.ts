@@ -6,4 +6,5 @@ export interface QueryResult {
     value: unknown;
     valid?: boolean;
     formatted?: boolean;
+    raw?: boolean;
 }

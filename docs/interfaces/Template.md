@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[template.ts:4](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L4)
+[template.ts:4](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L4)
 
 ___
 
@@ -36,7 +36,7 @@ ___
 
 #### Defined in
 
-[template.ts:8](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L8)
+[template.ts:8](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L8)
 
 ___
 
@@ -46,7 +46,7 @@ ___
 
 #### Defined in
 
-[template.ts:10](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L10)
+[template.ts:10](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L10)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[template.ts:6](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L6)
+[template.ts:6](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L6)
 
 ___
 
@@ -66,7 +66,7 @@ ___
 
 #### Defined in
 
-[template.ts:11](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L11)
+[template.ts:11](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L11)
 
 ___
 
@@ -76,7 +76,7 @@ ___
 
 #### Defined in
 
-[template.ts:12](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L12)
+[template.ts:12](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L12)
 
 ___
 
@@ -86,7 +86,7 @@ ___
 
 #### Defined in
 
-[template.ts:5](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L5)
+[template.ts:5](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L5)
 
 ___
 
@@ -96,7 +96,7 @@ ___
 
 #### Defined in
 
-[template.ts:9](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L9)
+[template.ts:9](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L9)
 
 ___
 
@@ -106,7 +106,7 @@ ___
 
 #### Defined in
 
-[template.ts:7](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L7)
+[template.ts:7](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L7)
 
 ___
 
@@ -123,7 +123,7 @@ ___
 
 #### Defined in
 
-[template.ts:13](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L13)
+[template.ts:13](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L13)
 
 ___
 
@@ -133,4 +133,4 @@ ___
 
 #### Defined in
 
-[template.ts:14](https://github.com/dtempx/syphonx-core/blob/6f11d82/template.ts#L14)
+[template.ts:14](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/template.ts#L14)

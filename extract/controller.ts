@@ -66,13 +66,15 @@ import {
 } from "./private";
 
 import {
-    coerceValue,
+    coerce,
+    coerceSelectValue,
     createRegExp,
     cut,
     evaluateFormula,
     filterQueryResult,
     formatHTML,
     formatStringValue,
+    isCoercibleTo,
     isEmpty,
     isFormula,
     isInvocableFrom,
@@ -95,7 +97,8 @@ import {
     tryParseJson,
     typeName,
     unwrap,
-    waitForScrollEnd
+    waitForScrollEnd,
+    Timer
 } from "./lib/index.js";
 
 const defaultTimeout = 30; // seconds
@@ -133,6 +136,7 @@ export class Controller {
             vars: {
                 __instance: 0, // initialize or carry over from previous instance
                 __context: [], // initialize or carry over from previous instance
+                __metrics: {} as unknown, // initialize or carry over from previous instance
                 __repeat: {}, // initialize or carry over from previous instance
                 ...state.vars,
                 __step: [], // initialize fresh on every instance
@@ -143,6 +147,24 @@ export class Controller {
             version
         } as ExtractStateInternal;
 
+        // ensure all metrics are initialized, allowing any existing values to take precedence
+        this.state.vars.__metrics = {
+            actions: 0,
+            clicks: 0,
+            elapsed: 0,
+            errors: 0,
+            navigate: 0,
+            queries: 0,
+            renavigations: 0,
+            retries: 0,
+            skipped: 0,
+            snooze: 0,
+            steps: 0,
+            timeouts: 0,
+            waitfor: 0,
+            yields: 0,
+            ...state.vars?.__metrics!
+        };
 
         // set select context for synchronous calls
         if (this.state.context) {
@@ -165,6 +187,7 @@ export class Controller {
             name = " " + name;
         if (this.online) {
             if (this.when(when, "BREAK")) {
+                this.state.vars.__metrics.steps += 1;
                 if (query) {
                     this.log(`BREAK${name} WAITFOR QUERY ${trunc($)} on=${on}, pattern=${pattern}`);
                     const [pass, result] = this.queryCheck(query, on, pattern);
@@ -180,6 +203,7 @@ export class Controller {
                 }
             }
             else {
+                this.state.vars.__metrics.skipped += 1;
                 this.log(`BREAK${name} SKIPPED ${when}`);
             }
         }
@@ -196,7 +220,9 @@ export class Controller {
                 if (snooze && (mode === "before" || mode === "before-and-after")) {
                     const seconds = snooze[0];
                     this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE BEFORE (${seconds}s) ${selectorStatements(query)}`);
-                    await sleep(seconds * 1000);
+                    const milliseconds = seconds * 1000;
+                    await sleep(milliseconds);
+                    this.state.vars.__metrics.snooze += milliseconds;
                 }
                 const result = this.query({ query });
                 if (result && result.nodes.length > 0) {
@@ -207,7 +233,9 @@ export class Controller {
                                 if (snooze && (mode === "after" || mode === "before-and-after")) {
                                     const seconds = snooze[0];
                                     this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE AFTER (${seconds}s) ${selectorStatements(query)}`);
-                                    await sleep(seconds * 1000);
+                                    const milliseconds = seconds * 1000;
+                                    await sleep(milliseconds);                
+                                    this.state.vars.__metrics.snooze += milliseconds;
                                 }
                             }
                             else if (code === "timeout") {
@@ -227,6 +255,8 @@ export class Controller {
                                 }
                             });
                         }
+                        this.state.vars.__metrics.clicks += 1;
+                        this.state.vars.__metrics.steps += 1;
                     }
                 }
                 else {
@@ -237,11 +267,12 @@ export class Controller {
                 }
             }
             else {
+                this.state.vars.__metrics.skipped += 1;
                 this.log(`CLICK${name ? ` ${name}` : ""} SKIPPED ${selectorStatements(query)}`);
             }
         }
         else {
-            this.log(`CLICK${name ? ` ${name}` : ""} BYPASSED ${selectorStatements(query)}`);
+            this.log(`CLICK${name ? ` ${name}` : ""} IGNORED ${selectorStatements(query)}`);
         }
         return null;
     }
@@ -405,6 +436,10 @@ export class Controller {
                     }
                 }
             }
+            this.state.vars.__metrics.steps += 1;
+        }
+        else {
+            this.state.vars.__metrics.skipped += 1;
         }
     }
 
@@ -428,16 +463,20 @@ export class Controller {
             const hit = !negate ? result?.value === false : result?.value === true;
             if (hit) {
                 this.appendError(code, String(this.evaluate(message)), level);
-                if (stop === true || (stop === undefined && level === 0)) {
+                this.state.vars.__metrics.steps += 1;
+                if (stop === true || (stop === undefined && level === 0))
                     throw "STOP";
-                }
             }
         }
         else if (this.when(when, "ERROR")) {
             this.appendError(code, String(this.evaluate(message)), level);
-            if (stop === true || (stop === undefined && level === 0)) {
+            this.state.vars.__metrics.steps += 1;
+            if (stop === true || (stop === undefined && level === 0))
                 throw "STOP";
-            }
+        }
+        else {
+            this.state.vars.__metrics.skipped += 1;
+            this.log(`ERROR ${code} SKIPPED ${when}`);
         }
     }
 
@@ -507,6 +546,9 @@ export class Controller {
         const $ = this.jquery;
         const regexp = createRegExp(pattern);
 
+        if (result.raw)
+            return result;
+
         // if type not specified then default to the value's primitive type or to a string
         if (!type) {
             const defaultType = result.value instanceof Array ? typeof result.value[0] : typeof result.value;
@@ -521,7 +563,7 @@ export class Controller {
 
         if (type === "string" && result.value instanceof Array) {
             if (!result.formatted) {
-                result.value = result.value.map(value => formatStringValue(coerceValue(value, "string") as string, format, this.state.origin));
+                result.value = result.value.map(value => formatStringValue(coerceSelectValue(value, "string") as string, format, this.state.origin));
             }
             if (regexp && !isEmpty(result.value)) {
                 result.valid = (result.value as string[]).every(value => regexp.test(value));
@@ -529,7 +571,7 @@ export class Controller {
         }
         else if (type === "string") {
             if (!result.formatted) {
-                result.value = formatStringValue(coerceValue(result.value, "string") as string, format, this.state.origin);
+                result.value = formatStringValue(coerceSelectValue(result.value, "string") as string, format, this.state.origin);
             }
             if (regexp && !isEmpty(result.value)) {
                 result.valid = regexp.test(result.value as string);
@@ -539,19 +581,19 @@ export class Controller {
             result.value = false;
         }
         else if (type === "boolean" && result.value instanceof Array && all) {
-            result.value = result.value.every(value => coerceValue(value, "boolean") === true); // and all booleans together
+            result.value = result.value.every(value => coerceSelectValue(value, "boolean") === true); // and all booleans together
         }
         else if (type === "boolean" && result.value instanceof Array && !all) {
-            result.value = result.value.some(value => coerceValue(value, "boolean") === true); // or all booleans together
+            result.value = result.value.some(value => coerceSelectValue(value, "boolean") === true); // or all booleans together
         }
         else if (type === "boolean") {
-            result.value = coerceValue(result.value, "boolean");
+            result.value = coerceSelectValue(result.value, "boolean");
         }
         else if (type === "number" && result.value instanceof Array) {
-            result.value = result.value.map(value => coerceValue(value, "number"));
+            result.value = result.value.map(value => coerceSelectValue(value, "number"));
         }
         else if (type === "number") {
-            result.value = coerceValue(result.value, "number");
+            result.value = coerceSelectValue(result.value, "number");
         }
 
         if (negate) {
@@ -752,18 +794,16 @@ export class Controller {
                 }
             }
 
-            if (result) {
-                if (repeated && !(result.value instanceof Array)) {
+            if (result && !result.raw) {
+                // guarantee the shape of the output data matches the repeated flag
+                if (repeated && !(result.value instanceof Array))
                     result.value = [result.value];
-                }
-                else if (!repeated && result.value instanceof Array && result.value.every(value => typeof value === "string")) {
+                else if (!repeated && result.value instanceof Array && result.value.every(value => typeof value === "string"))
                     result.value = result.value.length > 0 ? result.value.join(format === "singleline" ? " " : "\n") : null; // concatenate strings
-                }
-                else if (!repeated && result.value instanceof Array) {
+                else if (!repeated && result.value instanceof Array)
                     result.value = result.value[0]; // take first value
-                }
-                return result;
             }
+            return result;
         }
     }
 
@@ -837,9 +877,11 @@ export class Controller {
                 }
             }
             this.clearRepeatState();
+            this.state.vars.__metrics.steps += 1;
             this.log(`REPEAT${name} ${state.index} iterations completed (limit=${limit}, errors=${errorOffset}/${errors})`);
         }
         else {
+            this.state.vars.__metrics.skipped += 1;
             this.log(`REPEAT${name} SKIPPED ${when}`);
         }
     }
@@ -935,11 +977,13 @@ export class Controller {
         else if (selector === "." && context) {
             nodes = $(context.nodes);
             value = context.value;
+            this.state.vars.__metrics.queries += 1;
             this.log(`QUERY $(".", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
         }
         else if (selector === ".." && context?.parent) {
             nodes = $(context.parent.nodes);
             value = context.parent.value;
+            this.state.vars.__metrics.queries += 1;
             this.log(`QUERY $("..", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
         }
         else if (selector.startsWith("^")) {
@@ -951,6 +995,7 @@ export class Controller {
             if (subcontext) {
                 nodes = $(subcontext.nodes);
                 value = subcontext.value;
+                this.state.vars.__metrics.queries += 1;
                 this.log(`QUERY $(${selector}, [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);    
             }
             else {
@@ -961,19 +1006,21 @@ export class Controller {
         else if (selector === "{window}") {
             nodes = this.online ? $(window) : $();
             value = null;
+            this.state.vars.__metrics.queries += 1;
         }
         else if (selector === "{document}") {
             nodes = this.online ? $(document) : $();
             value = null;
+            this.state.vars.__metrics.queries += 1;
         }
         else {
             try {
                 const _selector = String(this.evaluate(selector));
                 nodes = this.resolveQueryNodes($(_selector, context?.nodes), result?.nodes);
                 value = this.text(nodes, format);
-                if (selector !== _selector) {
+                if (selector !== _selector)
                     this.log(`EVALUATE "${selector}" >>> "${_selector}"`);
-                }
+                this.state.vars.__metrics.queries += 1;
                 this.log(`QUERY $("${_selector}", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
             }
             catch (err) {
@@ -1152,8 +1199,13 @@ export class Controller {
                 }
             }
             else if (operator === "json") {
-                if (!this.validateOperands(operator, operands, ["string"]))
+                if (!this.validateOperands(operator, operands, [], ["string"]))
                     break;
+                const formula = operands[0];
+                if (formula && !isFormula(formula)) {
+                    this.appendError("invalid-operand", `Invalid formula for "json"`, 0);
+                    break;
+                }
                 const input = {
                     elements: result.nodes.toArray(),
                     values: result.value instanceof Array ? result.value : new Array(result.nodes.length).fill(result.value)
@@ -1166,15 +1218,26 @@ export class Controller {
                 for (let i = 0; i < n; ++i) {
                     const json = tryParseJson(input.values[i]);
                     if (json !== undefined) {
-                        const value = this.evaluate(operands[0], { value: json, index: i, count: n });
+                        const value = formula ? this.evaluate(formula, { value: json, index: i, count: n }) : json;
                         if (value !== null && value !== undefined) {
                             output.elements.push(input.elements[i]);
                             output.values.push(value);
                         }
                     }
                 }
-                result.nodes = $(output.elements);
-                result.value = output.values;    
+                if (output.elements.length === 0) {
+                    result.nodes = $([]);
+                    result.value = null;
+                }
+                else if (repeated || all) {
+                    result.nodes = $(output.elements);
+                    result.value = output.values;
+                }
+                else {
+                    result.nodes = $(output.elements[0]);
+                    result.value = output.values[0];
+                }
+                result.raw = true;
             }
             else if (operator === "map") {
                 if (!this.validateOperands(operator, operands, ["string"]))
@@ -1276,18 +1339,12 @@ export class Controller {
                 result.value = result.nodes.length;
             }
             else if (operator === "split") {
-                const bypass = operands[0] === undefined && result.value instanceof Array;
-                if (!bypass) {
-                    const text = result.value instanceof Array ? result.value.join("\n") : result.value as string;
-                    const separator = operands[0] as string;
-                    const limit = typeof operands[1] === "number" ? operands[1] as number : undefined;
-                    const trim = typeof operands[2] === "boolean" ? operands[2] as boolean : true;
-                    //todo: support regexp
-                    result.value = text.split(separator, limit);
-                    if (trim && result.value instanceof Array) {
-                        result.value = result.value.map(value => value.trim()).filter(value => value.length > 0);
-                    }
-                }
+                if (!this.validateOperands(operator, operands, [], ["string","number"]))
+                    break;
+                const text = result.value instanceof Array ? result.value.join("\n") : result.value as string;
+                const separator = operands[0] as string || "\n";
+                const limit = typeof operands[1] === "number" && operands[1] >= 0 ? operands[1] : undefined;
+                result.value = text.split(separator, limit);
             }
             else if (operator === "shadow") {
                 result.nodes = $(result.nodes.toArray().map(element => element.shadowRoot).filter(obj => !!obj));
@@ -1398,7 +1455,7 @@ export class Controller {
 
         if (action.hasOwnProperty("snooze")) {
             const obj = (action as SnoozeAction).snooze;
-            status.timeout = obj[1] || obj[0];
+            status.timeout = obj instanceof Array ? obj[1] || obj[0] : typeof obj === "number" ? obj : obj.interval[1] || obj.interval[0];
         }
         else if (action.hasOwnProperty("waitfor")) {
             const obj = (action as WaitForAction).waitfor;
@@ -1459,13 +1516,15 @@ export class Controller {
                 else {
                     this.log(`SCROLL${name ? ` ${name}` : ""} ${when || "(default)"} INVALID TARGET`);
                 }
+                this.state.vars.__metrics.steps += 1;
             }
             else {
+                this.state.vars.__metrics.skipped += 1;
                 this.log(`SCROLL${name ? ` ${name}` : ""} SKIPPED ${when}`);
             }
         }
         else {
-            this.log(`SCROLL BYPASSED ${when}`);
+            this.log(`SCROLL${name ? ` ${name}` : ""} IGNORED`);
         }
     }
 
@@ -1479,42 +1538,35 @@ export class Controller {
                     item = this.selectResolvePivot(select, item);
                 }
                 else {
-                    if (!pivot) {
+                    if (!pivot)
                         this.pushContext({ name: select.name }, select.context);
-                    }
 
                     if (select.union) {
                         item = this.selectResolveUnion(select, item, data);
                     }
                     else {
-                        if (select.query) {
-                            item = this.selectResolveSelector(select, item);
-                        }
-                        
-                        if (select.value) {
+                        if (select.query)
+                            item = this.selectResolveSelector(select, item);                        
+                        if (select.value)
                             item = this.selectResolveValue(select, { data, value: item?.value });
-                        }
                     }
 
                     if (!pivot) {
-                        if (isEmpty(item?.value) && select.required) {
+                        if (isEmpty(item?.value) && select.required)
                             this.appendError("select-required", `Required select '${this.contextKey()}' not found`, 0);
-                        }    
                         this.popContext();
                     }
                 }
             }
 
-            if (select.name?.startsWith("_") && item) {
+            if (select.name?.startsWith("_") && item)
                 this.state.vars[select.name] = item.value;
-            }
-            else if (select.name) {
+            else if (select.name)
                 data[select.name] = item;
-            }
-            else {
+            else
                 return item;
-            }
         }
+        this.state.vars.__metrics.steps += 1;
         return data;
     }
 
@@ -1563,14 +1615,7 @@ export class Controller {
         }
         const result = this.query(select);
         if (result) {
-            if (select.type !== "object") {
-                subitem = {
-                    nodes: this.nodeKeys(result.nodes),
-                    key: result.key,
-                    value: result.value
-                };
-            }
-            else if (select.select) {
+            if (select.select) {
                 this.pushContext({ action: "subselect" }, select.context);
                 const n = result.value instanceof Array ? result.value.length : 0;
                 if (select.repeated && result.nodes.length === n && !select.collate) {
@@ -1619,6 +1664,13 @@ export class Controller {
                 }
                 this.popContext();
             }
+            else {
+                subitem = {
+                    nodes: this.nodeKeys(result.nodes),
+                    key: result.key,
+                    value: result.value
+                };
+            }
         }
         this.log(`SELECT ${this.contextKey()} -> ${selectorStatements(select.query)} -> ${subitem ? trunc(subitem.value) : "(none)"}${item ? ` merge(${typeName(item?.value)}, ${typeName(subitem?.value)})` : ""}`);
         return merge(item, subitem);
@@ -1656,7 +1708,7 @@ export class Controller {
 
     private selectResolveValue(select: Select, context?: Partial<{ data: Record<string, DataItem | null>, value: unknown }>): DataItem {
         const result = this.evaluate(select.value, context);
-        const value = coerceValue(result, select.type, select.repeated);
+        const value = coerceSelectValue(result, select.type, select.repeated);
         return {
             nodes: [],
             key: this.contextKey(),
@@ -1683,17 +1735,28 @@ export class Controller {
         return index;
     }
 
-    private async snooze(interval: Snooze): Promise<void> {
+    private async snooze(obj: Snooze | number | [number] | [number, number]): Promise<void> {
+        const { name, interval, when } = obj instanceof Array ? { name: "", interval: obj, when: undefined } : typeof obj === "number" ? { name: "", interval: [obj], when: undefined } : obj;
         if (this.online) {
-            this.log(`SNOOZE ${interval[0]}s`);
-            await sleep(interval[0] * 1000);
+            if (this.when(when, `SNOOZE${name ? ` ${name}` : ""}`)) {
+                this.log(`SNOOZE${name ? ` ${name}` : ""} ${interval[0]}s`);
+                const timer = new Timer();
+                await sleep(interval[0] * 1000);
+                this.state.vars.__metrics.snooze += timer.elapsed();
+                this.state.vars.__metrics.steps += 1;
+            }
+            else {
+                this.state.vars.__metrics.skipped += 1;
+                this.log(`SNOOZE${name ? ` ${name}` : ""} ${interval[0]}s SKIPPED ${when}`);
+            }
         }
         else {
-            this.log(`SNOOZE ${interval[0]}s SKIPPED`);
+            this.log(`SNOOZE${name ? ` ${name}` : ""} ${interval[0]}s IGNORED`);
         }
     }
 
     private async switch(switches: Switch[]): Promise<void> {
+        this.state.vars.__metrics.steps += 1;
         let i = 0;
         for (const { when, name, query, actions } of switches) {
             const label = `SWITCH CASE ${++i}/${switches.length}${name ? ` ${name}` : ""}`;
@@ -1756,20 +1819,31 @@ export class Controller {
                 this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} SKIPPED ${selectorStatement(transform.query)}`);
             }
         }
+        this.state.vars.__metrics.steps += 1;
     }
 
     private validateOperands(operator: SelectQueryOperator, operands: SelectQueryOperand[], required: Array<"string" | "number" | "boolean">, optional: Array<"string" | "number" | "boolean"> = []): boolean {
         for (let i = 0; i < required.length; ++i) {
             if (typeof operands[i] !== required[i]) {
-                this.appendError("invalid-operand", `Parameter #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`, 0);
-                return false;
+                if (isCoercibleTo(operands[i], required[i])) {
+                    operands[i] = coerce(operands[i], required[i])
+                }
+                else {
+                    this.appendError("invalid-operand", `Parameter #${i + 1} of "${operator}" is invalid: "${operands[i]}" is not a ${required[i]}`, 0);
+                    return false;
+                }
             }
         }
         for (let i = 0; i < optional.length; ++i) {
             const j = i + required.length;
             if (operands[j] !== undefined && operands[j] !== null && typeof operands[j] !== optional[i]) {
-                this.appendError("invalid-operand", `Parameter #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`, 0);
-                return false;
+                if (isCoercibleTo(operands[j], optional[i])) {
+                    operands[j] = coerce(operands[j], optional[i])
+                }
+                else {
+                    this.appendError("invalid-operand", `Parameter #${j + 1} of "${operator}" is invalid: "${operands[j]}" is not a ${optional[i]}`, 0);
+                    return false;
+                }
             }
         }
         if (operands.length > required.length + optional.length) {
@@ -1805,14 +1879,13 @@ export class Controller {
             label += " ";
         if (this.online) {
             if (this.when(when, `WAITFOR${name ? ` ${name}` : ""}`)) {
-                if (timeout === undefined) {
+                if (timeout === undefined)
                     timeout = defaultTimeout;
-                }
-                else if (timeout === null || timeout <= 0) {
+                else if (timeout === null || timeout <= 0)
                     timeout = Infinity;
-                }
     
                 let code = null;
+                const timer = new Timer();
                 if (query) {
                     this.log(`${label}WAITFOR${name ? ` ${name}` : ""} QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
                     code = await this.waitforQuery(query, on, timeout, required, pattern, label);
@@ -1821,15 +1894,18 @@ export class Controller {
                     this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
                     code = await this.waitforSelect(select, on, timeout, required, pattern, label);
                 }
+                this.state.vars.__metrics.waitfor += timer.elapsed();
+                this.state.vars.__metrics.steps += 1;
                 return code;
             }
             else {
-                this.log(`${label}WAITFOR${name ? ` ${name}` : ""} BYPASSSED ${selectorStatements(query)}`);
+                this.state.vars.__metrics.skipped += 1;
+                this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SKIPPED ${selectorStatements(query)}`);
                 return null;
             }
         }
         else {
-            this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SKIPPED ${selectorStatements(query)}`);
+            this.log(`${label}WAITFOR${name ? ` ${name}` : ""} IGNORED ${selectorStatements(query)}`);
             return null;
         }
     }
@@ -1843,9 +1919,8 @@ export class Controller {
         let result = undefined;
         while (!pass && elapsed < timeout) {
             [pass, result] = this.queryCheck(query, on, pattern);
-            if (!pass) {
+            if (!pass)
                 await sleep(100);
-            }
             elapsed = (new Date().valueOf() - t0) / 1000;
         }
 
@@ -1856,6 +1931,7 @@ export class Controller {
         }
         else if (required) {
             this.appendError("waitfor-timeout", message, 1);
+            this.state.vars.__metrics.timeouts += 1;
             return "timeout";
         }
         else {
@@ -1918,6 +1994,7 @@ export class Controller {
         }
         else if (required) {
             this.appendError("waitfor-timeout", message, 1);
+            this.state.vars.__metrics.timeouts += 1;
             return "timeout";
         }
         else {
@@ -1954,14 +2031,17 @@ export class Controller {
                 for (const key of Object.keys(params))
                     params[key] = this.evaluate(params[key]);
                 this.state.yield = { step, params };
+                this.state.vars.__metrics.steps += 1;
+                this.state.vars.__metrics.yields += 1;
                 throw "YIELD";
             }
             else {
+                this.state.vars.__metrics.skipped += 1;
                 this.log(`YIELD${name} SKIPPED ${when}`);
             }
         }
         else {
-            this.log(`YIELD${name} BYPASSED ${when}`);
+            this.log(`YIELD${name} IGNORED ${when}`);
         }
         return undefined;
     }

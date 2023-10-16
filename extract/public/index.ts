@@ -11,6 +11,7 @@ export * from "./ExtractState.js";
 export * from "./ExtractStatus.js";
 export * from "./GoBack.js";
 export * from "./Locator.js";
+export * from "./Metrics.js";
 export * from "./Navigate.js";
 export * from "./Reload.js";
 export * from "./Repeat.js";

@@ -1,4 +1,8 @@
-add new sync exports for select, transform, and extract
+DONE: add new sync exports for select, transform, and extract
+
+select with subselect should work without a query on the select (workaround: set query to body)
+
+window.post debugging feature!!
 
 locator: pass additional options object
 locator: append to controller log instead of console
@@ -6,17 +10,16 @@ locator: append to controller log instead of console
 maxSnooze and maxWaitfor setting that limits amount of time spent in those actions
 return metrics containing snooze, waitfor, navigate, yield, total timers, as well as number of steps executed and skipped, also indicate how many timeouts occurred
 
-consider trimming all strings, and all html
-
-cut should coerce strings to numbers for second arg
+DONE: consider trimming all strings, and all html
+DONE: some functions like cut should accept numbers or bools as strings (example: coerce 2nd arg is a number that should also accept a string)
 split on \n doesn't always work (repro: sgrlaw)
-
+json function should have a second param to destructure the value
 
 add a flag to extract function that returns all elements instead of just the first one (#syphonx 7/14, Taylor)
-add a json function that does a JSON.parse without throwing if invalid
+DONE: add a json function that does a JSON.parse without throwing if invalid
 consider destructuring for json
 
-add a test for parsing JSON
+DONE: add a test for parsing JSON
 add a test to ensure immediate return with sleeps in offline mode
 
 type action that inputs text

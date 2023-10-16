@@ -2,7 +2,7 @@ export function parseBoolean(value: unknown): boolean | undefined {
     if (typeof value === "boolean")
         return value;
     else if (typeof value === "string")
-        return value !== "" && value.toLowerCase() !== "false" && value.toLowerCase() !== "0";
+        return value !== "" && value.trim().toLowerCase() !== "false" && value.trim() !== "0";
     else
         return undefined;
 }
