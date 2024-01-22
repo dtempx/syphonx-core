@@ -687,23 +687,20 @@ export class Controller {
             const onlyTag = $parent.children(tag).length === 1;
             const onlyClassName = tag && /^[A-Za-z0-9_-]+$/.test(className) ? $parent.children(`${tag}.${className}`).length === 1 : false;
 
-            if (uniqueId) {
+            if (uniqueId)
                 path.push(`#${id}`);
-                break;
-            }
-            else if (uniqueClassName) {
+            else if (uniqueClassName)
                 path.push(`${tag}.${className}`);
-                break;
-            }
-            else if (onlyTag) {
+            else if (onlyTag)
                 path.push(tag);
-            }
-            else if (onlyClassName) {
+            else if (onlyClassName)
                 path.push(`${tag}.${className}`);
-            }
-            else {
+            else
                 path.push(`${tag}:nth-child(${n})`);
-            }
+                //path.push(n === 1 ? `${tag}:first-child` : n === $parent.length ? `${tag}:last-child` : `${tag}:nth-child(${n})`);
+
+            if (uniqueId || uniqueClassName)
+                break;
         }
         return path.reverse().join(" > ");
     }

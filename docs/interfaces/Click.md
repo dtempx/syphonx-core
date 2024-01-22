@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[extract/public/Click.ts:8](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L8)
+extract/public/Click.ts:8
 
 ___
 
@@ -34,7 +34,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:9](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L9)
+extract/public/Click.ts:9
 
 ___
 
@@ -44,7 +44,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:12](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L12)
+extract/public/Click.ts:12
 
 ___
 
@@ -54,7 +54,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:13](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L13)
+extract/public/Click.ts:13
 
 ___
 
@@ -64,7 +64,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:11](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L11)
+extract/public/Click.ts:11
 
 ___
 
@@ -74,7 +74,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:15](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L15)
+extract/public/Click.ts:15
 
 ___
 
@@ -84,7 +84,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:10](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L10)
+extract/public/Click.ts:10
 
 ___
 
@@ -94,7 +94,7 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:16](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L16)
+extract/public/Click.ts:16
 
 ___
 
@@ -104,4 +104,4 @@ ___
 
 #### Defined in
 
-[extract/public/Click.ts:14](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Click.ts#L14)
+extract/public/Click.ts:14

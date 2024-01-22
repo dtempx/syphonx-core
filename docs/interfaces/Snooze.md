@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[extract/public/Snooze.ts:8](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Snooze.ts#L8)
+extract/public/Snooze.ts:8
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[extract/public/Snooze.ts:7](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Snooze.ts#L7)
+extract/public/Snooze.ts:7
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[extract/public/Snooze.ts:9](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/extract/public/Snooze.ts#L9)
+extract/public/Snooze.ts:9

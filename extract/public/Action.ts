@@ -52,3 +52,23 @@ export type SwitchAction = { switch: Switch[] };
 export type TransformAction = { transform: Transform[] };
 export type WaitForAction = { waitfor: WaitFor };
 export type YieldAction = { yield: Yield };
+
+export type ActionType =
+  "break" |
+  "click" |
+  "each" |
+  "error" |
+  "goback" |
+  "locator" |
+  "navigate" |
+  "reload" |
+  "repeat" |
+  "screenshot" |
+  "scroll" |
+  "select" |
+  "snooze" |
+  "switch" |
+  "transform" |
+  "waitfor" |
+  "yield";
+  

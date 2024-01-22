@@ -32,7 +32,7 @@
 
 #### Defined in
 
-[host.ts:37](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L37)
+host.ts:37
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 #### Defined in
 
-[host.ts:38](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L38)
+host.ts:38
 
 ___
 
@@ -52,7 +52,7 @@ ___
 
 #### Defined in
 
-[host.ts:39](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L39)
+host.ts:39
 
 ___
 
@@ -77,7 +77,7 @@ ___
 
 #### Defined in
 
-[host.ts:42](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L42)
+host.ts:42
 
 ___
 
@@ -103,7 +103,7 @@ ___
 
 #### Defined in
 
-[host.ts:43](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L43)
+host.ts:43
 
 ___
 
@@ -121,7 +121,7 @@ ___
 
 #### Defined in
 
-[host.ts:44](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L44)
+host.ts:44
 
 ___
 
@@ -145,7 +145,7 @@ ___
 
 #### Defined in
 
-[host.ts:45](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L45)
+host.ts:45
 
 ___
 
@@ -169,7 +169,7 @@ ___
 
 #### Defined in
 
-[host.ts:46](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L46)
+host.ts:46
 
 ___
 
@@ -195,7 +195,7 @@ ___
 
 #### Defined in
 
-[host.ts:47](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L47)
+host.ts:47
 
 ___
 
@@ -219,7 +219,7 @@ ___
 
 #### Defined in
 
-[host.ts:48](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L48)
+host.ts:48
 
 ___
 
@@ -243,7 +243,7 @@ ___
 
 #### Defined in
 
-[host.ts:49](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L49)
+host.ts:49
 
 ___
 
@@ -253,7 +253,7 @@ ___
 
 #### Defined in
 
-[host.ts:35](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L35)
+host.ts:35
 
 ___
 
@@ -263,7 +263,7 @@ ___
 
 #### Defined in
 
-[host.ts:40](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L40)
+host.ts:40
 
 ___
 
@@ -273,7 +273,7 @@ ___
 
 #### Defined in
 
-[host.ts:41](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L41)
+host.ts:41
 
 ___
 
@@ -283,7 +283,7 @@ ___
 
 #### Defined in
 
-[host.ts:33](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L33)
+host.ts:33
 
 ___
 
@@ -293,7 +293,7 @@ ___
 
 #### Defined in
 
-[host.ts:36](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L36)
+host.ts:36
 
 ___
 
@@ -303,4 +303,4 @@ ___
 
 #### Defined in
 
-[host.ts:34](https://github.com/dtempx/syphonx-core/blob/e4f4a4f/host.ts#L34)
+host.ts:34
