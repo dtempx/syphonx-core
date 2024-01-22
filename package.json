@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.60",
+  "version": "1.2.61",
   "description": "Advanced HTML parser and web data extractor",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",
@@ -45,7 +45,7 @@
     "jquery": "^3.6.0",
     "json5": "^2.2.1",
     "mocha": "^9.2.2",
-    "playwright": "^1.36.0",
+    "playwright": "^1.41.1",
     "rollup": "^3.18.0",
     "terser": "^5.17.7",
     "typedoc": "^0.25.1",

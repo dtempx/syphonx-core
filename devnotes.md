@@ -20,6 +20,8 @@ yarn test
 yarn upgrade playwright --latest
 yarn build
 yarn test
+git commit
+git push
 npm publish
 ```
 > Publish requires authenticator code

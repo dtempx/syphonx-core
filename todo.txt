@@ -1,4 +1,8 @@
-DONE: add new sync exports for select, transform, and extract
+add encode and decode functions that calls encodeURIComponent and decodeURIComponent respectively
+return which query was selected in output data
+take screenshot for a selector
+return bounding rect for a selector
+support xpath selectors
 
 select with subselect should work without a query on the select (workaround: set query to body)
 
