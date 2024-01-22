@@ -22,7 +22,7 @@
 
 #### Defined in
 
-extract/public/Yield.ts:38
+[extract/public/Yield.ts:38](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Yield.ts#L38)
 
 ___
 
@@ -32,7 +32,7 @@ ___
 
 #### Defined in
 
-extract/public/Yield.ts:36
+[extract/public/Yield.ts:36](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Yield.ts#L36)
 
 ___
 
@@ -42,4 +42,4 @@ ___
 
 #### Defined in
 
-extract/public/Yield.ts:37
+[extract/public/Yield.ts:37](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Yield.ts#L37)

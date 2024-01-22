@@ -90,7 +90,7 @@
 - [findAction](modules.md#findaction)
 - [findLastSelectGroup](modules.md#findlastselectgroup)
 - [findSelect](modules.md#findselect)
-- [flatten](modules.md#flatten)
+- [flattenTemplateActions](modules.md#flattentemplateactions)
 - [flattenTemplateSelect](modules.md#flattentemplateselect)
 - [host](modules.md#host)
 - [invokeAsyncMethod](modules.md#invokeasyncmethod)
@@ -104,7 +104,7 @@
 
 #### Defined in
 
-extract/public/Action.ts:19
+[extract/public/Action.ts:19](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L19)
 
 ___
 
@@ -114,7 +114,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:56
+[extract/public/Action.ts:56](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L56)
 
 ___
 
@@ -130,7 +130,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:38
+[extract/public/Action.ts:38](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L38)
 
 ___
 
@@ -146,7 +146,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:39
+[extract/public/Action.ts:39](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L39)
 
 ___
 
@@ -156,7 +156,7 @@ ___
 
 #### Defined in
 
-extract/public/DocumentLoadState.ts:1
+[extract/public/DocumentLoadState.ts:1](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/DocumentLoadState.ts#L1)
 
 ___
 
@@ -172,7 +172,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:40
+[extract/public/Action.ts:40](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L40)
 
 ___
 
@@ -188,7 +188,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:41
+[extract/public/Action.ts:41](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L41)
 
 ___
 
@@ -198,7 +198,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractErrorCode.ts:1
+[extract/public/ExtractErrorCode.ts:1](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractErrorCode.ts#L1)
 
 ___
 
@@ -214,7 +214,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:42
+[extract/public/Action.ts:42](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L42)
 
 ___
 
@@ -230,7 +230,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:43
+[extract/public/Action.ts:43](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L43)
 
 ___
 
@@ -240,7 +240,7 @@ ___
 
 #### Defined in
 
-extract/public/Locator.ts:14
+[extract/public/Locator.ts:14](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L14)
 
 ___
 
@@ -256,7 +256,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:44
+[extract/public/Action.ts:44](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L44)
 
 ___
 
@@ -272,7 +272,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:45
+[extract/public/Action.ts:45](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L45)
 
 ___
 
@@ -288,7 +288,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:46
+[extract/public/Action.ts:46](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L46)
 
 ___
 
@@ -304,7 +304,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:47
+[extract/public/Action.ts:47](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L47)
 
 ___
 
@@ -320,7 +320,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:48
+[extract/public/Action.ts:48](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L48)
 
 ___
 
@@ -330,7 +330,7 @@ ___
 
 #### Defined in
 
-extract/public/Scroll.ts:14
+[extract/public/Scroll.ts:14](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Scroll.ts#L14)
 
 ___
 
@@ -346,7 +346,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:49
+[extract/public/Action.ts:49](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L49)
 
 ___
 
@@ -356,7 +356,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:38
+[extract/public/Select.ts:38](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L38)
 
 ___
 
@@ -366,7 +366,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:39
+[extract/public/Select.ts:39](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L39)
 
 ___
 
@@ -376,7 +376,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:34
+[extract/public/Select.ts:34](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L34)
 
 ___
 
@@ -386,7 +386,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:35
+[extract/public/Select.ts:35](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L35)
 
 ___
 
@@ -396,7 +396,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:37
+[extract/public/Select.ts:37](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L37)
 
 ___
 
@@ -406,7 +406,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:36
+[extract/public/Select.ts:36](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L36)
 
 ___
 
@@ -416,7 +416,7 @@ ___
 
 #### Defined in
 
-extract/public/Select.ts:33
+[extract/public/Select.ts:33](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L33)
 
 ___
 
@@ -432,7 +432,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:50
+[extract/public/Action.ts:50](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L50)
 
 ___
 
@@ -442,7 +442,7 @@ ___
 
 #### Defined in
 
-extract/public/Snooze.ts:4
+[extract/public/Snooze.ts:4](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Snooze.ts#L4)
 
 ___
 
@@ -452,7 +452,7 @@ ___
 
 #### Defined in
 
-extract/public/Snooze.ts:3
+[extract/public/Snooze.ts:3](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Snooze.ts#L3)
 
 ___
 
@@ -468,7 +468,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:51
+[extract/public/Action.ts:51](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L51)
 
 ___
 
@@ -484,7 +484,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:52
+[extract/public/Action.ts:52](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L52)
 
 ___
 
@@ -500,7 +500,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:53
+[extract/public/Action.ts:53](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L53)
 
 ___
 
@@ -510,7 +510,7 @@ ___
 
 #### Defined in
 
-extract/public/When.ts:1
+[extract/public/When.ts:1](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/When.ts#L1)
 
 ___
 
@@ -526,7 +526,7 @@ ___
 
 #### Defined in
 
-extract/public/Action.ts:54
+[extract/public/Action.ts:54](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Action.ts#L54)
 
 ## Variables
 
@@ -536,7 +536,7 @@ extract/public/Action.ts:54
 
 #### Defined in
 
-host.ts:275
+[host.ts:276](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L276)
 
 ## Functions
 
@@ -557,7 +557,7 @@ host.ts:275
 
 #### Defined in
 
-extract/select.ts:12
+[extract/select.ts:13](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/select.ts#L13)
 
 ___
 
@@ -578,7 +578,7 @@ ___
 
 #### Defined in
 
-extract/transform.ts:11
+[extract/transform.ts:11](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/transform.ts#L11)
 
 ___
 
@@ -593,7 +593,7 @@ Evaluates a Javascript formula within the specified scope returning a computed r
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `formula` | `string` | A Javascript formula to evaluate. |
-| `scope` | `Record`<`string`, `unknown`\> | Object state defining the scope of the evaluation. |
+| `scope` | `Record`\<`string`, `unknown`\> | Object state defining the scope of the evaluation. |
 
 #### Returns
 
@@ -603,13 +603,13 @@ The result of the formula evaluation.
 
 #### Defined in
 
-lib/formula.ts:7
+[lib/formula.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/lib/formula.ts#L7)
 
 ___
 
 ### extract
 
-▸ **extract**(`state`): `Promise`<[`ExtractState`](interfaces/ExtractState.md)\>
+▸ **extract**(`state`): `Promise`\<[`ExtractState`](interfaces/ExtractState.md)\>
 
 #### Parameters
 
@@ -619,11 +619,11 @@ ___
 
 #### Returns
 
-`Promise`<[`ExtractState`](interfaces/ExtractState.md)\>
+`Promise`\<[`ExtractState`](interfaces/ExtractState.md)\>
 
 #### Defined in
 
-extract/extract.ts:5
+[extract/extract.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/extract.ts#L5)
 
 ___
 
@@ -635,7 +635,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `state` | `Partial`<[`ExtractState`](interfaces/ExtractState.md)\> |
+| `state` | `Partial`\<[`ExtractState`](interfaces/ExtractState.md)\> |
 
 #### Returns
 
@@ -643,7 +643,7 @@ ___
 
 #### Defined in
 
-extract/extract-sync.ts:5
+[extract/extract-sync.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/extract-sync.ts#L5)
 
 ___
 
@@ -664,7 +664,7 @@ ___
 
 #### Defined in
 
-extract/utilities.ts:17
+[extract/utilities.ts:17](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L17)
 
 ___
 
@@ -684,7 +684,7 @@ ___
 
 #### Defined in
 
-extract/utilities.ts:23
+[extract/utilities.ts:23](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L23)
 
 ___
 
@@ -705,13 +705,13 @@ ___
 
 #### Defined in
 
-extract/utilities.ts:28
+[extract/utilities.ts:28](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L28)
 
 ___
 
-### flatten
+### flattenTemplateActions
 
-▸ **flatten**(`actions`, `result?`, `level?`, `n?`): [`FlatAction`](interfaces/FlatAction.md)[]
+▸ **flattenTemplateActions**(`actions`, `result?`, `level?`, `n?`): [`FlatAction`](interfaces/FlatAction.md)[]
 
 #### Parameters
 
@@ -728,7 +728,7 @@ ___
 
 #### Defined in
 
-extract/utilities.ts:38
+[extract/utilities.ts:38](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L38)
 
 ___
 
@@ -736,26 +736,30 @@ ___
 
 ▸ **flattenTemplateSelect**(`actions`, `names?`): [`Select`](interfaces/Select.md)[]
 
+Collapses multiple select actions to a single select action.
+
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `actions` | [`Action`](modules.md#action)[] |
-| `names?` | `string`[] |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `actions` | [`Action`](modules.md#action)[] | The action tree to collapse. |
+| `names?` | `string`[] | Optionally, only collapse the specified names. |
 
 #### Returns
 
 [`Select`](interfaces/Select.md)[]
 
+Returns the collapsed select actions.
+
 #### Defined in
 
-extract/utilities.ts:52
+[extract/utilities.ts:58](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L58)
 
 ___
 
 ### host
 
-▸ **host**(`«destructured»`): `Promise`<[`ExtractResult`](interfaces/ExtractResult.md)\>
+▸ **host**(`«destructured»`): `Promise`\<[`ExtractResult`](interfaces/ExtractResult.md)\>
 
 #### Parameters
 
@@ -765,17 +769,17 @@ ___
 
 #### Returns
 
-`Promise`<[`ExtractResult`](interfaces/ExtractResult.md)\>
+`Promise`\<[`ExtractResult`](interfaces/ExtractResult.md)\>
 
 #### Defined in
 
-host.ts:52
+[host.ts:53](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L53)
 
 ___
 
 ### invokeAsyncMethod
 
-▸ **invokeAsyncMethod**(`obj`, `method`, `args?`): `Promise`<`unknown`\>
+▸ **invokeAsyncMethod**(`obj`, `method`, `args?`): `Promise`\<`unknown`\>
 
 #### Parameters
 
@@ -787,11 +791,11 @@ ___
 
 #### Returns
 
-`Promise`<`unknown`\>
+`Promise`\<`unknown`\>
 
 #### Defined in
 
-host.ts:241
+[host.ts:242](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L242)
 
 ___
 
@@ -811,4 +815,4 @@ ___
 
 #### Defined in
 
-lib/unwrap.ts:1
+[lib/unwrap.ts:1](https://github.com/dtempx/syphonx-core/blob/09d2037/lib/unwrap.ts#L1)

@@ -20,7 +20,7 @@
 
 #### Defined in
 
-extract/public/Break.ts:5
+[extract/public/Break.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Break.ts#L5)
 
 ___
 
@@ -30,7 +30,7 @@ ___
 
 #### Defined in
 
-extract/public/Break.ts:7
+[extract/public/Break.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Break.ts#L7)
 
 ___
 
@@ -40,7 +40,7 @@ ___
 
 #### Defined in
 
-extract/public/Break.ts:8
+[extract/public/Break.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Break.ts#L8)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-extract/public/Break.ts:6
+[extract/public/Break.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Break.ts#L6)
 
 ___
 
@@ -60,4 +60,4 @@ ___
 
 #### Defined in
 
-extract/public/Break.ts:9
+[extract/public/Break.ts:9](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Break.ts#L9)

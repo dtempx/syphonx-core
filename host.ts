@@ -1,5 +1,6 @@
-import { attempt, evaluateFormula, flatten, sleep, unwrap } from "./lib/index.js";
+import { attempt, evaluateFormula, sleep, unwrap } from "./lib/index.js";
 import { isFormula, merge, parseUrl, Timer } from "./extract/lib/index.js";
+import { flattenTemplateActions } from "./extract/utilities.js";
 import { Template } from "./template.js";
 import { Metrics } from "./extract/public/index.js";
 
@@ -82,7 +83,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
         debug: options.debug || options.template.debug
     } as ExtractState;
 
-    const actions = flatten(options.template.actions);
+    const actions = flattenTemplateActions(options.template.actions);
     state.vars.__metrics = {
         navigate: 0,
         retries: 0,

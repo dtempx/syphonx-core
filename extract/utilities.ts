@@ -15,7 +15,7 @@ export interface FlatAction {
 }
 
 export function findAction(actions: Action[], action_type: ActionType): Action[] {
-    return flatten(actions)
+    return flattenTemplateActions(actions)
         .map(obj => obj.action)
         .filter(action => action.hasOwnProperty(action_type));
 }
@@ -35,20 +35,26 @@ export function findSelect(actions: Action[], name: string): Select[] {
     return result;
 }
 
-export function flatten(actions: Action[], result: FlatAction[] = [], level = 0, n?: number): FlatAction[] {
+export function flattenTemplateActions(actions: Action[], result: FlatAction[] = [], level = 0, n?: number): FlatAction[] {
     for (const action of actions) {
         result.push(!n ? { action, level } : { action, level, case: n });
         if (action.hasOwnProperty("each"))
-            flatten((action as EachAction).each.actions, result, level + 1);
+            flattenTemplateActions((action as EachAction).each.actions, result, level + 1);
         else if (action.hasOwnProperty("repeat"))
-            flatten((action as RepeatAction).repeat.actions, result, level + 1);
+            flattenTemplateActions((action as RepeatAction).repeat.actions, result, level + 1);
         else if (action.hasOwnProperty("switch"))
             for (const obj of (action as SwitchAction).switch)
-                flatten(obj.actions, result, level + 1, (action as SwitchAction).switch.indexOf(obj) + 1);
+                flattenTemplateActions(obj.actions, result, level + 1, (action as SwitchAction).switch.indexOf(obj) + 1);
     }
     return result;
 }
 
+/**
+ * Collapses multiple select actions to a single select action.
+ * @param actions The action tree to collapse.
+ * @param names Optionally, only collapse the specified names.
+ * @returns Returns the collapsed select actions.
+ */
 export function flattenTemplateSelect(actions: Action[], names?: string[]): Select[] {
     const selectActions = findAction(actions, "select").map(action => (action as { select: Select[] }).select);
     const result: Select[] = [];

@@ -35,7 +35,7 @@
 
 #### Defined in
 
-extract/public/ExtractState.ts:7
+[extract/public/ExtractState.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L7)
 
 ___
 
@@ -45,7 +45,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:19
+[extract/public/ExtractState.ts:19](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L19)
 
 ___
 
@@ -55,7 +55,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:13
+[extract/public/ExtractState.ts:13](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L13)
 
 ___
 
@@ -65,7 +65,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:16
+[extract/public/ExtractState.ts:16](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L16)
 
 ___
 
@@ -75,7 +75,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:9
+[extract/public/ExtractState.ts:9](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L9)
 
 ___
 
@@ -85,7 +85,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:15
+[extract/public/ExtractState.ts:15](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L15)
 
 ___
 
@@ -95,7 +95,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:14
+[extract/public/ExtractState.ts:14](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L14)
 
 ___
 
@@ -105,7 +105,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:10
+[extract/public/ExtractState.ts:10](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L10)
 
 ___
 
@@ -115,17 +115,17 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:20
+[extract/public/ExtractState.ts:20](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L20)
 
 ___
 
 ### params
 
-• **params**: `Record`<`string`, `unknown`\>
+• **params**: `Record`\<`string`, `unknown`\>
 
 #### Defined in
 
-extract/public/ExtractState.ts:11
+[extract/public/ExtractState.ts:11](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L11)
 
 ___
 
@@ -135,7 +135,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:18
+[extract/public/ExtractState.ts:18](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L18)
 
 ___
 
@@ -145,7 +145,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:21
+[extract/public/ExtractState.ts:21](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L21)
 
 ___
 
@@ -155,17 +155,17 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:8
+[extract/public/ExtractState.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L8)
 
 ___
 
 ### vars
 
-• **vars**: `Record`<`string`, `unknown`\>
+• **vars**: `Record`\<`string`, `unknown`\>
 
 #### Defined in
 
-extract/public/ExtractState.ts:12
+[extract/public/ExtractState.ts:12](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L12)
 
 ___
 
@@ -175,7 +175,7 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:22
+[extract/public/ExtractState.ts:22](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L22)
 
 ___
 
@@ -185,4 +185,4 @@ ___
 
 #### Defined in
 
-extract/public/ExtractState.ts:17
+[extract/public/ExtractState.ts:17](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/ExtractState.ts#L17)

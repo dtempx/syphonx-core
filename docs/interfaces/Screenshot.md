@@ -20,7 +20,7 @@
 
 #### Defined in
 
-extract/public/Screenshot.ts:6
+[extract/public/Screenshot.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Screenshot.ts#L6)
 
 ___
 
@@ -30,17 +30,17 @@ ___
 
 #### Defined in
 
-extract/public/Screenshot.ts:4
+[extract/public/Screenshot.ts:4](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Screenshot.ts#L4)
 
 ___
 
 ### params
 
-• `Optional` **params**: `Record`<`string`, `unknown`\>
+• `Optional` **params**: `Record`\<`string`, `unknown`\>
 
 #### Defined in
 
-extract/public/Screenshot.ts:7
+[extract/public/Screenshot.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Screenshot.ts#L7)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-extract/public/Screenshot.ts:5
+[extract/public/Screenshot.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Screenshot.ts#L5)
 
 ___
 
@@ -60,4 +60,4 @@ ___
 
 #### Defined in
 
-extract/public/Screenshot.ts:8
+[extract/public/Screenshot.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Screenshot.ts#L8)

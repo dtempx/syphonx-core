@@ -32,7 +32,7 @@
 
 #### Defined in
 
-host.ts:37
+[host.ts:38](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L38)
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 #### Defined in
 
-host.ts:38
+[host.ts:39](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L39)
 
 ___
 
@@ -52,17 +52,17 @@ ___
 
 #### Defined in
 
-host.ts:39
+[host.ts:40](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L40)
 
 ___
 
 ### onExtract
 
-• `Optional` **onExtract**: (`state`: [`ExtractState`](ExtractState.md), `script`: `string`) => `Promise`<[`ExtractState`](ExtractState.md)\>
+• `Optional` **onExtract**: (`state`: [`ExtractState`](ExtractState.md), `script`: `string`) => `Promise`\<[`ExtractState`](ExtractState.md)\>
 
 #### Type declaration
 
-▸ (`state`, `script`): `Promise`<[`ExtractState`](ExtractState.md)\>
+▸ (`state`, `script`): `Promise`\<[`ExtractState`](ExtractState.md)\>
 
 ##### Parameters
 
@@ -73,21 +73,21 @@ ___
 
 ##### Returns
 
-`Promise`<[`ExtractState`](ExtractState.md)\>
+`Promise`\<[`ExtractState`](ExtractState.md)\>
 
 #### Defined in
 
-host.ts:42
+[host.ts:43](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L43)
 
 ___
 
 ### onGoback
 
-• `Optional` **onGoback**: (`options`: { `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  }) => `Promise`<[`NavigateResult`](NavigateResult.md)\>
+• `Optional` **onGoback**: (`options`: \{ `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  }) => `Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 #### Type declaration
 
-▸ (`options`): `Promise`<[`NavigateResult`](NavigateResult.md)\>
+▸ (`options`): `Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 ##### Parameters
 
@@ -99,39 +99,39 @@ ___
 
 ##### Returns
 
-`Promise`<[`NavigateResult`](NavigateResult.md)\>
+`Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 #### Defined in
 
-host.ts:43
+[host.ts:44](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L44)
 
 ___
 
 ### onHtml
 
-• `Optional` **onHtml**: () => `Promise`<`string`\>
+• `Optional` **onHtml**: () => `Promise`\<`string`\>
 
 #### Type declaration
 
-▸ (): `Promise`<`string`\>
+▸ (): `Promise`\<`string`\>
 
 ##### Returns
 
-`Promise`<`string`\>
+`Promise`\<`string`\>
 
 #### Defined in
 
-host.ts:44
+[host.ts:45](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L45)
 
 ___
 
 ### onLocator
 
-• `Optional` **onLocator**: (`options`: [`YieldLocator`](YieldLocator.md)) => `Promise`<`unknown`\>
+• `Optional` **onLocator**: (`options`: [`YieldLocator`](YieldLocator.md)) => `Promise`\<`unknown`\>
 
 #### Type declaration
 
-▸ (`options`): `Promise`<`unknown`\>
+▸ (`options`): `Promise`\<`unknown`\>
 
 ##### Parameters
 
@@ -141,45 +141,45 @@ ___
 
 ##### Returns
 
-`Promise`<`unknown`\>
+`Promise`\<`unknown`\>
 
 #### Defined in
 
-host.ts:45
+[host.ts:46](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L46)
 
 ___
 
 ### onNavigate
 
-• `Optional` **onNavigate**: (`options`: [`YieldNavigate`](YieldNavigate.md) & { `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  }) => `Promise`<[`NavigateResult`](NavigateResult.md)\>
+• `Optional` **onNavigate**: (`options`: [`YieldNavigate`](YieldNavigate.md) & \{ `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  }) => `Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 #### Type declaration
 
-▸ (`options`): `Promise`<[`NavigateResult`](NavigateResult.md)\>
+▸ (`options`): `Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 ##### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `options` | [`YieldNavigate`](YieldNavigate.md) & { `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  } |
+| `options` | [`YieldNavigate`](YieldNavigate.md) & \{ `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  } |
 
 ##### Returns
 
-`Promise`<[`NavigateResult`](NavigateResult.md)\>
+`Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 #### Defined in
 
-host.ts:46
+[host.ts:47](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L47)
 
 ___
 
 ### onReload
 
-• `Optional` **onReload**: (`options`: { `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  }) => `Promise`<[`NavigateResult`](NavigateResult.md)\>
+• `Optional` **onReload**: (`options`: \{ `timeout?`: `number` ; `waitUntil?`: [`DocumentLoadState`](../modules.md#documentloadstate)  }) => `Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 #### Type declaration
 
-▸ (`options`): `Promise`<[`NavigateResult`](NavigateResult.md)\>
+▸ (`options`): `Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 ##### Parameters
 
@@ -191,21 +191,21 @@ ___
 
 ##### Returns
 
-`Promise`<[`NavigateResult`](NavigateResult.md)\>
+`Promise`\<[`NavigateResult`](NavigateResult.md)\>
 
 #### Defined in
 
-host.ts:47
+[host.ts:48](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L48)
 
 ___
 
 ### onScreenshot
 
-• `Optional` **onScreenshot**: (`options`: [`YieldScreenshot`](YieldScreenshot.md)) => `Promise`<`void`\>
+• `Optional` **onScreenshot**: (`options`: [`YieldScreenshot`](YieldScreenshot.md)) => `Promise`\<`void`\>
 
 #### Type declaration
 
-▸ (`options`): `Promise`<`void`\>
+▸ (`options`): `Promise`\<`void`\>
 
 ##### Parameters
 
@@ -215,21 +215,21 @@ ___
 
 ##### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 #### Defined in
 
-host.ts:48
+[host.ts:49](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L49)
 
 ___
 
 ### onYield
 
-• `Optional` **onYield**: (`params`: [`YieldParams`](YieldParams.md)) => `Promise`<`void`\>
+• `Optional` **onYield**: (`params`: [`YieldParams`](YieldParams.md)) => `Promise`\<`void`\>
 
 #### Type declaration
 
-▸ (`params`): `Promise`<`void`\>
+▸ (`params`): `Promise`\<`void`\>
 
 ##### Parameters
 
@@ -239,21 +239,21 @@ ___
 
 ##### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 #### Defined in
 
-host.ts:49
+[host.ts:50](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L50)
 
 ___
 
 ### params
 
-• `Optional` **params**: `Record`<`string`, `unknown`\>
+• `Optional` **params**: `Record`\<`string`, `unknown`\>
 
 #### Defined in
 
-host.ts:35
+[host.ts:36](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L36)
 
 ___
 
@@ -263,7 +263,7 @@ ___
 
 #### Defined in
 
-host.ts:40
+[host.ts:41](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L41)
 
 ___
 
@@ -273,7 +273,7 @@ ___
 
 #### Defined in
 
-host.ts:41
+[host.ts:42](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L42)
 
 ___
 
@@ -283,7 +283,7 @@ ___
 
 #### Defined in
 
-host.ts:33
+[host.ts:34](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L34)
 
 ___
 
@@ -293,7 +293,7 @@ ___
 
 #### Defined in
 
-host.ts:36
+[host.ts:37](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L37)
 
 ___
 
@@ -303,4 +303,4 @@ ___
 
 #### Defined in
 
-host.ts:34
+[host.ts:35](https://github.com/dtempx/syphonx-core/blob/09d2037/host.ts#L35)
