@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[extract/public/Transform.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Transform.ts#L5)
+package/public/Transform.ts:5
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[extract/public/Transform.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Transform.ts#L6)
+package/public/Transform.ts:6
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[extract/public/Transform.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Transform.ts#L7)
+package/public/Transform.ts:7

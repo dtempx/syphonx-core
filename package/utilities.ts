@@ -5,7 +5,8 @@ import {
     RepeatAction,
     Select,
     SelectQuery,
-    SwitchAction
+    SwitchAction,
+    Transform
 } from "./public/index.js";
 
 export interface FlatAction {
@@ -26,9 +27,9 @@ export function findLastSelectGroup(actions: Action[]): Select[] | undefined {
 }
 
 export function findSelect(actions: Action[], name: string): Select[] {
-    const selectActions = findAction(actions, "select").map(action => (action as { select: Select[] }).select);
+    const group = findAction(actions, "select").map(action => (action as { select: Select[] }).select);
     const result: Select[] = [];
-    for (const action of selectActions)
+    for (const action of group)
         for (const select of action)
             if (select.name === name)
                 result.push(select);
@@ -56,9 +57,9 @@ export function flattenTemplateActions(actions: Action[], result: FlatAction[] =
  * @returns Returns the collapsed select actions.
  */
 export function flattenTemplateSelect(actions: Action[], names?: string[]): Select[] {
-    const selectActions = findAction(actions, "select").map(action => (action as { select: Select[] }).select);
+    const group = findAction(actions, "select").map(action => (action as { select: Select[] }).select);
     const result: Select[] = [];
-    for (const action of selectActions)
+    for (const action of group)
         for (const select of action)
             if (!names || (select.name && names.includes(select.name))) {
                 const existing_select = result.find(obj => obj.name === select.name);
@@ -68,6 +69,10 @@ export function flattenTemplateSelect(actions: Action[], names?: string[]): Sele
                     existing_select.query = mergeQueries(existing_select.query, select.query);
             }
     return result;
+}
+
+export function flattenTemplateTransforms(actions: Action[]): Transform[] {
+    return findAction(actions, "transform").map(action => (action as { transform: Transform[] }).transform).flat();
 }
 
 function mergeQueries(q1: SelectQuery[] | undefined, q2: SelectQuery[] | undefined): SelectQuery[] | undefined {

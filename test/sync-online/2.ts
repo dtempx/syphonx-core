@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { browser, script } from "../../common/index.js";
-import { Transform } from "../../extract/index.js";
+import { Transform } from "../../package/index.js";
 
 const url = "https://www.example.com";
 const transform: Transform[] = [

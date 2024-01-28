@@ -1,8 +1,8 @@
 import { attempt, evaluateFormula, sleep, unwrap } from "./lib/index.js";
-import { isFormula, merge, parseUrl, Timer } from "./extract/lib/index.js";
-import { flattenTemplateActions } from "./extract/utilities.js";
+import { isFormula, merge, parseUrl, Timer } from "./package/lib/index.js";
+import { flattenTemplateActions } from "./package/utilities.js";
 import { Template } from "./template.js";
-import { Metrics } from "./extract/public/index.js";
+import { Metrics } from "./package/public/index.js";
 
 import {
     DocumentLoadState,
@@ -12,7 +12,7 @@ import {
     YieldNavigate,
     YieldParams,
     YieldScreenshot
-} from "./extract/index.js";
+} from "./package/index.js";
 
 type ErrorCode =
     "ERR_TARGET_CLOSED" |

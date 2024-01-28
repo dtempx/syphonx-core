@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { browser } from "../common.js";
-import { unpatch } from "../../extract/lib/unpatch.js";
+import { unpatch } from "../../package/lib/unpatch.js";
 
 describe("unpatch/1", async () => {
     let val1: string;

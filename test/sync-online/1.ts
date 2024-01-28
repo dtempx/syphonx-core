@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { browser, script } from "../../common/index.js";
-import { ExtractResult, Select } from "../../extract/index.js";
+import { ExtractResult, Select } from "../../package/index.js";
 
 const url = "https://www.example.com";
 const select: Select[] = [

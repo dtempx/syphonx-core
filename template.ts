@@ -1,4 +1,4 @@
-import { Action, DocumentLoadState } from "./extract/index.js";
+import { Action, DocumentLoadState } from "./package/index.js";
 
 /**
  * Represents a SyphonX template.

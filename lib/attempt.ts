@@ -1,4 +1,4 @@
-import { sleep } from "./sleep.js";
+import { sleep } from "./index.js";
 
 export interface AttemptOptions {
     retries?: number;

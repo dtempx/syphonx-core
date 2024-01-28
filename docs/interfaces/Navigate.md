@@ -19,7 +19,7 @@
 
 #### Defined in
 
-[extract/public/Navigate.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Navigate.ts#L5)
+package/public/Navigate.ts:5
 
 ___
 
@@ -29,7 +29,7 @@ ___
 
 #### Defined in
 
-[extract/public/Navigate.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Navigate.ts#L6)
+package/public/Navigate.ts:6
 
 ___
 
@@ -39,7 +39,7 @@ ___
 
 #### Defined in
 
-[extract/public/Navigate.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Navigate.ts#L7)
+package/public/Navigate.ts:7
 
 ___
 
@@ -49,4 +49,4 @@ ___
 
 #### Defined in
 
-[extract/public/Navigate.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Navigate.ts#L8)
+package/public/Navigate.ts:8

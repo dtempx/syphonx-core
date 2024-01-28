@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import * as fs from "fs";
-import * as syphonx from "../extract/index.js";
-import { unwrap } from "../lib/unwrap.js";
+import * as syphonx from "../package/index.js";
+import { unwrap } from "./lib.js";
 
 export interface SelectOptions {
     file?: string | URL;

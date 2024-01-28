@@ -45,7 +45,7 @@
 
 #### Defined in
 
-[extract/public/Select.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L8)
+package/public/Select.ts:8
 
 ___
 
@@ -59,7 +59,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:17](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L17)
+package/public/Select.ts:17
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:18](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L18)
+package/public/Select.ts:18
 
 ___
 
@@ -87,7 +87,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:19](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L19)
+package/public/Select.ts:19
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:15](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L15)
+package/public/Select.ts:15
 
 ___
 
@@ -115,7 +115,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:13](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L13)
+package/public/Select.ts:13
 
 ___
 
@@ -129,7 +129,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:14](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L14)
+package/public/Select.ts:14
 
 ___
 
@@ -139,7 +139,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:26](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L26)
+package/public/Select.ts:26
 
 ___
 
@@ -153,7 +153,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:20](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L20)
+package/public/Select.ts:20
 
 ___
 
@@ -167,7 +167,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:16](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L16)
+package/public/Select.ts:16
 
 ___
 
@@ -181,7 +181,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L5)
+package/public/Select.ts:5
 
 ___
 
@@ -195,7 +195,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:4](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L4)
+package/public/Select.ts:4
 
 ___
 
@@ -209,7 +209,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:21](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L21)
+package/public/Select.ts:21
 
 ___
 
@@ -219,7 +219,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:27](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L27)
+package/public/Select.ts:27
 
 ___
 
@@ -229,7 +229,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:28](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L28)
+package/public/Select.ts:28
 
 ___
 
@@ -243,7 +243,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L6)
+package/public/Select.ts:6
 
 ___
 
@@ -253,7 +253,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:29](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L29)
+package/public/Select.ts:29
 
 ___
 
@@ -263,7 +263,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:30](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L30)
+package/public/Select.ts:30
 
 ___
 
@@ -277,7 +277,7 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L7)
+package/public/Select.ts:7
 
 ___
 
@@ -291,4 +291,4 @@ ___
 
 #### Defined in
 
-[extract/public/Select.ts:22](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Select.ts#L22)
+package/public/Select.ts:22

@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio";
 import * as syphonx from "../index.js";
 import { Metrics } from "../index.js";
-import { unwrap as _unwrap } from "../lib/unwrap.js";
-import { Timer } from "../extract/lib/index.js";
+import { unwrap as _unwrap } from "./lib.js";
+import { Timer } from "../package/lib/index.js";
 
 export interface OfflineOptions {
     actions: syphonx.Action[];

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as cheerio from "cheerio";
-import * as syphonx from "../../extract/index.js";
+import * as syphonx from "../../package/index.js";
 
 const html = `<h1>Example Domain</h1>`;
 const actions: syphonx.Action[] = [

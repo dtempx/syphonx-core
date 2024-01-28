@@ -23,7 +23,7 @@
 
 #### Defined in
 
-[extract/public/Locator.ts:10](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L10)
+package/public/Locator.ts:10
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L5)
+package/public/Locator.ts:5
 
 ___
 
@@ -43,7 +43,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L7)
+package/public/Locator.ts:7
 
 ___
 
@@ -53,7 +53,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:4](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L4)
+package/public/Locator.ts:4
 
 ___
 
@@ -63,7 +63,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L8)
+package/public/Locator.ts:8
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:9](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L9)
+package/public/Locator.ts:9
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L6)
+package/public/Locator.ts:6
 
 ___
 
@@ -93,4 +93,4 @@ ___
 
 #### Defined in
 
-[extract/public/Locator.ts:11](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Locator.ts#L11)
+package/public/Locator.ts:11

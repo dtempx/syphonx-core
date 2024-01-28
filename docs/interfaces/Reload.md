@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[extract/public/Reload.ts:5](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Reload.ts#L5)
+package/public/Reload.ts:5
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[extract/public/Reload.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Reload.ts#L6)
+package/public/Reload.ts:6
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[extract/public/Reload.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Reload.ts#L7)
+package/public/Reload.ts:7

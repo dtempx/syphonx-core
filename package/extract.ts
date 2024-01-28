@@ -1,8 +1,9 @@
 import { Controller } from "./controller.js";
 import { ExtractState } from "./public/index.js";
 import { unpatch } from "./lib/index.js";
+import { unwrap } from "./lib/unwrap.js";
 
-export async function extract(state: ExtractState): Promise<ExtractState> {
+export async function extract(state: ExtractState & { unwrap?: boolean }): Promise<ExtractState> {
     if (typeof state?.vars?.__instance === "number") {
         state.vars.__instance += 1;
     }
@@ -38,6 +39,9 @@ export async function extract(state: ExtractState): Promise<ExtractState> {
                 key: "extract-state"
             }
         });
+
+    if (state.unwrap && !state.yield)
+        controller.state.data = unwrap(controller.state.data);
 
     return controller.state;
 }

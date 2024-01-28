@@ -19,7 +19,7 @@
 
 #### Defined in
 
-[extract/public/Switch.ts:8](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Switch.ts#L8)
+package/public/Switch.ts:8
 
 ___
 
@@ -29,7 +29,7 @@ ___
 
 #### Defined in
 
-[extract/public/Switch.ts:6](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Switch.ts#L6)
+package/public/Switch.ts:6
 
 ___
 
@@ -39,7 +39,7 @@ ___
 
 #### Defined in
 
-[extract/public/Switch.ts:7](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Switch.ts#L7)
+package/public/Switch.ts:7
 
 ___
 
@@ -49,4 +49,4 @@ ___
 
 #### Defined in
 
-[extract/public/Switch.ts:9](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/public/Switch.ts#L9)
+package/public/Switch.ts:9

@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[extract/utilities.ts:12](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L12)
+package/utilities.ts:13
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[extract/utilities.ts:14](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L14)
+package/utilities.ts:15
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[extract/utilities.ts:13](https://github.com/dtempx/syphonx-core/blob/09d2037/extract/utilities.ts#L13)
+package/utilities.ts:14
