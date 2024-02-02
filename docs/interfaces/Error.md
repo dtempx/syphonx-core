@@ -23,7 +23,7 @@
 
 #### Defined in
 
-package/public/Error.ts:7
+[package/public/Error.ts:7](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L7)
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:9
+[package/public/Error.ts:9](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L9)
 
 ___
 
@@ -43,7 +43,7 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:8
+[package/public/Error.ts:8](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L8)
 
 ___
 
@@ -53,7 +53,7 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:6
+[package/public/Error.ts:6](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L6)
 
 ___
 
@@ -63,7 +63,7 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:12
+[package/public/Error.ts:12](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L12)
 
 ___
 
@@ -73,7 +73,7 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:11
+[package/public/Error.ts:11](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L11)
 
 ___
 
@@ -83,7 +83,7 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:10
+[package/public/Error.ts:10](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L10)
 
 ___
 
@@ -93,4 +93,4 @@ ___
 
 #### Defined in
 
-package/public/Error.ts:13
+[package/public/Error.ts:13](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/Error.ts#L13)

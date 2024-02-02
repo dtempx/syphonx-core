@@ -793,11 +793,15 @@ export class Controller {
 
             if (result && !result.raw) {
                 // guarantee the shape of the output data matches the repeated flag
-                if (repeated && !(result.value instanceof Array))
+                if (repeated && !Array.isArray(result.value))
                     result.value = [result.value];
-                else if (!repeated && result.value instanceof Array && result.value.every(value => typeof value === "string"))
+                else if (!repeated && Array.isArray(result.value) && result.value.every(value => typeof value === "string"))
                     result.value = result.value.length > 0 ? result.value.join(format === "singleline" ? " " : "\n") : null; // concatenate strings
-                else if (!repeated && result.value instanceof Array)
+                else if (!repeated && type === "boolean" && !negate && Array.isArray(result.value) && result.value.every(value => typeof value === "boolean"))
+                    result.value = result.value.some(value => value === true); // for type=boolean if any value is true then the result is true
+                else if (!repeated && type === "boolean" && negate && Array.isArray(result.value) && result.value.every(value => typeof value === "boolean"))
+                    result.value = !(result.value.some(value => value === false)); // for type=boolean with negate
+                else if (!repeated && Array.isArray(result.value))
                     result.value = result.value[0]; // take first value
             }
             return result;
@@ -1038,9 +1042,8 @@ export class Controller {
         else if (type === "boolean") {
             // if type is boolean then result is based on whether the query resulted in any hits
             let value = !repeated ? nodes.length > 0 : [nodes.length > 0];
-            if (negate) {
+            if (negate)
                 value = !value;
-            }
             return {
                 nodes,
                 key: this.contextKey(),

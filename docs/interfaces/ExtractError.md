@@ -20,7 +20,7 @@
 
 #### Defined in
 
-package/public/ExtractError.ts:4
+[package/public/ExtractError.ts:4](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/ExtractError.ts#L4)
 
 ___
 
@@ -30,7 +30,7 @@ ___
 
 #### Defined in
 
-package/public/ExtractError.ts:7
+[package/public/ExtractError.ts:7](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/ExtractError.ts#L7)
 
 ___
 
@@ -40,7 +40,7 @@ ___
 
 #### Defined in
 
-package/public/ExtractError.ts:6
+[package/public/ExtractError.ts:6](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/ExtractError.ts#L6)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-package/public/ExtractError.ts:5
+[package/public/ExtractError.ts:5](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/ExtractError.ts#L5)
 
 ___
 
@@ -60,4 +60,4 @@ ___
 
 #### Defined in
 
-package/public/ExtractError.ts:8
+[package/public/ExtractError.ts:8](https://github.com/dtempx/syphonx-core/blob/1111902/package/public/ExtractError.ts#L8)
