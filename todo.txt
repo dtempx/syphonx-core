@@ -1,3 +1,35 @@
+master timeout
+add simple waitfor switch option on selects
+keypress
+log context on every entry
+
+repeat bug with mccarthy
+basic input validation for template (is actions an array, is every action an object?, is every query a double array?)
+
+allow a selector with no query and no value so long as there is a sub-select with a query or a value
+
+overall timeout limit
+format:href doesn't work with value defined selectors
+filter doesn't appear to be truthy, unless it returns a boolen it may not work as expected
+consider spreading data variables into evaluate so we can just do something like {name} instead of having to do {data.name}
+    - unwrap new spread variables
+    - leave data.variables wrapped as is for back-compat
+when returning a null or undefined value from a select with repeated=true, [null] is always returned where just null is expected
+intermediate _properties are being output
+
+
+documentation: consider modelling after https://prettier.io/docs/en/
+What is SyphonX?
+Why SyphonX?
+SyphonX vs Scrapy
+Template-driven/Declaritive Philosophy
+Rationale
+
+
+
+
+
+
 add encode and decode functions that calls encodeURIComponent and decodeURIComponent respectively
 return which query was selected in output data
 take screenshot for a selector
@@ -48,7 +80,7 @@ debug commented out $filter code
 
 add checks to deploy for version updated and committed
 
-allow a selector with no query and no value so long as there is a sub-select with a query or a value
+
 
 
 

@@ -12,4 +12,4 @@ dist
 Thumbs.db
 test*.json
 test*.html
-private/
+/private

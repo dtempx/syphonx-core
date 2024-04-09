@@ -3,6 +3,7 @@ import { syphonx, offline } from "../common.js";
 
 const test = {
     html: `<p>Hello</p>`,
+    //debug: true,
     actions: [
         {
             "snooze": [60]
@@ -15,8 +16,7 @@ const test = {
                 }
             ]
         }
-    ] as syphonx.Action[],
-    debug: true
+    ] as syphonx.Action[]
 };
 
 describe("offline/1", () => {

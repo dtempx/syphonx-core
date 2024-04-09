@@ -66,8 +66,6 @@ const tests = [
         ] as syphonx.Select[],
         result: [{ "a": 1 }, { "b": 2 }]
     },
-
-
     {
         html: `
             <html>
@@ -105,6 +103,23 @@ const tests = [
         html: `
             <html>
             <body>
+            <script type="application/ld+json">[{"a":1},{"b":2}]</script>
+            <script type="application/ld+json">[{"c":3},{"d":4}]</script>
+            </body>
+            </html>
+        `,
+        select: [
+            {
+                "query": [["script[type='application/ld+json']",["json"]]],
+                "all": true
+            }
+        ] as syphonx.Select[],
+        result: [[{ "a": 1 }, { "b": 2 }], [{ "c": 3 }, { "d": 4 }]]
+    },
+    {
+        html: `
+            <html>
+            <body>
             <script type="application/ld+json">{"a":1}</script>
             <script type="application/ld+json">{"b":2}</script>
             </body>
@@ -116,8 +131,7 @@ const tests = [
                 "all": true,
                 "value": "{value.find(obj => obj.b !== undefined)}"
             }
-        ] as syphonx.Select[],
-        
+        ] as syphonx.Select[],        
         result: { "b": 2 }
     }
 ];
@@ -126,4 +140,3 @@ describe("json/3", () => {
     for (const test of tests)
         it(`${tests.indexOf(test) + 1}`, () => expect(select(test.select, { html: test.html })).eql(test.result));
 });
-

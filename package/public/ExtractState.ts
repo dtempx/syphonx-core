@@ -16,6 +16,7 @@ export interface ExtractState {
     debug: boolean;
     yield?: YieldState;
     root?: unknown;
+    timeout?: number; // master timeout (seconds)
     context?: string; // select that is only intended to be used for synchronous select to set the outer select context
     originalUrl?: string;
     unpatch: string[];

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Delayed Insertion Simulation</title>
+</head>
+<body>
+<div id="container">
+    <div>One moment please...</div>
+</div>
+<script>
+  function delayedInsert(id, text, delay) {
+    window.setTimeout(() => {
+      const element = document.createElement('div');
+      element.id = id;
+      element.textContent = text;
+      document.getElementById('container').appendChild(element);
+    }, delay);
+  }
+  delayedInsert('a1', 'A1', 1000);
+  delayedInsert('a2', 'A2', 2000);
+  delayedInsert('a3', 'A3', 5000);
+</script>
+</body>
+</html>

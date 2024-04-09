@@ -1,4 +1,4 @@
-export function trunc(obj: unknown, max = 80): string {
+export function trunc(obj: unknown, max = 300): string {
     if (obj) {
         const text = JSON.stringify(obj);
         if (typeof text === "string")

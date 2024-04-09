@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import * as syphonx from "../index.js";
+import chalk from "chalk";
 import { Metrics } from "../index.js";
 import { unwrap as _unwrap } from "./lib.js";
 import { Timer } from "../package/lib/index.js";
@@ -17,8 +18,10 @@ export async function offline({ html, unwrap = true, ...options }: OfflineOption
     const timer = new Timer();
     const root = cheerio.load(html);
     const result = await syphonx.extract({ ...options, root, debug: process.env.DEBUG ? true : options.debug } as syphonx.ExtractState);
-    if (process.env.DEBUG)
-        console.log(result.log);
+    if (options.debug || process.env.DEBUG) {
+        console.log();
+        console.log(chalk.gray(result.log));
+    }
 
     const metrics = result.vars.__metrics as Metrics;
     metrics.elapsed = timer.elapsed();

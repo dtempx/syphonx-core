@@ -1,14 +1,13 @@
 import { Controller } from "./controller.js";
 import { ExtractState } from "./public/index.js";
-import { unpatch } from "./lib/index.js";
-import { unwrap } from "./lib/unwrap.js";
+import { unpatch, unwrap } from "./lib/index.js";
 
 export async function extract(state: ExtractState & { unwrap?: boolean }): Promise<ExtractState> {
-    if (typeof state?.vars?.__instance === "number") {
+    if (typeof state?.vars?.__instance === "number")
         state.vars.__instance += 1;
-    }
     const controller = new Controller(state);
     controller.log(`ENTRY #${controller.state.vars.__instance}${controller.online ? ` ${window.location.href}` : ""}`);
+    controller.log(`VARS ${JSON.stringify(controller.state.vars)}`);
 
     if (controller.state.unpatch) {
         unpatch(controller.state.unpatch);

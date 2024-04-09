@@ -34,7 +34,7 @@
             //"args": ["examples/2.json", "examples/2.html"]
         },
         {
-            "name": "Run Tests",
+            "name": "Run All Tests",
             "type": "node",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
@@ -72,6 +72,27 @@
                 "--slow", "5000",
                 "--colors",
                 "--grep", "${selectedText}"
+            ]
+        },
+        {
+            "name": "Run One Test",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": ["<node_internals>/**"],
+            "outFiles": ["${workspaceFolder}/**/*.js"],
+            "sourceMaps": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std", // WORKAROUND https://github.com/microsoft/vscode/issues/19750
+            "cwd": "${workspaceFolder}",
+            "env": { "DEBUG": "1" },
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "${workspaceFolder}/test/**/*.js",
+                "--require", "./mocha.js",
+                "--timeout", "999999",
+                "--slow", "5000",
+                "--colors",
+                "--grep", "html/2"
             ]
         },
         {

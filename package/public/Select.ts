@@ -15,10 +15,12 @@ export interface SelectTarget {
     format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
     pattern?: string; // validation pattern (only applies if type=string)
     collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
+    comment?: string; // optional comment for the selector
     context?: number | null; // sets context of selector query, or specify null for global context (default=1)
     distinct?: boolean; // removes duplicate values from arrays
     negate?: boolean; // negates a boolean result
     removeNulls?: boolean; // removes null values from arrays
+    waitfor?: boolean; // waits for the selector to appear when loading the page
     when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
 }
 

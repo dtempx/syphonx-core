@@ -1,3 +1,5 @@
+const defaultTimeoutSeconds = 30; // seconds
+
 import { CheerioAPI } from "cheerio";
 import { errorCodeMessageMap } from "./errors.js";
 
@@ -16,6 +18,8 @@ import {
     ExtractStatus,
     GoBack,
     GoBackAction,
+    KeyPress,
+    KeyPressAction,
     Locator,
     LocatorAction,
     LocatorMethod,
@@ -101,8 +105,6 @@ import {
     Timer
 } from "./lib/index.js";
 
-const defaultTimeout = 30; // seconds
-
 export class Controller {
     jquery: JQueryStatic & CheerioAPI;
     state: ExtractStateInternal;
@@ -134,12 +136,18 @@ export class Controller {
             ...state, // may include params, data, log, errors, debug, root
             yield: undefined, // yield state discarded on re-entry
             vars: {
-                __instance: 0, // initialize or carry over from previous instance
-                __context: [], // initialize or carry over from previous instance
-                __metrics: {} as unknown, // initialize or carry over from previous instance
-                __repeat: {}, // initialize or carry over from previous instance
+                // initialize or carry over from previous instance
+                __instance: 0,
+                __context: [],
+                __metrics: {} as unknown,
+                __repeat: {},
+                __t0: Date.now(),
+                __timeout: state.timeout || defaultTimeoutSeconds,
+
                 ...state.vars,
-                __step: [], // initialize fresh on every instance
+
+                // initialize fresh on every instance
+                __step: [], 
                 __yield: state.yield?.step
             },
             domain,
@@ -213,16 +221,15 @@ export class Controller {
         return false;
     }
 
-    private async click({ name, query, waitfor, snooze, required, retry, when, ...options }: Click): Promise<"timeout" | "not-found" | null> {
+    private async click({ name, query, waitfor, snooze, required, retry, when, ...options }: Click): Promise<DispatchResult> {
         if (this.online) {
             if (this.when(when, `CLICK${name ? ` ${name}` : ""}`)) {
                 const mode = snooze ? snooze[2] || "before" : undefined;
                 if (snooze && (mode === "before" || mode === "before-and-after")) {
-                    const seconds = snooze[0];
-                    this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE BEFORE (${seconds}s) ${selectorStatements(query)}`);
-                    const milliseconds = seconds * 1000;
-                    await sleep(milliseconds);
-                    this.state.vars.__metrics.snooze += milliseconds;
+                    const duration = this.maxTimeout(snooze[0]);
+                    this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE BEFORE (${duration.toFixed(1)}s) ${selectorStatements(query)}`);
+                    await sleep(duration);
+                    this.state.vars.__metrics.snooze += duration;
                 }
                 const result = this.query({ query });
                 if (result && result.nodes.length > 0) {
@@ -231,11 +238,10 @@ export class Controller {
                             const code = await this.waitfor(waitfor, "CLICK");
                             if (!code) {
                                 if (snooze && (mode === "after" || mode === "before-and-after")) {
-                                    const seconds = snooze[0];
-                                    this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE AFTER (${seconds}s) ${selectorStatements(query)}`);
-                                    const milliseconds = seconds * 1000;
-                                    await sleep(milliseconds);                
-                                    this.state.vars.__metrics.snooze += milliseconds;
+                                    const duration = this.maxTimeout(snooze[0]);
+                                    this.log(`CLICK${name ? ` ${name}` : ""} SNOOZE AFTER (${duration.toFixed(1)}s) ${selectorStatements(query)}`);
+                                    await sleep(duration);                
+                                    this.state.vars.__metrics.snooze += duration;
                                 }
                             }
                             else if (code === "timeout") {
@@ -347,7 +353,11 @@ export class Controller {
 
     private async dispatch(action: Action): Promise<DispatchResult> {
         if (action.hasOwnProperty("select")) {
-            const data = this.select((action as SelectAction).select);
+            const select = (action as SelectAction).select;
+            const code = await this.selectWaitfor(select);
+            if (code === "timeout")
+                return "timeout";
+            const data = this.select(select);
             this.state.data = merge(this.state.data, data);
         }
         else if (action.hasOwnProperty("break")) {
@@ -373,6 +383,9 @@ export class Controller {
         }
         else if (action.hasOwnProperty("goback")) {
             await this.goback((action as GoBackAction).goback);
+        }
+        else if (action.hasOwnProperty("keypress")) {
+            this.keypress((action as KeyPressAction).keypress);
         }
         else if (action.hasOwnProperty("locator")) {
             await this.locator((action as LocatorAction).locator);
@@ -453,6 +466,10 @@ export class Controller {
                 callback(node, subvalue);
             }
         }
+    }
+
+    private elapsed(): number {
+        return Date.now() - this.state.vars.__t0;
     }
 
     private error({ query, code = "app-error", message, level = 1, negate, stop, when }: Error): void {
@@ -625,20 +642,52 @@ export class Controller {
         });
     }
 
+    private keypress({ name = "", key, shift, control, alt, when }: KeyPress): void {
+        if (name)
+            name = " " + name;
+        if (this.online) {
+            if (this.when(when, "KEYPRESS")) {
+                const event = new KeyboardEvent("keydown", {
+                    key,
+                    code: 'Key' + key.toUpperCase(),
+                    keyCode: key.charCodeAt(0),
+                    which: key.charCodeAt(0),
+                    shiftKey: shift,
+                    ctrlKey: control,
+                    altKey: alt
+                });
+                document.dispatchEvent(event);
+            }
+            else {
+                this.state.vars.__metrics.skipped += 1;
+                this.log(`KEYPRESS${name} SKIPPED ${when}`);
+            }
+        }
+        else {
+            this.log(`KEYPRESS${name ? ` ${name}` : ""} BYPASSED ${when}`);
+        }
+    }
+
     log(text: string): void {
         if (this.state.debug) {
             // if the last line is repeated then append elapsed time to the end
             if (this.lastLogLine === text) {
-                const elapsed = (new Date().valueOf() - this.lastLogTimestamp) / 1000;
+                const elapsed = (Date.now() - this.lastLogTimestamp) / 1000;
                 this.state.log = `${this.state.log.slice(0, this.lastLogLength)}${text} (${elapsed.toFixed(1)}s)\n`;
             }
             else {
                 this.lastLogLine = text;
                 this.lastLogLength = this.state.log.length;
-                this.lastLogTimestamp = new Date().valueOf();
-                this.state.log += text + "\n";
+                this.lastLogTimestamp = Date.now();
+                this.state.log += `${String(this.elapsed()).padStart(8, "0")} ${text}\n`;
             }
         }
+    }
+
+    private maxTimeout(seconds = defaultTimeoutSeconds): number {
+        const elapsed = this.elapsed() / 1000;
+        const remaining = Math.max(this.state.vars.__timeout - elapsed, 0);
+        return Math.min(seconds, remaining);
     }
 
     private mergeQueryResult(source: QueryResult | undefined, target: QueryResult | undefined): QueryResult | undefined {
@@ -1459,7 +1508,7 @@ export class Controller {
         }
         else if (action.hasOwnProperty("waitfor")) {
             const obj = (action as WaitForAction).waitfor;
-            status.timeout = obj.timeout || defaultTimeout;
+            status.timeout = obj.timeout || defaultTimeoutSeconds;
         }
         else if (action.hasOwnProperty("click")) {
             const obj = (action as ClickAction).click;
@@ -1547,7 +1596,7 @@ export class Controller {
                     else {
                         if (select.query)
                             item = this.selectResolveSelector(select, item);                        
-                        if (select.value)
+                        if (select.value !== undefined)
                             item = this.selectResolveValue(select, { data, value: item?.value });
                     }
 
@@ -1568,6 +1617,19 @@ export class Controller {
         }
         this.state.vars.__metrics.steps += 1;
         return data;
+    }
+
+    private async selectWaitfor(selects: Select[]): Promise<DispatchResult> {
+        selects = selects.filter(select => select.waitfor && select.query);
+        for (const select of selects) {
+            const on = select.all ? "all" : "any";
+            this.pushContext({ name: select.name }, select.context);
+            const code = await this.waitforQuery(select.query!, on, this.state.vars.__timeout, true, undefined, "SELECT");
+            this.popContext();
+            if (code === "timeout" && select.required)
+                return "timeout";
+        }
+        return null;
     }
 
     private selectResolvePivot(select: Select, item: DataItem | null): DataItem | null {
@@ -1739,9 +1801,10 @@ export class Controller {
         const { name, interval, when } = obj instanceof Array ? { name: "", interval: obj, when: undefined } : typeof obj === "number" ? { name: "", interval: [obj], when: undefined } : obj;
         if (this.online) {
             if (this.when(when, `SNOOZE${name ? ` ${name}` : ""}`)) {
-                this.log(`SNOOZE${name ? ` ${name}` : ""} ${interval[0]}s`);
+                const duration = this.maxTimeout(interval[0]);
+                this.log(`SNOOZE${name ? ` ${name}` : ""} ${duration.toFixed(1)}s`);
                 const timer = new Timer();
-                await sleep(interval[0] * 1000);
+                await sleep(duration * 1000);
                 this.state.vars.__metrics.snooze += timer.elapsed();
                 this.state.vars.__metrics.steps += 1;
             }
@@ -1874,24 +1937,22 @@ export class Controller {
     }
     */
 
-    private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when }: WaitFor, label = ""): Promise<"timeout" | "invalid" | null> {
+    private async waitfor({ name, query, select, timeout, on = "any", required, pattern, when }: WaitFor, label = ""): Promise<DispatchResult> {
         if (label)
             label += " ";
         if (this.online) {
             if (this.when(when, `WAITFOR${name ? ` ${name}` : ""}`)) {
-                if (timeout === undefined)
-                    timeout = defaultTimeout;
-                else if (timeout === null || timeout <= 0)
-                    timeout = Infinity;
-    
-                let code = null;
+                this.log(`TIMEOUT BEFORE: ${timeout}`);
+                timeout = this.maxTimeout(timeout);
+                this.log(`TIMEOUT AFTER: ${timeout}`);
+                let code: DispatchResult = null;
                 const timer = new Timer();
                 if (query) {
-                    this.log(`${label}WAITFOR${name ? ` ${name}` : ""} QUERY ${trunc(query)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                    this.log(`${label}WAITFOR${name ? ` ${name}` : ""} QUERY ${trunc(query)} on=${on}, timeout=${timeout.toFixed(1)}s, pattern=${pattern}`);
                     code = await this.waitforQuery(query, on, timeout, required, pattern, label);
                 }
                 else if (select) {
-                    this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SELECT ${trunc(select)} on=${on}, timeout=${timeout}, pattern=${pattern}`);
+                    this.log(`${label}WAITFOR${name ? ` ${name}` : ""} SELECT ${trunc(select)} on=${on}, timeout=${timeout.toFixed(1)}s, pattern=${pattern}`);
                     code = await this.waitforSelect(select, on, timeout, required, pattern, label);
                 }
                 this.state.vars.__metrics.waitfor += timer.elapsed();
@@ -1910,21 +1971,22 @@ export class Controller {
         }
     }
 
-    private async waitforQuery(query: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, label = ""): Promise<"timeout" | null> {
+    private async waitforQuery(query: SelectQuery[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, label = ""): Promise<DispatchResult> {
         if (label)
             label += " ";
-        const t0 = new Date().valueOf();
+        const t0 = Date.now();
         let elapsed = 0;
         let pass = false;
         let result = undefined;
+        timeout = this.maxTimeout(timeout);
         while (!pass && elapsed < timeout) {
             [pass, result] = this.queryCheck(query, on, pattern);
             if (!pass)
                 await sleep(100);
-            elapsed = (new Date().valueOf() - t0) / 1000;
+            elapsed = (Date.now() - t0) / 1000;
         }
 
-        const message = `${label}WAITFOR QUERY ${selectorStatements(query)} -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
+        const message = `${label}WAITFOR QUERY ${selectorStatements(query)}, timeout=${timeout.toFixed(1)}s -> ${trunc(result?.value)}${pattern ? ` (valid=${result?.valid})` : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;
         this.log(message);
         if (pass) {
             return null;
@@ -1939,7 +2001,7 @@ export class Controller {
         }
     }
 
-    private async waitforSelect(selects: Select[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, label = ""): Promise<"timeout" | "invalid" | null> {
+    private async waitforSelect(selects: Select[], on: SelectOn, timeout: number, required: boolean | undefined, pattern: string | undefined, label = ""): Promise<DispatchResult> {
         if (label)
             label += " ";
         for (const select of selects) {
@@ -1948,7 +2010,7 @@ export class Controller {
                 return "invalid";
             }
         }
-        const t0 = new Date().valueOf();
+        const t0 = Date.now();
         let elapsed = 0;
         let state: Record<string, unknown> = {};
         let pass = false;
@@ -1984,7 +2046,7 @@ export class Controller {
             if (!pass) {
                 await sleep(100);
             }
-            elapsed = (new Date().valueOf() - t0) / 1000;
+            elapsed = (Date.now() - t0) / 1000;
         }
 
         const message = `${label}WAITFOR SELECT ${JSON.stringify(state)}${pattern ? "valid=???" : ""} -> on=${on} -> ${pass} (${elapsed.toFixed(1)}s${elapsed > timeout ? " TIMEOUT": ""})`;

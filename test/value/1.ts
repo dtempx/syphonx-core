@@ -27,6 +27,10 @@ const test = {
                     "name": "a5",
                     "query": [["div"]],
                     "value": "{value.toUpperCase()}" // value executes after query
+                },
+                {
+                    "name": "a6",
+                    "value": "{{ a: 1, b: true, c: 'xyz', d: [1, 2, 3] }}"
                 }
             ]
         }
@@ -41,6 +45,7 @@ describe("value/1", () => {
     it("a3 has expected value", () => expect(result.data.a3).to.be.equal("lorum ipsum"));
     it("a4 has expected value", () => expect(result.data.a4).to.be.equal("https://www.example.com/"));
     it("a5 has expected value", () => expect(result.data.a5).to.be.equal("LORUM"));
+    it("a6 has expected value", () => expect(result.data.a6).eql({ a: 1, b: true, c: "xyz", d: [1, 2, 3] }));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

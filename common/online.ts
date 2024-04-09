@@ -1,5 +1,6 @@
 import * as syphonx from "../index.js";
 import playwright, { Browser } from "playwright";
+import chalk from "chalk";
 import { ExtractState } from "../index.js";
 import { args, headers, userAgent, viewport } from "./defaults.js";
 import { host, invokeAsyncMethod } from "../host.js";
@@ -20,7 +21,7 @@ interface OnlineOptions {
     html?: boolean;
 }
 
-export async function online({ url, show = false, unwrap = true, ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
+export async function online({ url, show = false, unwrap = true, timeout, ...options }: OnlineOptions): Promise<syphonx.ExtractResult> {
     let browser: Browser | undefined = undefined;
     try {
         browser = await playwright.chromium.launch({ headless: !show, args });
@@ -38,7 +39,8 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                 actions: options.actions,
                 params: options.params,
                 vars: options.vars,
-                debug: options.debug
+                debug: options.debug,
+                timeout
             },
             onExtract: async (state: ExtractState, script: string) => {
                 const fn = new Function("state", `return ${script}(state)`);
@@ -84,6 +86,12 @@ export async function online({ url, show = false, unwrap = true, ...options }: O
                 await page.waitForLoadState(waitUntil, { timeout });
             }
         });
+
+        if (options.debug || process.env.DEBUG) {
+            console.log();
+            console.log(chalk.gray(result.log));
+        }
+
         return result;
     }
     finally {

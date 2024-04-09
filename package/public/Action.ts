@@ -3,6 +3,7 @@ import { Click } from "./Click.js";
 import { Each } from "./Each.js";
 import { Error } from "./Error.js";
 import { GoBack } from "./GoBack.js";
+import { KeyPress } from "./KeyPress.js";
 import { Locator } from "./Locator.js";
 import { Navigate } from "./Navigate.js";
 import { Reload } from "./Reload.js";
@@ -22,6 +23,7 @@ export type Action =
     | EachAction
     | ErrorAction
     | GoBackAction
+    | KeyPressAction
     | LocatorAction
     | NavigateAction
     | ReloadAction
@@ -40,6 +42,7 @@ export type ClickAction = { click: Click };
 export type EachAction = { each: Each };
 export type ErrorAction = { error: Error };
 export type GoBackAction = { goback: GoBack };
+export type KeyPressAction = { keypress: KeyPress };
 export type LocatorAction = { locator: Locator[] };
 export type NavigateAction = { navigate: Navigate };
 export type ReloadAction =  { reload: Reload };
@@ -60,6 +63,7 @@ export type ActionType =
   "error" |
   "goback" |
   "locator" |
+  "keypress" |
   "navigate" |
   "reload" |
   "repeat" |

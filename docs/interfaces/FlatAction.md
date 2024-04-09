@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[package/utilities.ts:13](https://github.com/dtempx/syphonx-core/blob/1111902/package/utilities.ts#L13)
+[package/utilities.ts:13](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/utilities.ts#L13)
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[package/utilities.ts:15](https://github.com/dtempx/syphonx-core/blob/1111902/package/utilities.ts#L15)
+[package/utilities.ts:15](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/utilities.ts#L15)
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[package/utilities.ts:14](https://github.com/dtempx/syphonx-core/blob/1111902/package/utilities.ts#L14)
+[package/utilities.ts:14](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/utilities.ts#L14)

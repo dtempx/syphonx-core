@@ -10,6 +10,7 @@ export * from "./ExtractResult.js";
 export * from "./ExtractState.js";
 export * from "./ExtractStatus.js";
 export * from "./GoBack.js";
+export * from "./KeyPress.js";
 export * from "./Locator.js";
 export * from "./Metrics.js";
 export * from "./Navigate.js";
