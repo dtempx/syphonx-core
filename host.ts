@@ -280,4 +280,4 @@ export const script = "";
 export type EvaluateArg = ExtractState | { select: Select[] } | { transform: Transform[] } | { sync: ExtractState };
 export type EvaluateResult = ExtractState;
 export type EvaluateFunction = (arg: EvaluateArg) => Promise<EvaluateResult>;
-export const evaluator = new Function("obj", `return ${script}(obj)`) as EvaluateFunction;
+//export const evaluator = new Function("obj", `return ${script}(obj)`) as EvaluateFunction;
