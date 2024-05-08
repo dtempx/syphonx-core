@@ -1,5 +1,8 @@
-master timeout
-add simple waitfor switch option on selects
+get test/keypress working
+calls to selectResolveValue need to be logged!!!!!! (2 places)
+compute remaining timeout time for all yield actions (navigate, goback, locate, etc.)
+
+master timeoutadd simple waitfor switch option on selects
 keypress
 log context on every entry
 

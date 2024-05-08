@@ -25,7 +25,7 @@ const test = {
             }
         ] },
         { "click": { "query": [["a"]] }},
-        { "yield": {} },
+        { "yield": {} }, // use seperate click and yield actions
         { "select": [
             {
                 "name": "title2",
@@ -47,7 +47,7 @@ const test = {
     ] as syphonx.Action[]
 };
 
-describe("online/2", () => {
+describe("online/2a", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await online(test));
     it("result.data.title1 has expected value", () => expect(result.data.title1).to.be.equal("Example Domain"));

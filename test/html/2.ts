@@ -33,7 +33,7 @@ const test = {
 describe("html/2a", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await online(test));
-    it("result.data has expected value", () => expect(result.data).eql({ a1: "A1", a2: "A2", a3: "A3"}));
+    it("result.data has expected value", () => expect(result.data).eql({ a1: "A1", a2: "A2", a3: "A3" }));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

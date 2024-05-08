@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Keypress Event Display</title>
+<style>
+    #keypress {
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        width: 300px;
+        height: 100px;
+        font-size: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+</head>
+<body>
+<h1>Press any key...</h1>
+<div id="keypress"></div>
+<script>
+    document.addEventListener('keydown', function(event) {
+        const display = document.getElementById('keypress');
+        display.textContent = event.key;
+    });
+</script>
+</body>
+</html>

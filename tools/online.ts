@@ -14,7 +14,8 @@ const args = parseArgs({
         url: "URL to navigate to",
         show: "shows browser window",
         metadata: "include metadata",
-        out: "determines output (data, html, log, metrics)"
+        out: "determines output (data, html, log, metrics)",
+        debug: "enable debug output"
     }
 });
 
@@ -35,7 +36,7 @@ try {
         ...template,
         url: evaluateFormula(`\`${url}\``, template.params),
         show: !!args.show,
-        debug: out.includes("log"),
+        debug: !!args.debug || out.includes("log"),
         unwrap: !args.metadata,
         html: out.includes("html")
     });

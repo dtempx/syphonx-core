@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Simple Form</title>
+</head>
+<body>
+  <form id="form">
+    <input type="text" id="textbox" placeholder="Type something...">
+    <button type="submit">Submit</button>
+  </form>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("textbox").focus();
+      document.getElementById("form").addEventListener("submit", event => {
+        event.preventDefault();
+        alert("Form submitted!");
+      });
+    });
+  </script>  
+</body>
+</html>

@@ -19,7 +19,7 @@
             "outFiles": ["${workspaceFolder}/**/*.js"],
             //"env": { "DEBUG": "1" },
             "program": "${workspaceFolder}/tools/online.js",
-            "args": ["examples/1.json", "--show"]
+            "args": ["examples/1.json", "--show", "--debug"]
         },
         {
             "name": "Run tools/offline",

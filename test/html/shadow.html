@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow DOM Example</title>
+    <style>
+        h1 { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Outside Shadow DOM</h1>
+    <custom-widget></custom-widget>
+    <script>
+        class CustomWidgetElement extends HTMLElement {
+            constructor() {
+                super();
+
+                // Attach a shadow root to the custom element
+                const shadow = this.attachShadow({ mode: 'open' });
+
+                // Create elements for the shadow DOM
+                const wrapper = document.createElement('div');
+                const heading = document.createElement('h2');
+                heading.textContent = 'Inside Shadow DOM';
+
+                // Apply some styles to the shadow DOM
+                const style = document.createElement('style');
+                style.textContent = `h2 { color: blue; }`;
+
+                // Append the created elements to the shadow root
+                shadow.appendChild(style);
+                shadow.appendChild(wrapper);
+                wrapper.appendChild(heading);
+            }
+        }
+
+        // Define the new element
+        customElements.define('custom-widget', CustomWidgetElement);
+    </script>
+</body>
+</html>

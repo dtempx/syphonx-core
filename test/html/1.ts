@@ -2,7 +2,15 @@ import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 import * as fs from "fs";
 
-const html = fs.readFileSync(new URL("1.html", import.meta.url), "utf8");
+const html = `
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Hello</h1>
+</body>
+</html>
+`.trim();
+
 const test = {
     url: `data:text/html,${encodeURIComponent(html.trim())}`,
     //debug: true,
