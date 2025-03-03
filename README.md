@@ -2,6 +2,56 @@
 
 **SyphonX** is a template-driven solution for extracting data from HTML in a highly efficient way. It combines the power of **jQuery**, **Regular Expressions**, and **JavaScript** into a declarative template-driven format that extracts and reshapes HTML data into JSON.
 
+## Features
+- CSS Selectors (with :contains and advanced jQuery DOM traversals)
+- Regular Expressions (extract, replace, filter)
+- Value Evaluation
+- Javascript Formulas
+- Native/Unlimited Syntax Support (jQuery, Regular Expressions, Javascript)
+- Declaritive Syntax (No-Code / Low-Code)
+- Zero Dependencies (runs in or out of browser, offline/html)
+- Output Type Definitions (strings, numbers, booleans, objects, repeated/arrays)
+- JSON Output Formatting (unlimited)
+- Data Contracts (JSON schema output validation)
+- URL Formatting
+- Waitfors
+- Unions
+- Conditional Execution & Branching (when, switch, each)
+- Looping (repeat, break)
+- Clicks
+- Renavigations, Reload, GoBack
+- Reentrancy
+- Page Scrolling
+- Input Parameters
+- Managed Errors
+- Selector Alternation
+- Distinct
+- Negation
+- Intermediate Variables
+- JSON Extraction
+- Shadow DOM
+- Locators
+- Screenshots (partial or full page)
+- Transforms (addClass, replaceText, replaceHTML, etc.)
+- Monkey Patching
+- Metrics
+- Master Timeout
+- HTTP Headers
+- Stealth ?
+- Incognito ?
+- Debug Output
+- Chrome Extension Editor
+- Shared Templates
+- Revision History
+- Access Control
+- Comments
+- Autorun
+- Test Runner
+
+- XPATH
+- Template Search
+
+
 ## Simplified Web Scraping
 
 SyphonX revolutionizes web crawling and data extraction by providing a *no-code*, template-driven approach that simplifies the process for data engineers, analysts, and web developers alike. Whether you're extracting pricing and stock status from retailer sites, sourcing contact information from professional firms, or gathering event schedules, SyphonX streamlines the task without the need to write complex code. Users can effortlessly create templates in JSON format through a user-friendly GUI, making data extraction accessible to all skill levels. By leveraging CSS selectors, jQuery, Regular Expressions, and JavaScript, templates are highly customizable to meet diverse web scraping needs. SyphonX transforms the complexity of web data extraction into a straightforward, efficient process, saving time and resources while maximizing data accuracy and reliability.

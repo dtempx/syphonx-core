@@ -29,6 +29,14 @@ export async function online({ url, show = false, unwrap = true, timeout, ...opt
         const page = await context.newPage();
         await page.setExtraHTTPHeaders({ ...headers, ...options.headers });
         await page.setViewportSize({ ...viewport, ...options.viewport });
+        
+        if (options.debug) {
+            page.addInitScript(() =>
+                window.addEventListener("message", event =>
+                    (window as any).sendMessage(event.data)));
+            page.exposeFunction("sendMessage", (text: string) =>
+                console.log(chalk.cyan(text)));
+        }
 
         const result = await host({
             url,

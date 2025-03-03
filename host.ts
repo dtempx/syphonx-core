@@ -70,9 +70,7 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
     const params = merge(options.template.params, options.params); // options.params overrides template.params
     const timeout = typeof options.template.timeout === "number" ? options.template.timeout * 1000 : undefined;
     const waitUntil = options.template.waitUntil;
-
-    if (isFormula(url))
-        url = encodeURI(evaluateFormula(url.slice(1, -1), { params }) as string);
+    url = expandTemplateUrl(url, params);
 
     const originalUrl = url;
     const { domain, origin } = parseUrl(url); // take domain and origin from the original url
@@ -239,6 +237,12 @@ export async function host({ maxYields = 1000, retries, retryDelay, ...options}:
             return false;
         }
     }    
+}
+
+export function expandTemplateUrl(url: string, params?: Record<string, unknown>): string {
+    if (isFormula(url))
+        url = encodeURI(evaluateFormula(url.slice(1, -1), { params }) as string);
+    return url;
 }
 
 export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {

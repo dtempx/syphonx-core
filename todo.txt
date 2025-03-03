@@ -1,6 +1,21 @@
+"query": [["h3, p",["join"],["replace","/(\n)/gm",", "]]] (fenwick/person.json)
+
+always yield after a click, so we generally don't need to worry about yielding at all
+make replace action take simple string search and replace in addition to requiring a regex
+distinct can only handle strings or numbers, not objects
+see workaround for setting limit in repeat (_page_count+3) in greenbergglusker/person.json
+make format=href default when attr=href
+file url in template doesn't seem to work
+document "query": [[".",["text","inline"]]] !!!
+
+error retry handler in case script fails
+
+
+
 get test/keypress working
 calls to selectResolveValue need to be logged!!!!!! (2 places)
 compute remaining timeout time for all yield actions (navigate, goback, locate, etc.)
+json function should look for first and last {} or []
 
 master timeoutadd simple waitfor switch option on selects
 keypress
