@@ -30,7 +30,7 @@ Set of actions performed by the template.
 
 #### Defined in
 
-[template.ts:8](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L8)
+[template.ts:8](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L8)
 
 ___
 
@@ -40,7 +40,7 @@ ___
 
 #### Defined in
 
-[template.ts:13](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L13)
+[template.ts:13](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L13)
 
 ___
 
@@ -50,7 +50,7 @@ ___
 
 #### Defined in
 
-[template.ts:15](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L15)
+[template.ts:15](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L15)
 
 ___
 
@@ -60,7 +60,7 @@ ___
 
 #### Defined in
 
-[template.ts:11](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L11)
+[template.ts:11](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L11)
 
 ___
 
@@ -72,7 +72,7 @@ Timeout interval in seconds for page navigation, reload, and goback.
 
 #### Defined in
 
-[template.ts:17](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L17)
+[template.ts:17](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L17)
 
 ___
 
@@ -82,7 +82,7 @@ ___
 
 #### Defined in
 
-[template.ts:18](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L18)
+[template.ts:18](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L18)
 
 ___
 
@@ -94,7 +94,7 @@ Default URL for the template. Can be overridden by various means.
 
 #### Defined in
 
-[template.ts:10](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L10)
+[template.ts:10](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L10)
 
 ___
 
@@ -104,7 +104,7 @@ ___
 
 #### Defined in
 
-[template.ts:14](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L14)
+[template.ts:14](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L14)
 
 ___
 
@@ -114,7 +114,7 @@ ___
 
 #### Defined in
 
-[template.ts:12](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L12)
+[template.ts:12](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L12)
 
 ___
 
@@ -131,7 +131,7 @@ ___
 
 #### Defined in
 
-[template.ts:19](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L19)
+[template.ts:19](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L19)
 
 ___
 
@@ -141,4 +141,4 @@ ___
 
 #### Defined in
 
-[template.ts:20](https://github.com/dtempx/syphonx-core/blob/6c56ba7/template.ts#L20)
+[template.ts:20](https://github.com/dtempx/syphonx-core/blob/bfef688/template.ts#L20)

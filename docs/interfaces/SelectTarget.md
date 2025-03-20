@@ -42,7 +42,7 @@ Includes all query stage hits instead of just the first stage. Default is false.
 
 #### Defined in
 
-[package/public/Select.ts:26](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L26)
+[package/public/Select.ts:26](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L26)
 
 ___
 
@@ -54,7 +54,7 @@ Causes the selector to be processed as a single unit rather than for each node o
 
 #### Defined in
 
-[package/public/Select.ts:46](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L46)
+[package/public/Select.ts:46](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L46)
 
 ___
 
@@ -66,7 +66,7 @@ An optional comment for the selector.
 
 #### Defined in
 
-[package/public/Select.ts:50](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L50)
+[package/public/Select.ts:50](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L50)
 
 ___
 
@@ -78,7 +78,7 @@ Sets the context of the selector query. Default is 1. Specify null for global co
 
 #### Defined in
 
-[package/public/Select.ts:54](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L54)
+[package/public/Select.ts:54](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L54)
 
 ___
 
@@ -90,7 +90,7 @@ Removes duplicate values from arrays.
 
 #### Defined in
 
-[package/public/Select.ts:58](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L58)
+[package/public/Select.ts:58](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L58)
 
 ___
 
@@ -102,7 +102,7 @@ The format of the selection. Default is multiline when type is string.
 
 #### Defined in
 
-[package/public/Select.ts:38](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L38)
+[package/public/Select.ts:38](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L38)
 
 ___
 
@@ -116,7 +116,7 @@ Use `all` instead. Limits the number of query stage hits. Default is unlimited o
 
 #### Defined in
 
-[package/public/Select.ts:30](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L30)
+[package/public/Select.ts:30](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L30)
 
 ___
 
@@ -128,7 +128,7 @@ Limits the number of nodes returned by the query. Default is 1 when repeated is 
 
 #### Defined in
 
-[package/public/Select.ts:34](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L34)
+[package/public/Select.ts:34](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L34)
 
 ___
 
@@ -140,7 +140,7 @@ Negates a boolean result.
 
 #### Defined in
 
-[package/public/Select.ts:62](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L62)
+[package/public/Select.ts:62](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L62)
 
 ___
 
@@ -152,7 +152,7 @@ A validation pattern. Only applies if type is string.
 
 #### Defined in
 
-[package/public/Select.ts:42](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L42)
+[package/public/Select.ts:42](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L42)
 
 ___
 
@@ -164,7 +164,7 @@ A pivot target for the selection.
 
 #### Defined in
 
-[package/public/Select.ts:14](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L14)
+[package/public/Select.ts:14](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L14)
 
 ___
 
@@ -176,7 +176,7 @@ An array of queries to be executed.
 
 #### Defined in
 
-[package/public/Select.ts:10](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L10)
+[package/public/Select.ts:10](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L10)
 
 ___
 
@@ -188,7 +188,7 @@ Removes null values from arrays.
 
 #### Defined in
 
-[package/public/Select.ts:66](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L66)
+[package/public/Select.ts:66](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L66)
 
 ___
 
@@ -200,7 +200,7 @@ An array of sub-selections to be executed.
 
 #### Defined in
 
-[package/public/Select.ts:18](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L18)
+[package/public/Select.ts:18](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L18)
 
 ___
 
@@ -212,7 +212,7 @@ A value to be used in the selection. Executes after query if both are used.
 
 #### Defined in
 
-[package/public/Select.ts:22](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L22)
+[package/public/Select.ts:22](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L22)
 
 ___
 
@@ -224,7 +224,7 @@ Waits for the selector to appear when loading the page.
 
 #### Defined in
 
-[package/public/Select.ts:70](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L70)
+[package/public/Select.ts:70](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L70)
 
 ___
 
@@ -236,4 +236,4 @@ A condition that must be met for the selection to occur. SKIPPED actions indicat
 
 #### Defined in
 
-[package/public/Select.ts:74](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Select.ts#L74)
+[package/public/Select.ts:74](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Select.ts#L74)

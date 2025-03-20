@@ -1065,7 +1065,6 @@ export class Controller {
             this.state.vars.__metrics.queries += 1;
         }
         else if (selector.toLowerCase().startsWith("xpath:")) {
-            debugger;
             if (!this.online) {
                 this.appendError("eval-error", "XPATH selectors are only valid online", 0);
                 return undefined;

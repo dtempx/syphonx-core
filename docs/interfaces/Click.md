@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[package/public/Click.ts:8](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L8)
+[package/public/Click.ts:8](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L8)
 
 ___
 
@@ -34,7 +34,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:9](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L9)
+[package/public/Click.ts:9](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L9)
 
 ___
 
@@ -44,7 +44,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:12](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L12)
+[package/public/Click.ts:12](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L12)
 
 ___
 
@@ -54,7 +54,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:13](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L13)
+[package/public/Click.ts:13](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L13)
 
 ___
 
@@ -64,7 +64,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:11](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L11)
+[package/public/Click.ts:11](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L11)
 
 ___
 
@@ -74,7 +74,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:15](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L15)
+[package/public/Click.ts:15](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L15)
 
 ___
 
@@ -84,7 +84,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:10](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L10)
+[package/public/Click.ts:10](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L10)
 
 ___
 
@@ -94,7 +94,7 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:16](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L16)
+[package/public/Click.ts:16](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L16)
 
 ___
 
@@ -104,4 +104,4 @@ ___
 
 #### Defined in
 
-[package/public/Click.ts:14](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/Click.ts#L14)
+[package/public/Click.ts:14](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/Click.ts#L14)
