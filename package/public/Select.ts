@@ -1,27 +1,77 @@
 import { When } from "./When.js";
 
+/**
+ * Represents a target for selection operations.
+ */
 export interface SelectTarget {
+    /**
+     * An array of queries to be executed.
+     */
     query?: SelectQuery[];
+    /**
+     * A pivot target for the selection.
+     */
     pivot?: SelectTarget;
+    /**
+     * An array of sub-selections to be executed.
+     */
     select?: Select[];
-    value?: unknown; // if both query and value are used, value executes after query
-    all?: boolean; // includes all query stage hits instead of just the first stage (default=false)
-        // if values are arrays then results are merged
-        // if values are strings then results are concatenated with newlines
-        // if values are booleans then results are and'ed together
-        // otherwise the latest result takes precedence
-    hits?: number | null; // DEPRECATED, use `all` instead // limits the number of query stage hits, default is unlimited or specify null for unlimited (null)
-    limit?: number | null; // limits the number of nodes returned by the query, when repeated is false and all is false then default=1 otherwise default is unlimited (null), specify null to force unlimited nodes
-    format?: SelectFormat; // default is multiline when type=string, whitespace is added for multiline and singleline, none is the same as text(), innertext and textcontent only work online
-    pattern?: string; // validation pattern (only applies if type=string)
-    collate?: boolean; // causes selector to be processed as a single unit rather than processed as a single unit rather than for each node or each value
-    comment?: string; // optional comment for the selector
-    context?: number | null; // sets context of selector query, or specify null for global context (default=1)
-    distinct?: boolean; // removes duplicate values from arrays
-    negate?: boolean; // negates a boolean result
-    removeNulls?: boolean; // removes null values from arrays
-    waitfor?: boolean; // waits for the selector to appear when loading the page
-    when?: When; // SKIPPED actions indicate an unmet when condition, BYPASSED actions indicate unexecuted actions in offline mode
+    /**
+     * A value to be used in the selection. Executes after query if both are used.
+     */
+    value?: unknown;
+    /**
+     * Includes all query stage hits instead of just the first stage. Default is false.
+     */
+    all?: boolean;
+    /**
+     * @deprecated Use `all` instead. Limits the number of query stage hits. Default is unlimited or specify null for unlimited.
+     */
+    hits?: number | null;
+    /**
+     * Limits the number of nodes returned by the query. Default is 1 when repeated is false and all is false, otherwise unlimited. Specify null to force unlimited nodes.
+     */
+    limit?: number | null;
+    /**
+     * The format of the selection. Default is multiline when type is string.
+     */
+    format?: SelectFormat;
+    /**
+     * A validation pattern. Only applies if type is string.
+     */
+    pattern?: string;
+    /**
+     * Causes the selector to be processed as a single unit rather than for each node or each value.
+     */
+    collate?: boolean;
+    /**
+     * An optional comment for the selector.
+     */
+    comment?: string;
+    /**
+     * Sets the context of the selector query. Default is 1. Specify null for global context.
+     */
+    context?: number | null;
+    /**
+     * Removes duplicate values from arrays.
+     */
+    distinct?: boolean;
+    /**
+     * Negates a boolean result.
+     */
+    negate?: boolean;
+    /**
+     * Removes null values from arrays.
+     */
+    removeNulls?: boolean;
+    /**
+     * Waits for the selector to appear when loading the page.
+     */
+    waitfor?: boolean;
+    /**
+     * A condition that must be met for the selection to occur. SKIPPED actions indicate an unmet condition, BYPASSED actions indicate unexecuted actions in offline mode.
+     */
+    when?: When;
 }
 
 export interface Select extends SelectTarget {

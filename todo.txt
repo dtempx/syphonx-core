@@ -1,3 +1,6 @@
+The distinct option is a boolean flag on a Select action. If enabled it will apply a filter to remove duplicate values. The problem is it can only handle an array of strings or numbers, not an array of objects. 
+
+
 "query": [["h3, p",["join"],["replace","/(\n)/gm",", "]]] (fenwick/person.json)
 
 always yield after a click, so we generally don't need to worry about yielding at all

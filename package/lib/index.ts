@@ -21,3 +21,4 @@ export * from "./trunc.js";
 export * from "./typeName.js";
 export * from "./unpatch.js";
 export * from "./unwrap.js";
+export * from "./xpath.js";

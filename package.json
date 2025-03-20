@@ -1,6 +1,6 @@
 {
   "name": "syphonx-core",
-  "version": "1.2.76",
+  "version": "1.2.77",
   "description": "SyphonX is a template-driven solution for extracting data from HTML in a highly efficient way. It combines the power of jQuery, Regular Expressions, and Javascript into a declarative template-driven format that extracts and reshapes HTML data into JSON.",
   "author": "Dave Templin <dtempx@gmail.com> (https://github.com/dtempx/)",
   "homepage": "https://github.com/dtempx/syphonx-core",

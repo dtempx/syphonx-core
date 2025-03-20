@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[package/public/ExtractResult.ts:6](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/public/ExtractResult.ts#L6)
+[package/public/ExtractResult.ts:6](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/ExtractResult.ts#L6)
 
 ___
 
@@ -36,7 +36,7 @@ ___
 
 #### Defined in
 
-[package/public/ExtractResult.ts:9](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/public/ExtractResult.ts#L9)
+[package/public/ExtractResult.ts:9](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/ExtractResult.ts#L9)
 
 ___
 
@@ -46,7 +46,7 @@ ___
 
 #### Defined in
 
-[package/public/ExtractResult.ts:5](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/public/ExtractResult.ts#L5)
+[package/public/ExtractResult.ts:5](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/ExtractResult.ts#L5)
 
 ___
 
@@ -56,7 +56,7 @@ ___
 
 #### Defined in
 
-[package/public/ExtractResult.ts:7](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/public/ExtractResult.ts#L7)
+[package/public/ExtractResult.ts:7](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/ExtractResult.ts#L7)
 
 ___
 
@@ -66,4 +66,4 @@ ___
 
 #### Defined in
 
-[package/public/ExtractResult.ts:8](https://github.com/dtempx/syphonx-core/blob/4b1bb7c/package/public/ExtractResult.ts#L8)
+[package/public/ExtractResult.ts:8](https://github.com/dtempx/syphonx-core/blob/6c56ba7/package/public/ExtractResult.ts#L8)
