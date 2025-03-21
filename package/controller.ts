@@ -75,7 +75,7 @@ import {
     createRegExp,
     cut,
     evaluateFormula,
-    evaluateXpath,
+    evaluateXPath,
     filterQueryResult,
     formatHTML,
     formatStringValue,
@@ -1064,13 +1064,14 @@ export class Controller {
             value = null;
             this.state.vars.__metrics.queries += 1;
         }
-        else if (selector.toLowerCase().startsWith("xpath:")) {
+        else if (selector.startsWith("/") || selector.toLowerCase().startsWith("xpath:")) {
             if (!this.online) {
                 this.appendError("eval-error", "XPATH selectors are only valid online", 0);
                 return undefined;
             }
-            const [node] = (context.nodes?.toArray() || [document]) as Node[];
-            const eval_result = evaluateXpath(selector.slice(6), node);
+            const xpath = selector.toLowerCase().startsWith("xpath:") ? selector.slice(6) : selector;
+            const xpath_nodes: Node[] = context.nodes ? context.nodes.toArray() : [document];
+            const eval_result = evaluateXPath(xpath, xpath_nodes);
             nodes = $(eval_result.nodes);
             value = eval_result.value;
         }

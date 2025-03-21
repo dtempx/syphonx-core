@@ -21,7 +21,7 @@
 
 #### Defined in
 
-[package/public/KeyPress.ts:8](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/KeyPress.ts#L8)
+[package/public/KeyPress.ts:8](https://github.com/dtempx/syphonx-core/blob/1f6e1bf/package/public/KeyPress.ts#L8)
 
 ___
 
@@ -31,7 +31,7 @@ ___
 
 #### Defined in
 
-[package/public/KeyPress.ts:7](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/KeyPress.ts#L7)
+[package/public/KeyPress.ts:7](https://github.com/dtempx/syphonx-core/blob/1f6e1bf/package/public/KeyPress.ts#L7)
 
 ___
 
@@ -41,7 +41,7 @@ ___
 
 #### Defined in
 
-[package/public/KeyPress.ts:5](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/KeyPress.ts#L5)
+[package/public/KeyPress.ts:5](https://github.com/dtempx/syphonx-core/blob/1f6e1bf/package/public/KeyPress.ts#L5)
 
 ___
 
@@ -51,7 +51,7 @@ ___
 
 #### Defined in
 
-[package/public/KeyPress.ts:4](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/KeyPress.ts#L4)
+[package/public/KeyPress.ts:4](https://github.com/dtempx/syphonx-core/blob/1f6e1bf/package/public/KeyPress.ts#L4)
 
 ___
 
@@ -61,7 +61,7 @@ ___
 
 #### Defined in
 
-[package/public/KeyPress.ts:6](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/KeyPress.ts#L6)
+[package/public/KeyPress.ts:6](https://github.com/dtempx/syphonx-core/blob/1f6e1bf/package/public/KeyPress.ts#L6)
 
 ___
 
@@ -71,4 +71,4 @@ ___
 
 #### Defined in
 
-[package/public/KeyPress.ts:9](https://github.com/dtempx/syphonx-core/blob/bfef688/package/public/KeyPress.ts#L9)
+[package/public/KeyPress.ts:9](https://github.com/dtempx/syphonx-core/blob/1f6e1bf/package/public/KeyPress.ts#L9)
