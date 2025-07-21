@@ -1,3 +1,7 @@
+navigate action evaluates selector twice which causes problems if using a formula to shift a list of urls
+Consider removing the FormatHTML function called from the controller, it is removing spaces that cause words to run together
+Fix online/2b test
+
 The distinct option is a boolean flag on a Select action. If enabled it will apply a filter to remove duplicate values. The problem is it can only handle an array of strings or numbers, not an array of objects. 
 
 

@@ -70,6 +70,7 @@ import {
 } from "./private";
 
 import {
+    autoPaginate,
     coerce,
     coerceSelectValue,
     createRegExp,
@@ -413,7 +414,7 @@ export class Controller {
             await this.switch((action as SwitchAction).switch);
         }
         else if (action.hasOwnProperty("transform")) {
-            this.transform((action as TransformAction).transform);
+            await this.transform((action as TransformAction).transform);
         }
         else if (action.hasOwnProperty("waitfor")) {
             const required = (action as WaitForAction).waitfor.required;
@@ -1008,88 +1009,10 @@ export class Controller {
     }
 
     private resolveQuery({ query, type, repeated, all, limit, format, pattern, distinct, negate, removeNulls, result }: ResolveQueryParams): QueryResult | undefined {
-        if (!(query instanceof Array)) {
-            this.appendError("eval-error", "Invalid selector query, query is not an array", 0);
+        const obj = this.resolveQuerySelector(query, format, result?.nodes);
+        if (!obj)
             return undefined;
-        }
-
-        const $ = this.jquery;
-        let selector = query[0];
-        const ops = query.slice(1) as SelectQueryOp[];
-        const context = this.context();
-
-        let nodes: JQueryResult;
-        let value: unknown;
-        if (typeof selector !== "string") {
-            nodes = $();
-            value = null;
-            this.appendError("eval-error", "Invalid selector query, first element is not a string", 0);
-        }
-        else if (selector === "." && context) {
-            nodes = $(context.nodes);
-            value = context.value;
-            this.state.vars.__metrics.queries += 1;
-            this.log(`QUERY $(".", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
-        }
-        else if (selector === ".." && context?.parent) {
-            nodes = $(context.parent.nodes);
-            value = context.parent.value;
-            this.state.vars.__metrics.queries += 1;
-            this.log(`QUERY $("..", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
-        }
-        else if (selector.startsWith("^")) {
-            let n = parseInt(selector.slice(1));
-            let subcontext: SelectContext | undefined = n > 0 ? context : undefined;
-            while (subcontext && n-- >= 0) {
-                subcontext = context.parent;
-            }
-            if (subcontext) {
-                nodes = $(subcontext.nodes);
-                value = subcontext.value;
-                this.state.vars.__metrics.queries += 1;
-                this.log(`QUERY $(${selector}, [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);    
-            }
-            else {
-                this.appendError("eval-error", `Invalid context for selector "${selector}"`, 0);
-                return undefined;
-            }
-        }
-        else if (selector === "{window}") {
-            nodes = this.online ? $(window) : $();
-            value = null;
-            this.state.vars.__metrics.queries += 1;
-        }
-        else if (selector === "{document}") {
-            nodes = this.online ? $(document) : $();
-            value = null;
-            this.state.vars.__metrics.queries += 1;
-        }
-        else if (selector.startsWith("/") || selector.toLowerCase().startsWith("xpath:")) {
-            if (!this.online) {
-                this.appendError("eval-error", "XPATH selectors are only valid online", 0);
-                return undefined;
-            }
-            const xpath = selector.toLowerCase().startsWith("xpath:") ? selector.slice(6) : selector;
-            const xpath_nodes: Node[] = context.nodes ? context.nodes.toArray() : [document];
-            const eval_result = evaluateXPath(xpath, xpath_nodes);
-            nodes = $(eval_result.nodes);
-            value = eval_result.value;
-        }
-        else {
-            try {
-                const _selector = String(this.evaluate(selector));
-                nodes = this.resolveQueryNodes($(_selector, context?.nodes), result?.nodes);
-                value = this.text(nodes, format);
-                if (selector !== _selector)
-                    this.log(`EVALUATE "${selector}" >>> "${_selector}"`);
-                this.state.vars.__metrics.queries += 1;
-                this.log(`QUERY $("${_selector}", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
-            }
-            catch (err) {
-                this.appendError("eval-error", `Failed to resolve selector for "${selectorStatement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
-                return undefined;
-            }
-        }
+        const { ops, nodes, value } = obj;
 
         if (ops.length > 0 && nodes.length > 0) {
             try {
@@ -1134,9 +1057,8 @@ export class Controller {
     private resolveQueryOps({ ops, nodes, type, repeated, all, limit, format, pattern, distinct, negate, removeNulls, value }: ResolveQueryOpsParams): QueryResult {
         const $ = this.jquery;
         const result: QueryResult = { nodes, key: this.contextKey(), value };
-        if (!this.validateOperators(ops)) {
+        if (!this.validateOperators(ops))
             return result;
-        }
 
         const a = ops.slice(0);
         while (a.length > 0) {
@@ -1458,6 +1380,127 @@ export class Controller {
             }
         }
         return this.formatResult(result, type, all, limit, format, pattern, distinct, negate, removeNulls);
+    }
+
+    private resolveQuerySelector(query: SelectQuery, format?: SelectFormat, input_nodes?: JQueryResult): { selector: string, ops: SelectQueryOp[], nodes: JQueryResult, value: unknown } | undefined {
+        if (!(query instanceof Array)) {
+            this.appendError("eval-error", "Invalid selector query, query is not an array", 0);
+            return undefined;
+        }
+
+        const $ = this.jquery;
+        let selector = query[0];
+        const ops = query.slice(1) as SelectQueryOp[];
+        const context = this.context();
+
+        let nodes: JQueryResult;
+        let value: unknown;
+        if (typeof selector !== "string") {
+            nodes = $();
+            value = null;
+            this.appendError("eval-error", "Invalid selector query, first element is not a string", 0);
+        }
+        else if (selector === "." && context) {
+            nodes = $(context.nodes);
+            value = context.value;
+            this.state.vars.__metrics.queries += 1;
+            this.log(`QUERY $(".", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
+        }
+        else if (selector === ".." && context?.parent) {
+            nodes = $(context.parent.nodes);
+            value = context.parent.value;
+            this.state.vars.__metrics.queries += 1;
+            this.log(`QUERY $("..", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
+        }
+        else if (selector.startsWith("^")) {
+            let n = parseInt(selector.slice(1));
+            let subcontext: SelectContext | undefined = n > 0 ? context : undefined;
+            while (subcontext && n-- >= 0) {
+                subcontext = context.parent;
+            }
+            if (subcontext) {
+                nodes = $(subcontext.nodes);
+                value = subcontext.value;
+                this.state.vars.__metrics.queries += 1;
+                this.log(`QUERY $(${selector}, [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);    
+            }
+            else {
+                this.appendError("eval-error", `Invalid context for selector "${selector}"`, 0);
+                return undefined;
+            }
+        }
+        else if (selector === "{window}") {
+            nodes = this.online ? $(window) : $();
+            value = null;
+            this.state.vars.__metrics.queries += 1;
+        }
+        else if (selector === "{document}") {
+            nodes = this.online ? $(document) : $();
+            value = null;
+            this.state.vars.__metrics.queries += 1;
+        }
+        else if (selector.startsWith("/") || selector.toLowerCase().startsWith("xpath:")) {
+            if (!this.online) {
+                this.appendError("eval-error", "XPATH selectors are only valid online", 0);
+                return undefined;
+            }
+            const xpath = selector.toLowerCase().startsWith("xpath:") ? selector.slice(6) : selector;
+            const xpath_nodes: Node[] = context.nodes ? context.nodes.toArray() : [document];
+            const eval_result = evaluateXPath(xpath, xpath_nodes);
+            nodes = $(eval_result.nodes);
+            value = eval_result.value;
+        }
+        else {
+            try {
+                const _selector = String(this.evaluate(selector));
+                nodes = this.resolveQueryNodes($(_selector, context?.nodes), input_nodes);
+                value = this.text(nodes, format);
+                if (selector !== _selector)
+                    this.log(`EVALUATE "${selector}" >>> "${_selector}"`);
+                this.state.vars.__metrics.queries += 1;
+                this.log(`QUERY $("${_selector}", [${this.nodeKey(context.nodes)}]) -> ${trunc(value)} (${nodes.length} nodes)`);
+            }
+            catch (err) {
+                this.appendError("eval-error", `Failed to resolve selector for "${selectorStatement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
+                return undefined;
+            }
+        }
+
+        return { selector, ops, nodes, value };
+    }
+
+    private async resolveTransformQuery(query: SelectQuery): Promise<number> {
+        const [operator, ...operands] = (query.slice(1) as SelectQueryOp[])[0];
+        if (operator === "autopaginate") {
+            if (!this.online)
+                return 0;
+            if (!this.validateOperands(operator, operands, ["string"], ["number", "number"]))
+                return 0;
+
+            const item_selector = String(this.evaluate(query[0]));
+            const next_button_selector = String(this.evaluate(operands[0]));
+            const max_items = operands[1] as number || 25;
+            const timeout = operands[2] as number || 10;
+            const { from, to, pages, status } = await autoPaginate(item_selector, next_button_selector, max_items, timeout * 1000);
+            this.log(`autopaginate (item_selector=${item_selector}, next_button_selector=${next_button_selector}, before=${from}, after=${to}, pages=${pages}, max_items=${max_items}, timeout=${timeout}s, status=${status})`);
+            return to;
+        }
+
+        const obj = this.resolveQuerySelector(query);
+        if (!obj)
+            return 0;
+        const { ops, nodes, value } = obj;
+        if (ops.length === 0 || nodes.length === 0)
+            return 0;
+
+        try {
+            const result = this.resolveQueryOps({ ops, nodes, value, repeated: true, all: true, limit: null });
+            return result?.nodes?.length || 0;
+        }
+        catch (err) {
+            this.appendError("eval-error", `Failed to resolve operation for "${selectorStatement(query)}": ${err instanceof Error ? err.message : JSON.stringify(err)}`, 0);
+            return 0;
+        }
     }
 
     async run(actions: Action[], label = "", wraparound = false): Promise<DispatchResult | undefined> {
@@ -1878,13 +1921,13 @@ export class Controller {
         }
     }
 
-    public transform(transforms: Transform[]): void {
+    public async transform(transforms: Transform[]): Promise<void> {
         for (const transform of transforms) {
             if (this.when(transform.when, `TRANSFORM${transform.name ? ` ${transform.name}` : ""}`)) {
                 const query = transform.query;
                 try {
-                    const result = this.resolveQuery({ query, repeated: true, all: true, limit: null });
-                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${selectorStatement(query)} -> (${result?.nodes?.length || 0} nodes)`);
+                    const hits = await this.resolveTransformQuery(query);
+                    this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ${selectorStatement(query)} -> (${hits} nodes)`);
                 }
                 catch (err) {
                     this.log(`TRANSFORM${transform.name ? ` ${transform.name}` : ""} ERROR ${selectorStatement(query)}: ${err instanceof Error ? err.message : JSON.stringify(err)}`);

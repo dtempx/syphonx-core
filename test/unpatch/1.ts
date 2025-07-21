@@ -2,7 +2,8 @@ import { expect } from "chai";
 import { browser } from "../common.js";
 import { unpatch } from "../../package/lib/unpatch.js";
 
-describe("unpatch/1", async () => {
+// skip test, site apriadirect.com changed to remove monkey-patch for Array.from
+describe.skip("unpatch/1", async () => {
     let val1: string;
     let val2: string;
     let val3: string;

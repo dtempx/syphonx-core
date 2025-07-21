@@ -3,7 +3,7 @@ import { syphonx, offline } from "../common.js";
 
 const test = {
     html: `<p>Hello</p>`,
-    //debug: true,
+    debug: true,
     actions: [
         {
             "snooze": [60]

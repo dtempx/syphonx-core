@@ -1,3 +1,4 @@
+export * from "./autopaginate.js";
 export * from "./coerce.js";
 export * from "./collapseWhitespace.js";
 export * from "./combineUrl.js";
