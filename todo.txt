@@ -1,4 +1,16 @@
+fix build warnings...
+npm warn Unknown env config "version-commit-hooks". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-tag-prefix". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-git-message". This will stop working in the next major version of npm.
+npm warn Unknown env config "argv". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-git-tag". This will stop working in the next major version of npm.
+
 navigate action evaluates selector twice which causes problems if using a formula to shift a list of urls
+implement nextPage behavior (see commented out test in online/7)
+rename autopaginate transform to nextPageAll
+evaluate extract arguments (see gtlaw)
+waitfor doesn't evaluate it's args --make sure all args are always evaluated everywhere!!
+
 Consider removing the FormatHTML function called from the controller, it is removing spaces that cause words to run together
 Fix online/2b test
 

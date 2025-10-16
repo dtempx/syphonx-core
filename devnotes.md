@@ -39,11 +39,11 @@ node tools/select-html --url=https://www.example.com --selector=h1
 
 
 ## Debug in browser
-1. Open the developer console in any browser by hitting F12
-2. Type `syphonx=` and paste the contents of file `dist/iife/syphonx-jquery.js` into the console, this assigns the library to a function named `syphonx`
+1. Open the developer console in any browser by hitting F12.
+2. Type `syphonx=` and paste the contents of file `dist/iife/syphonx-jquery.js` into the console. This assigns the library to a variable named `syphonx`.
     > Tip: Add a `debugger` statement anywhere in the code if you need to debug the library
-3. Type `template=` and paste the contents of a template file into the console, this assigns a template to a variable named `template`
-4. Type `result = await syphonx(template)` into the console to run the template
+3. Type `template=` and paste the contents of a template file into the console. This assigns a template to a variable named `template`.
+4. Type `result = await syphonx(template)` into the console to run the template.
 
 To see additional diagnostic output, run the following and then run `result = await syphonx({ ...template, debug: true })`
 ```javascript

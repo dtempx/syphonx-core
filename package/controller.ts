@@ -1474,15 +1474,24 @@ export class Controller {
         if (operator === "autopaginate") {
             if (!this.online)
                 return 0;
-            if (!this.validateOperands(operator, operands, ["string"], ["number", "number"]))
+            if (!this.validateOperands(operator, operands, ["string"], ["number", "number", "number", "number"]))
                 return 0;
 
             const item_selector = String(this.evaluate(query[0]));
             const next_button_selector = String(this.evaluate(operands[0]));
-            const max_items = operands[1] as number || 25;
-            const timeout = operands[2] as number || 10;
-            const { from, to, pages, status } = await autoPaginate(item_selector, next_button_selector, max_items, timeout * 1000);
-            this.log(`autopaginate (item_selector=${item_selector}, next_button_selector=${next_button_selector}, before=${from}, after=${to}, pages=${pages}, max_items=${max_items}, timeout=${timeout}s, status=${status})`);
+            const max_pages = operands[1] as number ?? 25;
+            const timeout_seconds = operands[2] as number ?? 30;
+            const min_click_delay_seconds = operands[3] as number ?? 1;
+            const max_click_delay_seconds = operands[4] as number ?? 2;
+            const { from, to, pages, status } = await autoPaginate({
+                item_selector,
+                next_button_selector,
+                max_pages,
+                min_click_delay: min_click_delay_seconds * 1000,
+                max_click_delay: max_click_delay_seconds * 1000,
+                timeout: timeout_seconds * 1000
+            });
+            this.log(`autopaginate (item_selector=${item_selector}, next_button_selector=${next_button_selector}, before=${from}, after=${to}, pages=${pages}, max_pages=${max_pages}, click_delay=[${min_click_delay_seconds},${max_click_delay_seconds}]s, timeout=${timeout_seconds}s, status=${status})`);
             return to;
         }
 
@@ -1592,7 +1601,7 @@ export class Controller {
         });
     }
 
-    private async scroll({ name, query, target, behavior = "smooth", block, inline, when }: Scroll): Promise<void> {
+    private async scroll({ name, query, target, behavior = "smooth", block = "center", inline, when }: Scroll): Promise<void> {
         if (this.online) {
             if (this.when(when, `SCROLL${name ? ` ${name}` : ""}`)) {
                 if (target === "top" || target === "bottom") {
