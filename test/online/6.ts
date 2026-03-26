@@ -4,7 +4,7 @@ import { syphonx, online } from "../common.js";
 const test = {
     url: "https://www.ycombinator.com/",
     //debug: true,
-    //show: true,
+    show: true,
     actions: [
         {
             "select": [
@@ -18,7 +18,12 @@ const test = {
         },
         {
             "scroll": {
-                "query": [["span:contains('We help founders')"]]
+                "target": "bottom"
+            }
+        },
+        {
+            "scroll": {
+                "query": [["h2:contains('Be in the room with')"]]
             }
         },
         {

@@ -1144,7 +1144,7 @@ export class Controller {
                     };
                     const n = input.elements.length;
                     for (let i = 0; i < n; ++i) {
-                        const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
+                        const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n }); // note: a boolean regex can be negated like so "!/xyz/", or use "not" instead
                         if (hit) {
                             output.elements.push(input.elements[i]);
                             output.values.push(input.values[i]);
@@ -1157,6 +1157,37 @@ export class Controller {
                 else {
                     const hit = this.evaluateBoolean(operands[0], { value: result.value });
                     if (!hit) {
+                        result.nodes = $([]);
+                        result.value = null;
+                    }
+                }
+            }
+            else if (operator === "not" && (isFormula(operands[0]) || isRegexp(operands[0]))) {
+                if (!this.validateOperands(operator, operands, ["string"]))
+                    break;
+                if (result.value instanceof Array) {
+                    const input = {
+                        elements: result.nodes.toArray(),
+                        values: result.value
+                    };
+                    const output = {
+                        elements: [] as any[],
+                        values: [] as unknown[]
+                    };
+                    const n = input.elements.length;
+                    for (let i = 0; i < n; ++i) {
+                        const hit = this.evaluateBoolean(operands[0], { value: input.values[i], index: i, count: n });
+                        if (!hit) {
+                            output.elements.push(input.elements[i]);
+                            output.values.push(input.values[i]);
+                        }
+                    }
+                    result.nodes = $(output.elements);
+                    result.value = output.values;
+                }
+                else {
+                    const hit = this.evaluateBoolean(operands[0], { value: result.value });
+                    if (hit) {
                         result.nodes = $([]);
                         result.value = null;
                     }

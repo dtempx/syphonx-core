@@ -1,3 +1,6 @@
+break at root level doesn't end because it just returns and doesn't execute the last instructions in displatch
+add a scroll to the click action that scrolls to the element before clicking it
+
 fix build warnings...
 npm warn Unknown env config "version-commit-hooks". This will stop working in the next major version of npm.
 npm warn Unknown env config "version-tag-prefix". This will stop working in the next major version of npm.
