@@ -2,6 +2,11 @@
 
 # Interface: YieldLocator
 
+Describes a single Playwright locator operation for the host to execute
+during a yield. Results are fed back into the engine as template variables
+so subsequent actions can use values from the live DOM that are not directly
+accessible to the in-page engine (e.g. shadow DOM, iframes).
+
 ## Table of contents
 
 ### Properties
@@ -18,9 +23,11 @@
 
 • `Optional` **frame**: `string`
 
+CSS selector passed to `page.frameLocator()` to scope the locator to a specific iframe.
+
 #### Defined in
 
-[package/public/Yield.ts:27](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L27)
+[package/public/Yield.ts:123](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L123)
 
 ___
 
@@ -28,9 +35,13 @@ ___
 
 • **method**: `string`
 
+Name of the Playwright locator method to call (e.g. `"getAttribute"`,
+`"allTextContents"`, `"inputValue"`).
+See https://playwright.dev/docs/api/class-locator for available methods.
+
 #### Defined in
 
-[package/public/Yield.ts:25](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L25)
+[package/public/Yield.ts:117](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L117)
 
 ___
 
@@ -38,9 +49,11 @@ ___
 
 • **name**: `string`
 
+Variable name under which the result is stored in `state.vars`. Must start with `_`.
+
 #### Defined in
 
-[package/public/Yield.ts:23](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L23)
+[package/public/Yield.ts:107](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L107)
 
 ___
 
@@ -48,9 +61,11 @@ ___
 
 • `Optional` **params**: `unknown`[]
 
+Positional arguments forwarded to the locator method call.
+
 #### Defined in
 
-[package/public/Yield.ts:26](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L26)
+[package/public/Yield.ts:120](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L120)
 
 ___
 
@@ -58,6 +73,8 @@ ___
 
 • **selector**: `string`
 
+CSS selector passed to `page.locator()` (or `page.frameLocator()` when `frame` is set).
+
 #### Defined in
 
-[package/public/Yield.ts:24](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L24)
+[package/public/Yield.ts:110](https://github.com/dtempx/syphonx-core/blob/main/package/public/Yield.ts#L110)

@@ -2,6 +2,8 @@
 
 # Interface: SelectOptions
 
+Options for configuring a [select](../modules.md#_select) invocation.
+
 ## Table of contents
 
 ### Properties
@@ -19,9 +21,11 @@
 
 • `Optional` **context**: `string`
 
+A CSS/jQuery selector that sets the root context node for all queries.
+
 #### Defined in
 
-[package/select.ts:11](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L11)
+[package/select.ts:16](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L16)
 
 ___
 
@@ -29,9 +33,11 @@ ___
 
 • `Optional` **debug**: `boolean`
 
+Enables debug logging when `true`.
+
 #### Defined in
 
-[package/select.ts:10](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L10)
+[package/select.ts:14](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L14)
 
 ___
 
@@ -39,9 +45,11 @@ ___
 
 • `Optional` **root**: `unknown`
 
+A pre-existing data object to use as the root of the extraction result.
+
 #### Defined in
 
-[package/select.ts:12](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L12)
+[package/select.ts:18](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L18)
 
 ___
 
@@ -49,9 +57,11 @@ ___
 
 • `Optional` **unwrap**: `boolean`
 
+When `true`, unwraps singleton arrays in the output data.
+
 #### Defined in
 
-[package/select.ts:13](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L13)
+[package/select.ts:20](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L20)
 
 ___
 
@@ -59,9 +69,11 @@ ___
 
 • `Optional` **url**: `string`
 
+The URL associated with the document, used for resolving relative references.
+
 #### Defined in
 
-[package/select.ts:8](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L8)
+[package/select.ts:10](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L10)
 
 ___
 
@@ -69,6 +81,8 @@ ___
 
 • `Optional` **vars**: `Record`\<`string`, `unknown`\>
 
+Variables to inject into the extraction state, accessible within selector expressions.
+
 #### Defined in
 
-[package/select.ts:9](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L9)
+[package/select.ts:12](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L12)

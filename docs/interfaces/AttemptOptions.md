@@ -2,6 +2,8 @@
 
 # Interface: AttemptOptions
 
+Options for configuring retry behavior.
+
 ## Table of contents
 
 ### Properties
@@ -14,6 +16,8 @@
 
 • **retries**: `number`
 
+Number of retry attempts before giving up.
+
 #### Defined in
 
-[host.ts:279](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L279)
+[host.ts:338](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L338)

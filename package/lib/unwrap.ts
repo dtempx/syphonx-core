@@ -1,3 +1,9 @@
+/**
+ * Recursively unwraps extracted values by stripping internal wrapper objects.
+ * Wrapper objects (those with `value` and `nodes` properties) are replaced by their `value`.
+ * Plain objects and arrays are traversed recursively, unwrapping nested values.
+ * Primitives and non-unwrappable values are returned as-is.
+ */
 export function unwrap(obj: unknown): unknown {
     if (isUnwrappable(obj)) {
         return unwrap((obj as { value: unknown }).value);

@@ -2,6 +2,8 @@
 
 # Interface: TransformOptions
 
+Options for the standalone [transform](../modules.md#_transform) function.
+
 ## Table of contents
 
 ### Properties
@@ -17,9 +19,11 @@
 
 • `Optional` **debug**: `boolean`
 
+When `true`, enables verbose logging of each transform step to the console.
+
 #### Defined in
 
-[package/transform.ts:9](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L9)
+[package/transform.ts:15](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L15)
 
 ___
 
@@ -27,9 +31,11 @@ ___
 
 • `Optional` **root**: `unknown`
 
+A pre-existing data root to seed the controller's `data` object, allowing transforms to reference previously extracted fields.
+
 #### Defined in
 
-[package/transform.ts:10](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L10)
+[package/transform.ts:17](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L17)
 
 ___
 
@@ -37,9 +43,11 @@ ___
 
 • `Optional` **url**: `string`
 
+The URL of the page being transformed, made available to formula expressions as `_url`.
+
 #### Defined in
 
-[package/transform.ts:7](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L7)
+[package/transform.ts:11](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L11)
 
 ___
 
@@ -47,6 +55,8 @@ ___
 
 • `Optional` **vars**: `Record`\<`string`, `unknown`\>
 
+Template-level variables, accessible in formula expressions (e.g. `{_myVar}`).
+
 #### Defined in
 
-[package/transform.ts:8](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L8)
+[package/transform.ts:13](https://github.com/dtempx/syphonx-core/blob/main/package/transform.ts#L13)

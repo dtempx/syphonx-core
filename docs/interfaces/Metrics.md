@@ -2,7 +2,9 @@
 
 # Interface: Metrics
 
-Returns extraction metrics.
+Performance and diagnostic metrics collected during a template extraction run.
+Provides insight into how the extraction engine executed, including timing breakdowns,
+action counts, and error/retry statistics useful for debugging and optimization.
 
 ## Table of contents
 
@@ -29,19 +31,7 @@ Returns extraction metrics.
 
 • **actions**: `number`
 
-Number of actions in the template. (recursive)
-
-#### Defined in
-
-[package/public/Metrics.ts:6](https://github.com/dtempx/syphonx-core/blob/main/package/public/Metrics.ts#L6)
-
-___
-
-### clicks
-
-• **clicks**: `number`
-
-Number of clicks that occurred.
+Total number of actions in the template, counted recursively across all nested action groups.
 
 #### Defined in
 
@@ -49,11 +39,11 @@ Number of clicks that occurred.
 
 ___
 
-### elapsed
+### clicks
 
-• **elapsed**: `number`
+• **clicks**: `number`
 
-Total elapsed run time. (milliseconds)
+Number of click actions that were executed during the extraction run.
 
 #### Defined in
 
@@ -61,11 +51,11 @@ Total elapsed run time. (milliseconds)
 
 ___
 
-### errors
+### elapsed
 
-• **errors**: `number`
+• **elapsed**: `number`
 
-Number of errors that occurred.
+Total wall-clock time for the entire extraction run. (milliseconds)
 
 #### Defined in
 
@@ -73,11 +63,11 @@ Number of errors that occurred.
 
 ___
 
-### navigate
+### errors
 
-• **navigate**: `number`
+• **errors**: `number`
 
-Amount of time spent navigating. (milliseconds)
+Total number of errors encountered during extraction, including selector failures and action errors.
 
 #### Defined in
 
@@ -85,11 +75,11 @@ Amount of time spent navigating. (milliseconds)
 
 ___
 
-### queries
+### navigate
 
-• **queries**: `number`
+• **navigate**: `number`
 
-Count of DOM queries run.
+Cumulative time spent waiting for page navigations to complete. (milliseconds)
 
 #### Defined in
 
@@ -97,11 +87,11 @@ Count of DOM queries run.
 
 ___
 
-### renavigations
+### queries
 
-• **renavigations**: `number`
+• **queries**: `number`
 
-Count of renavigations that occurred.
+Total number of DOM queries (CSS, jQuery, and XPath selectors) executed against the document.
 
 #### Defined in
 
@@ -109,11 +99,11 @@ Count of renavigations that occurred.
 
 ___
 
-### retries
+### renavigations
 
-• **retries**: `number`
+• **renavigations**: `number`
 
-Count of navigation retries that occurred.
+Number of times the engine re-navigated to a URL, typically due to a page redirect or reload action.
 
 #### Defined in
 
@@ -121,11 +111,11 @@ Count of navigation retries that occurred.
 
 ___
 
-### skipped
+### retries
 
-• **skipped**: `number`
+• **retries**: `number`
 
-Number of steps skipped. A skip occurs on an unsatisfied `when` condition.
+Number of navigation retry attempts triggered by failed or incomplete page loads.
 
 #### Defined in
 
@@ -133,11 +123,11 @@ Number of steps skipped. A skip occurs on an unsatisfied `when` condition.
 
 ___
 
-### snooze
+### skipped
 
-• **snooze**: `number`
+• **skipped**: `number`
 
-Amount of time spent in a snooze action. (milliseconds)
+Number of action steps skipped due to an unsatisfied `when` condition.
 
 #### Defined in
 
@@ -145,11 +135,11 @@ Amount of time spent in a snooze action. (milliseconds)
 
 ___
 
-### steps
+### snooze
 
-• **steps**: `number`
+• **snooze**: `number`
 
-Number of steps run.
+Cumulative time spent paused in snooze actions. (milliseconds)
 
 #### Defined in
 
@@ -157,11 +147,11 @@ Number of steps run.
 
 ___
 
-### timeouts
+### steps
 
-• **timeouts**: `number`
+• **steps**: `number`
 
-Count of timeouts that occurred in a waitfor action.
+Total number of action steps executed during the extraction run.
 
 #### Defined in
 
@@ -169,11 +159,11 @@ Count of timeouts that occurred in a waitfor action.
 
 ___
 
-### waitfor
+### timeouts
 
-• **waitfor**: `number`
+• **timeouts**: `number`
 
-Amount of time spent in a waitfor action. (milliseconds)
+Number of times a waitfor action exceeded its timeout threshold without the condition being met.
 
 #### Defined in
 
@@ -181,12 +171,24 @@ Amount of time spent in a waitfor action. (milliseconds)
 
 ___
 
-### yields
+### waitfor
 
-• **yields**: `number`
+• **waitfor**: `number`
 
-Count of yield actions that occurred.
+Cumulative time spent waiting in waitfor actions for a DOM condition to be satisfied. (milliseconds)
 
 #### Defined in
 
 [package/public/Metrics.ts:32](https://github.com/dtempx/syphonx-core/blob/main/package/public/Metrics.ts#L32)
+
+___
+
+### yields
+
+• **yields**: `number`
+
+Number of times the engine yielded control back to the host for an external operation (navigate, click, screenshot, etc.).
+
+#### Defined in
+
+[package/public/Metrics.ts:34](https://github.com/dtempx/syphonx-core/blob/main/package/public/Metrics.ts#L34)

@@ -2,6 +2,8 @@
 
 # Interface: NavigateResult
 
+Result returned by navigation callbacks.
+
 ## Table of contents
 
 ### Properties
@@ -14,6 +16,8 @@
 
 • `Optional` **status**: `number`
 
+HTTP status code from the navigation response.
+
 #### Defined in
 
-[host.ts:32](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L32)
+[host.ts:34](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L34)
