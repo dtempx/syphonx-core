@@ -35,6 +35,18 @@ export interface SelectOptions {
  * @param options - Optional configuration including `url`, `vars`, `debug`, `context`,
  *   `root`, and an `unwrap` flag that unwraps singleton arrays in the output data.
  * @returns The extraction state with populated `data`, `errors`, and `metrics`.
+ * 
+ * @example
+ * import * as cheerio from 'cheerio';
+ * import * as fs from 'fs';
+ * import * as syphonx from 'syphonx-core';
+ * 
+ * const html = fs.readFileSync('./example.html', 'utf-8');
+ * const root = cheerio.load(html);
+ * const result = syphonx.select(select, { root });
+ * const data = syphonx.unwrap(result.data);
+ * console.log(JSON.stringify(data, null, 2));
+ * 
  */
 export function select(selects: Select[] | Template, options: SelectOptions = {}): ExtractState {
     if (!Array.isArray(selects) && typeof selects === "object" && selects !== null && (selects as {}).hasOwnProperty("actions"))

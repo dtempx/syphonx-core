@@ -44,6 +44,7 @@ import { Yield } from "./Yield.js";
  *     { "transform": [{ "query": ["p", ["replaceText", "{value.trim()}"]] }] }
  *   ]
  * }
+ * 
  */
 export type Action =
       BreakAction
@@ -74,6 +75,7 @@ export type Action =
  *
  * @example
  * { "break": { "query": [["#next"]], "on": "none" } }
+ * 
  */
 export type BreakAction = { break: Break };
 
@@ -81,6 +83,9 @@ export type BreakAction = { break: Break };
  * Simulates a user click on a DOM element matched by a CSS/jQuery/XPath
  * selector. Online-only. Supports post-click waiting ({@link WaitFor}),
  * snooze delays, and yielding to the host for navigation-triggering clicks.
+ *
+ * @example
+ * { "click": { "query": [["#next"]] } }
  *
  * @example
  * { "click": { "query": [["a.next"]], "waitfor": { "query": [["h1"]] } } }
@@ -93,7 +98,15 @@ export type ClickAction = { click: Click };
  * context. Works in both online and offline modes.
  *
  * @example
- * { "each": { "query": [["ul > li"]], "actions": [{ "select": [{ "name": "item", "repeated": true, "query": [["."]] }] }] } }
+ * {
+ *     "each": {
+ *         "query": [["ul > li"]],
+ *         "actions": [
+ *             { "select": [{ "name": "item", "repeated": true, "query": [["."]] }] }
+ *         ]
+ *     }
+ * }
+ * 
  */
 export type EachAction = { each: Each };
 
@@ -104,6 +117,7 @@ export type EachAction = { each: Each };
  *
  * @example
  * { "error": { "when": "{_status === 'blocked'}", "message": "Page is blocked", "level": 0 } }
+ * 
  */
 export type ErrorAction = { error: Error };
 
@@ -114,6 +128,7 @@ export type ErrorAction = { error: Error };
  *
  * @example
  * { "goback": {} }
+ * 
  */
 export type GoBackAction = { goback: GoBack };
 
@@ -124,6 +139,7 @@ export type GoBackAction = { goback: GoBack };
  *
  * @example
  * { "keypress": { "key": "Escape" } }
+ * 
  */
 export type KeyPressAction = { keypress: KeyPress };
 
@@ -135,6 +151,7 @@ export type KeyPressAction = { keypress: KeyPress };
  *
  * @example
  * { "locator": [{ "name": "_text", "frame": "#iframe", "selector": "body", "method": "allInnerTexts" }] }
+ * 
  */
 export type LocatorAction = { locator: Locator[] };
 
@@ -145,6 +162,7 @@ export type LocatorAction = { locator: Locator[] };
  *
  * @example
  * { "navigate": { "url": "https://example.com/page/{_nextPage}" } }
+ * 
  */
 export type NavigateAction = { navigate: Navigate };
 
@@ -154,6 +172,7 @@ export type NavigateAction = { navigate: Navigate };
  *
  * @example
  * { "reload": { "waitUntil": "networkidle" } }
+ * 
  */
 export type ReloadAction =  { reload: Reload };
 
@@ -170,6 +189,7 @@ export type ReloadAction =  { reload: Reload };
  *     { "break": { "query": [["#next"]], "on": "none" } },
  *     { "click": { "query": [["#next"]] } }
  * ] } }
+ * 
  */
 export type RepeatAction = { repeat: Repeat };
 
@@ -189,6 +209,7 @@ export type ScreenshotAction = { screenshot: Screenshot };
  *
  * @example
  * { "scroll": { "target": "bottom" } }
+ * 
  */
 export type ScrollAction = { scroll: Scroll };
 
@@ -200,7 +221,20 @@ export type ScrollAction = { scroll: Scroll };
  * object structures. Works in both online and offline modes.
  *
  * @example
- * { "select": [{ "name": "title", "query": [["h1"]] }, { "name": "price", "type": "number", "query": [["span.price"]] }] }
+ * {
+ *     "select": [
+ *         {
+ *             "name": "title",
+ *             "query": [["h1"]] 
+ *         },
+ *         {
+ *              "name": "price",
+ *              "type": "number",
+ *              "query": [["span.price"]]
+ *         }
+ *     ]
+ * }
+ * 
  */
 export type SelectAction = { select: Select[] };
 
@@ -213,8 +247,6 @@ export type SelectAction = { select: Select[] };
  * @example
  * { "snooze": [1, 2] }
  *
- * @example
- * { "snooze": { "interval": [0.5, 1], "when": "{_shouldPause}" } }
  */
 export type SnoozeAction = { snooze: Snooze | number | [number] | [number, number] };
 
@@ -229,6 +261,7 @@ export type SnoozeAction = { snooze: Snooze | number | [number] | [number, numbe
  *     { "query": [["h1:contains('News')"]], "actions": [{ "select": [{ "name": "content", "query": [["p"]] }] }] },
  *     { "actions": [{ "select": [{ "name": "content", "query": [["i"]] }] }] }
  * ] }
+ * 
  */
 export type SwitchAction = { switch: Switch[] };
 
@@ -242,6 +275,7 @@ export type SwitchAction = { switch: Switch[] };
  *
  * @example
  * { "transform": [{ "query": ["h3", ["replaceWith", "{`<p>${value}</p>`}"]] }] }
+ * 
  */
 export type TransformAction = { transform: Transform[] };
 
@@ -254,6 +288,7 @@ export type TransformAction = { transform: Transform[] };
  *
  * @example
  * { "waitfor": { "query": [["h1"]], "required": true, "timeout": 5 } }
+ * 
  */
 export type WaitForAction = { waitfor: WaitFor };
 
@@ -266,6 +301,7 @@ export type WaitForAction = { waitfor: WaitFor };
  *
  * @example
  * { "yield": { "params": { "waitUntil": "domcontentloaded" } } }
+ * 
  */
 export type YieldAction = { yield: Yield };
 
@@ -273,6 +309,7 @@ export type YieldAction = { yield: Yield };
  * A string literal union of all action type keys. Corresponds to the
  * property name used to identify each action in the discriminated
  * {@link Action} union (e.g. `"select"`, `"click"`, `"repeat"`).
+ * 
  */
 export type ActionType =
   "break" |

@@ -16,6 +16,19 @@ import { unpatch, unwrap } from "./lib/index.js";
  *   configuration. Extended with an optional `unwrap` flag that, when `true`, unwraps
  *   singleton arrays in the output data after extraction completes (skipped if yielding).
  * @returns The mutated extraction state with populated `data`, `errors`, and `metrics`.
+ * 
+ * @example
+ * import * as cheerio from 'cheerio';
+ * import * as syphonx from 'syphonx-core';
+ * import { promises as fs } from 'fs';
+ * 
+ * const template = JSON.parse(await fs.readFile('./template.json', 'utf-8'));
+ * const html = await fs.readFile('./example.html', 'utf-8');
+ * 
+ * const root = cheerio.load(html);
+ * const result = await syphonx.extract({ ...template, root } as syphonx.ExtractState);
+ * console.log(JSON.stringify(result, null, 2));
+ * 
  */
 export async function extract(state: ExtractState & { unwrap?: boolean }): Promise<ExtractState> {
     if (typeof state?.vars?.__instance === "number")

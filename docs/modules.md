@@ -143,7 +143,7 @@ while others work in both modes.
 
 #### Defined in
 
-[package/public/Action.ts:48](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L48)
+[package/public/Action.ts:49](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L49)
 
 ___
 
@@ -157,7 +157,7 @@ property name used to identify each action in the discriminated
 
 #### Defined in
 
-[package/public/Action.ts:277](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L277)
+[package/public/Action.ts:314](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L314)
 
 ___
 
@@ -185,7 +185,7 @@ button disappearing).
 
 #### Defined in
 
-[package/public/Action.ts:78](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L78)
+[package/public/Action.ts:80](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L80)
 
 ___
 
@@ -196,6 +196,12 @@ ___
 Simulates a user click on a DOM element matched by a CSS/jQuery/XPath
 selector. Online-only. Supports post-click waiting ([WaitFor](interfaces/WaitFor.md)),
 snooze delays, and yielding to the host for navigation-triggering clicks.
+
+**`Example`**
+
+```ts
+{ "click": { "query": [["#next"]] } }
+```
 
 **`Example`**
 
@@ -211,7 +217,7 @@ snooze delays, and yielding to the host for navigation-triggering clicks.
 
 #### Defined in
 
-[package/public/Action.ts:88](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L88)
+[package/public/Action.ts:93](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L93)
 
 ___
 
@@ -243,7 +249,14 @@ context. Works in both online and offline modes.
 **`Example`**
 
 ```ts
-{ "each": { "query": [["ul > li"]], "actions": [{ "select": [{ "name": "item", "repeated": true, "query": [["."]] }] }] } }
+{
+ *     "each": {
+ *         "query": [["ul > li"]],
+ *         "actions": [
+ *             { "select": [{ "name": "item", "repeated": true, "query": [["."]] }] }
+ *         ]
+ *     }
+ * }
 ```
 
 #### Type declaration
@@ -254,7 +267,7 @@ context. Works in both online and offline modes.
 
 #### Defined in
 
-[package/public/Action.ts:98](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L98)
+[package/public/Action.ts:111](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L111)
 
 ___
 
@@ -280,7 +293,7 @@ can halt or continue processing. Works in both online and offline modes.
 
 #### Defined in
 
-[package/public/Action.ts:108](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L108)
+[package/public/Action.ts:122](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L122)
 
 ___
 
@@ -294,7 +307,7 @@ full extraction state, standalone select, standalone transform, or synchronous e
 
 #### Defined in
 
-[host.ts:349](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L349)
+[host.ts:410](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L410)
 
 ___
 
@@ -320,7 +333,7 @@ Function signature for invoking the extraction engine inside the browser context
 
 #### Defined in
 
-[host.ts:355](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L355)
+[host.ts:416](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L416)
 
 ___
 
@@ -332,7 +345,7 @@ The result returned by the in-browser evaluation function, representing the upda
 
 #### Defined in
 
-[host.ts:352](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L352)
+[host.ts:413](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L413)
 
 ___
 
@@ -384,7 +397,7 @@ button). Online-only. Yields to the Playwright host which calls
 
 #### Defined in
 
-[package/public/Action.ts:118](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L118)
+[package/public/Action.ts:133](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L133)
 
 ___
 
@@ -410,7 +423,7 @@ shortcuts or key-driven UI updates.
 
 #### Defined in
 
-[package/public/Action.ts:128](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L128)
+[package/public/Action.ts:144](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L144)
 
 ___
 
@@ -437,7 +450,7 @@ for use in subsequent actions.
 
 #### Defined in
 
-[package/public/Action.ts:139](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L139)
+[package/public/Action.ts:156](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L156)
 
 ___
 
@@ -477,7 +490,7 @@ navigation based on previously extracted values.
 
 #### Defined in
 
-[package/public/Action.ts:149](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L149)
+[package/public/Action.ts:167](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L167)
 
 ___
 
@@ -502,7 +515,7 @@ Optionally waits for a specific load state before continuing.
 
 #### Defined in
 
-[package/public/Action.ts:158](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L158)
+[package/public/Action.ts:177](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L177)
 
 ___
 
@@ -534,7 +547,7 @@ offline modes.
 
 #### Defined in
 
-[package/public/Action.ts:174](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L174)
+[package/public/Action.ts:194](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L194)
 
 ___
 
@@ -559,7 +572,7 @@ Can target a specific element via `selector` or capture the full page.
 
 #### Defined in
 
-[package/public/Action.ts:183](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L183)
+[package/public/Action.ts:203](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L203)
 
 ___
 
@@ -585,7 +598,7 @@ infinite-scroll loading.
 
 #### Defined in
 
-[package/public/Action.ts:193](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L193)
+[package/public/Action.ts:214](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L214)
 
 ___
 
@@ -618,7 +631,19 @@ object structures. Works in both online and offline modes.
 **`Example`**
 
 ```ts
-{ "select": [{ "name": "title", "query": [["h1"]] }, { "name": "price", "type": "number", "query": [["span.price"]] }] }
+{
+ *     "select": [
+ *         {
+ *             "name": "title",
+ *             "query": [["h1"]] 
+ *         },
+ *         {
+ *              "name": "price",
+ *              "type": "number",
+ *              "query": [["span.price"]]
+ *         }
+ *     ]
+ * }
 ```
 
 #### Type declaration
@@ -629,7 +654,7 @@ object structures. Works in both online and offline modes.
 
 #### Defined in
 
-[package/public/Action.ts:205](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L205)
+[package/public/Action.ts:239](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L239)
 
 ___
 
@@ -745,12 +770,6 @@ full [Snooze](interfaces/Snooze.md) object with `interval` and optional `when` g
 { "snooze": [1, 2] }
 ```
 
-**`Example`**
-
-```ts
-{ "snooze": { "interval": [0.5, 1], "when": "{_shouldPause}" } }
-```
-
 #### Type declaration
 
 | Name | Type |
@@ -759,7 +778,7 @@ full [Snooze](interfaces/Snooze.md) object with `interval` and optional `when` g
 
 #### Defined in
 
-[package/public/Action.ts:219](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L219)
+[package/public/Action.ts:251](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L251)
 
 ___
 
@@ -833,7 +852,7 @@ Works in both online and offline modes.
 
 #### Defined in
 
-[package/public/Action.ts:233](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L233)
+[package/public/Action.ts:266](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L266)
 
 ___
 
@@ -862,7 +881,7 @@ online-only).
 
 #### Defined in
 
-[package/public/Action.ts:246](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L246)
+[package/public/Action.ts:280](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L280)
 
 ___
 
@@ -890,7 +909,7 @@ become truthy.
 
 #### Defined in
 
-[package/public/Action.ts:258](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L258)
+[package/public/Action.ts:293](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L293)
 
 ___
 
@@ -984,7 +1003,7 @@ settle before resuming.
 
 #### Defined in
 
-[package/public/Action.ts:270](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L270)
+[package/public/Action.ts:306](https://github.com/dtempx/syphonx-core/blob/main/package/public/Action.ts#L306)
 
 ## Variables
 
@@ -994,9 +1013,26 @@ settle before resuming.
 
 Contains the full SyphonX extraction engine script that can be injected into a browser page context.
 
+**`Example`**
+
+```ts
+import * as playwright from 'playwright';
+import * as syphonx from 'syphonx-core';
+
+const url = 'https://www.example.com/';
+const template = { actions: [ { select: [{ name: 'title', query: [['h1']] }] } ] };
+
+const browser = await playwright.chromium.launch();
+const page = await browser.newPage();
+await page.goto(url);
+
+const result = await page.evaluate(`${syphonx.script}(${JSON.stringify({ ...template, url })})`);
+console.log(JSON.stringify(result, null, 2));
+```
+
 #### Defined in
 
-[host.ts:342](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L342)
+[host.ts:403](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L403)
 
 ## Functions
 
@@ -1026,9 +1062,23 @@ select definitions. Results are returned as named fields in the extraction state
 
 The extraction state with populated `data`, `errors`, and `metrics`.
 
+**`Example`**
+
+```ts
+import * as cheerio from 'cheerio';
+import * as fs from 'fs';
+import * as syphonx from 'syphonx-core';
+
+const html = fs.readFileSync('./example.html', 'utf-8');
+const root = cheerio.load(html);
+const result = syphonx.select(select, { root });
+const data = syphonx.unwrap(result.data);
+console.log(JSON.stringify(data, null, 2));
+```
+
 #### Defined in
 
-[package/select.ts:39](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L39)
+[package/select.ts:51](https://github.com/dtempx/syphonx-core/blob/main/package/select.ts#L51)
 
 ___
 
@@ -1140,7 +1190,7 @@ The expanded and URI-encoded URL.
 
 #### Defined in
 
-[host.ts:290](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L290)
+[host.ts:321](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L321)
 
 ___
 
@@ -1169,9 +1219,24 @@ A `"STOP"` throw halts extraction early. Any other error is captured as a
 
 The mutated extraction state with populated `data`, `errors`, and `metrics`.
 
+**`Example`**
+
+```ts
+import * as cheerio from 'cheerio';
+import * as syphonx from 'syphonx-core';
+import { promises as fs } from 'fs';
+
+const template = JSON.parse(await fs.readFile('./template.json', 'utf-8'));
+const html = await fs.readFile('./example.html', 'utf-8');
+
+const root = cheerio.load(html);
+const result = await syphonx.extract({ ...template, root } as syphonx.ExtractState);
+console.log(JSON.stringify(result, null, 2));
+```
+
 #### Defined in
 
-[package/extract.ts:20](https://github.com/dtempx/syphonx-core/blob/main/package/extract.ts#L20)
+[package/extract.ts:33](https://github.com/dtempx/syphonx-core/blob/main/package/extract.ts#L33)
 
 ___
 
@@ -1388,9 +1453,42 @@ The final extraction result with data, errors, metrics, and HTTP status.
 
 If `template`, `url`, `onNavigate`, or `onExtract` are not provided.
 
+**`Example`**
+
+```ts
+const result = await host({
+    url,
+    extractHtml: options.html,
+    template: {
+        actions: options.actions,
+        params: options.params,
+        vars: options.vars,
+        debug: options.debug,
+        timeout
+    },
+    onExtract: async (state: ExtractState, script: string) => {
+        const fn = new Function("state", `return ${script}(state)`);
+        const result = await page.evaluate<ExtractState, ExtractState>(fn as any, state);
+        return result;
+    },
+    onHtml: async () => {
+        const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
+        return html;
+    },
+    onNavigate: async ({ url, timeout, waitUntil }) => {
+        const response = await page.goto(url, { timeout, waitUntil });
+        const status = response?.status();
+        return { status };
+    },
+    onYield: async ({ timeout, waitUntil }) => {
+        await page.waitForLoadState(waitUntil, { timeout });
+    }
+});
+```
+
 #### Defined in
 
-[host.ts:94](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L94)
+[host.ts:125](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L125)
 
 ___
 
@@ -1400,6 +1498,7 @@ ___
 
 Invokes a named method on an object asynchronously, passing the given arguments.
 Returns `undefined` if the method does not exist on the object.
+Provides a generic way to delegate to any playwright locator by method name.
 
 #### Parameters
 
@@ -1415,9 +1514,23 @@ Returns `undefined` if the method does not exist on the object.
 
 The result of the method call, or `undefined` if the method does not exist.
 
+**`Example`**
+
+```ts
+async function onLocator({ frame, selector, method, params }) {
+   let locator = undefined as playwright.Locator | undefined;
+   if (frame)
+       locator = await page.frameLocator(frame).locator(selector);
+   else
+       locator = await page.locator(selector);
+   const result = await invokeAsyncMethod(locator, method, params);
+   return result;
+}
+```
+
 #### Defined in
 
-[host.ts:305](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L305)
+[host.ts:349](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L349)
 
 ___
 

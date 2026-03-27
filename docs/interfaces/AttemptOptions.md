@@ -20,4 +20,4 @@ Number of retry attempts before giving up.
 
 #### Defined in
 
-[host.ts:338](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L338)
+[host.ts:382](https://github.com/dtempx/syphonx-core/blob/main/host.ts#L382)

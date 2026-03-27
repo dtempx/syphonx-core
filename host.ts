@@ -90,6 +90,37 @@ export interface HostOptions {
  * @param options - Configuration including the template, URL, callbacks, and retry settings.
  * @returns The final extraction result with data, errors, metrics, and HTTP status.
  * @throws If `template`, `url`, `onNavigate`, or `onExtract` are not provided.
+ * 
+ * @example
+ * const result = await host({
+ *     url,
+ *     extractHtml: options.html,
+ *     template: {
+ *         actions: options.actions,
+ *         params: options.params,
+ *         vars: options.vars,
+ *         debug: options.debug,
+ *         timeout
+ *     },
+ *     onExtract: async (state: ExtractState, script: string) => {
+ *         const fn = new Function("state", `return ${script}(state)`);
+ *         const result = await page.evaluate<ExtractState, ExtractState>(fn as any, state);
+ *         return result;
+ *     },
+ *     onHtml: async () => {
+ *         const html = await page.evaluate(() => document.querySelector("*")!.outerHTML);
+ *         return html;
+ *     },
+ *     onNavigate: async ({ url, timeout, waitUntil }) => {
+ *         const response = await page.goto(url, { timeout, waitUntil });
+ *         const status = response?.status();
+ *         return { status };
+ *     },
+ *     onYield: async ({ timeout, waitUntil }) => {
+ *         await page.waitForLoadState(waitUntil, { timeout });
+ *     }
+ * });
+ * 
  */
 export async function host({ maxYields = 1000, retries, retryDelay, ...options}: HostOptions): Promise<ExtractResult> {
     if (!options.template)
@@ -296,11 +327,24 @@ export function expandTemplateUrl(url: string, params?: Record<string, unknown>)
 /**
  * Invokes a named method on an object asynchronously, passing the given arguments.
  * Returns `undefined` if the method does not exist on the object.
+ * Provides a generic way to delegate to any playwright locator by method name.
  *
  * @param obj - The target object to invoke the method on.
  * @param method - The name of the method to call.
  * @param args - Arguments to pass to the method.
  * @returns The result of the method call, or `undefined` if the method does not exist.
+ * 
+ * @example
+ * async function onLocator({ frame, selector, method, params }) {
+ *    let locator = undefined as playwright.Locator | undefined;
+ *    if (frame)
+ *        locator = await page.frameLocator(frame).locator(selector);
+ *    else
+ *        locator = await page.locator(selector);
+ *    const result = await invokeAsyncMethod(locator, method, params);
+ *    return result;
+ * }
+ *
  */
 export async function invokeAsyncMethod(obj: {}, method: string, args: unknown[] = []): Promise<unknown> {
     const fn = (obj as Record<string, (...args: unknown[]) => unknown>)[method];
@@ -338,7 +382,24 @@ export interface AttemptOptions {
     retries: number;
 }
 
-/** Contains the full SyphonX extraction engine script that can be injected into a browser page context. */
+/**
+ * Contains the full SyphonX extraction engine script that can be injected into a browser page context.
+ * 
+ * @example
+ * import * as playwright from 'playwright';
+ * import * as syphonx from 'syphonx-core';
+ * 
+ * const url = 'https://www.example.com/';
+ * const template = { actions: [ { select: [{ name: 'title', query: [['h1']] }] } ] };
+ * 
+ * const browser = await playwright.chromium.launch();
+ * const page = await browser.newPage();
+ * await page.goto(url);
+ * 
+ * const result = await page.evaluate(`${syphonx.script}(${JSON.stringify({ ...template, url })})`);
+ * console.log(JSON.stringify(result, null, 2));
+ *  
+ **/
 export const script = "";
 
 /**
