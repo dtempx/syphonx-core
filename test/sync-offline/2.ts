@@ -1,3 +1,6 @@
+// Tests the synchronous select() API with and without an outer context selector,
+// verifying that the context option correctly scopes the query to a DOM subtree.
+
 import { expect } from "chai";
 import * as cheerio from "cheerio";
 import * as syphonx from "../../package/index.js";

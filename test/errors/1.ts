@@ -1,3 +1,6 @@
+// Tests that an unrecognized operator name in a query produces an invalid-operator error
+// and sets ok to false.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

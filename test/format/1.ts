@@ -1,3 +1,6 @@
+// Tests singleline vs multiline format options on a single element with embedded newlines,
+// verifying that singleline collapses whitespace and multiline preserves line breaks.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

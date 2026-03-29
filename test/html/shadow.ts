@@ -1,3 +1,6 @@
+// Tests the shadow operator in online mode, verifying that elements inside a Shadow DOM
+// can be accessed by piercing the shadow root with the shadow query operator.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 import * as fs from "fs";

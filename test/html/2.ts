@@ -1,3 +1,6 @@
+// Tests waitfor on individual select fields in online mode: one run with enough time to
+// load all three elements, and one with a short timeout that causes a3 to fail with waitfor-timeout.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 import * as fs from "fs";

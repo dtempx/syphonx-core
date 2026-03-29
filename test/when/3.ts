@@ -1,3 +1,6 @@
+// Tests when conditions inside a nested subselect (type:"object"), verifying that guard
+// variables are scoped to vars and that conditional fields within the object are handled correctly.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests the IIFE script injected into a live browser page via page.evaluate, verifying
+// that synchronous selection works inside the browser context (inside-out execution).
+
 import { expect } from "chai";
 import { browser, script } from "../../common/index.js";
 import { ExtractResult, Select } from "../../package/index.js";

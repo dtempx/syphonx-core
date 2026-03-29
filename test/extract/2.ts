@@ -1,3 +1,6 @@
+// Tests extract operator error handling: missing pattern, non-string pattern, too many
+// parameters, and invalid regex — each producing an invalid-operand error while preserving the raw value.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

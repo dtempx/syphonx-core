@@ -1,3 +1,6 @@
+// Tests type:"number" coercion, verifying that a plain numeric string and a formatted
+// price string (with currency symbol) are both parsed to the correct numeric value.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

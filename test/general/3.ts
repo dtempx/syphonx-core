@@ -1,3 +1,6 @@
+// Tests that a query matching an element returns its text and a query with no match
+// returns null, both without errors.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

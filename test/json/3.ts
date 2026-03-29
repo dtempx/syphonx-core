@@ -1,3 +1,6 @@
+// Tests the json operator across multiple scenarios: single vs multiple ld+json script tags,
+// repeated vs all modes, array JSON values, and a value formula filtering across all parsed results.
+
 import { expect } from "chai";
 import { syphonx, select } from "../common.js";
 

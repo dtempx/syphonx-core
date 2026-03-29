@@ -1,3 +1,6 @@
+// Tests the extract operator with a regex capture group, verifying that only elements
+// matching the pattern return a value while non-matching ones return null.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

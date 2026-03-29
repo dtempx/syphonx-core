@@ -1,3 +1,6 @@
+// Tests that the json operator returns null (without error) when the script tag content
+// is not valid JSON.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

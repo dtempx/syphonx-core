@@ -1,3 +1,6 @@
+// Tests the html operator in offline mode with outer/inner variants, verifying that
+// outer returns the element's full HTML and inner returns only the inner HTML content.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

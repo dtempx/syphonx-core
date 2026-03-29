@@ -1,3 +1,6 @@
+// Tests the each action in online mode, clicking each <option> in a <select> element and
+// collecting the resulting output text to verify click-driven iteration over DOM nodes.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests the not transform operator with a regex pattern, verifying that elements matching
+// the pattern are removed while non-matching elements are retained (inverse of filter).
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

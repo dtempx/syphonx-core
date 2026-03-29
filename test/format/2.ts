@@ -1,3 +1,6 @@
+// Tests singleline vs multiline format when the query matches multiple nodes,
+// verifying that singleline joins with spaces and multiline joins with newlines.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

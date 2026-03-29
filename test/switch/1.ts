@@ -1,3 +1,6 @@
+// Tests the switch action with a single case that matches, verifying that its actions
+// execute and produce the expected result.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

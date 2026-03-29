@@ -1,3 +1,6 @@
+// Tests (skipped) the autopaginate transform operator, which automatically clicks through
+// pagination links to accumulate additional DOM nodes into the current page context.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

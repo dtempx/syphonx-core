@@ -1,3 +1,5 @@
+// Tests the size operator, verifying that it returns the count of matched nodes as a number.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

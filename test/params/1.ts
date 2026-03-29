@@ -1,3 +1,6 @@
+// Tests that template params are accessible in value formulas, allowing extracted data
+// and params to be combined into a computed field.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

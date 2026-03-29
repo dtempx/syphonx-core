@@ -1,3 +1,6 @@
+// Tests the when condition on select fields: when the guard variable is true the first
+// field runs and the second is skipped, and underscore-prefixed names land in vars not data.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

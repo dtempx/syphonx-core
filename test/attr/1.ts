@@ -1,3 +1,6 @@
+// Tests attribute extraction using attr:href and attr:src, verifying that format defaults
+// to "href" (resolving relative URLs to absolute) when these attributes are queried.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

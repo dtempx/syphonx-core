@@ -1,3 +1,6 @@
+// Tests hits with a sparse query (h1 absent, h2 and h3 present), verifying that
+// hits:1 stops at the first matching stage and hits:2 accumulates two matching stages.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

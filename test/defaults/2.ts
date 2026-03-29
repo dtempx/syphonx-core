@@ -1,3 +1,6 @@
+// Tests a repeated subselect extracting name and href (with format:"href") from a list,
+// producing an array of objects with resolved absolute URLs.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

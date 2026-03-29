@@ -1,3 +1,6 @@
+// Tests the all option controlling whether multiple query stages are merged: all:false
+// stops at the first matching stage, all:true accumulates results from all stages.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

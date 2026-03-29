@@ -1,3 +1,6 @@
+// Tests chaining a filter formula with replaceWith in a transform, verifying that only
+// elements passing the filter are replaced while others are left untouched.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

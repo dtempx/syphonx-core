@@ -1,3 +1,6 @@
+// Tests the synchronous extractSync() API with a cheerio root, running both a transform
+// and a select action to verify the full synchronous pipeline works end-to-end.
+
 import { expect } from "chai";
 import * as cheerio from "cheerio";
 import * as syphonx from "../../package/index.js";

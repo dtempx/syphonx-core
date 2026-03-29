@@ -1,3 +1,6 @@
+// Tests XPath selectors in online mode: element selection, attribute extraction, XPath
+// string()/count()/boolean() functions, and the xpath: prefix syntax.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

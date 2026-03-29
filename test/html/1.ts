@@ -1,3 +1,6 @@
+// Tests online extraction against an inline data: URL, verifying result.url, result.domain
+// (undefined for data: URLs), result.online flag, and basic text selection.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 import * as fs from "fs";

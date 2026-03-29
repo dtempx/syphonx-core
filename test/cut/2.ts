@@ -1,3 +1,6 @@
+// Tests cut operator error handling: missing delimiter, non-string delimiter, and
+// verifies that invalid-operand errors are reported while the raw value is preserved.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

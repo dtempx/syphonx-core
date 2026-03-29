@@ -1,3 +1,6 @@
+// Tests multiple transform operations in a single action: conditional addClass, conditional
+// replaceWith using formula, wrap, and unconditional addClass.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

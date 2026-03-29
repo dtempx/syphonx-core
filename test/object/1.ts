@@ -1,3 +1,6 @@
+// Tests type:"object" with a subselect, verifying that a single matched element
+// is used as the context for a nested select producing a structured object.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

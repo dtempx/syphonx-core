@@ -1,3 +1,6 @@
+// Tests the extractAll operator which finds all regex matches and joins them with a
+// configurable separator (defaulting to newline).
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

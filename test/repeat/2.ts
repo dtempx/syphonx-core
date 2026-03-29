@@ -1,3 +1,6 @@
+// Tests the repeat action with limit:2, verifying that pagination stops after two
+// iterations even though more pages are available.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

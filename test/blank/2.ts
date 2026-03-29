@@ -1,3 +1,6 @@
+// Tests the nonblank transform operator, verifying that only elements with non-whitespace
+// text receive the marker class and are subsequently matched by the selector.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

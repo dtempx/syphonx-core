@@ -1,3 +1,6 @@
+// Tests the distinct option, verifying that duplicate values are removed from a repeated
+// query result while the non-distinct version preserves all values.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests the json operator parsing a JSON script tag and extracting a property via formula,
+// as well as returning the entire parsed object.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

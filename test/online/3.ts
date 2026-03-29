@@ -1,3 +1,6 @@
+// Tests infinite-scroll pagination using the scroll action and a repeat loop with a
+// waitfor that detects new images, collecting all image URLs across multiple scroll loads.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

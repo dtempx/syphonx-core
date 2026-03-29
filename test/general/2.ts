@@ -1,3 +1,6 @@
+// Tests the is operator with type:"boolean", verifying that it returns true when the
+// element matches the given selector and false when it does not.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

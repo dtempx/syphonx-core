@@ -1,3 +1,6 @@
+// Tests format:"href" resolving absolute, root-relative, and relative URLs against the
+// page origin, verifying all three cases produce correct absolute URLs.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

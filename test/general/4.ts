@@ -1,3 +1,6 @@
+// Tests multi-stage query fallback with all:true, verifying that when the first stage
+// matches the element is returned and the second stage is also merged into the result.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

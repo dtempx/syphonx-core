@@ -1,3 +1,6 @@
+// Tests chaining html:"inner" with replaceWith, verifying that the inner HTML of each
+// matched element is lowercased and the elements are replaced in place.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

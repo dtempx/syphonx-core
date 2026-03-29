@@ -1,3 +1,6 @@
+// Tests click + yield (as separate actions) causing navigation, and verifies that url,
+// domain, origin, and title are correctly captured both before and after the navigation.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

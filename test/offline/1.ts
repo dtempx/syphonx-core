@@ -1,3 +1,6 @@
+// Tests that a snooze action is ignored in offline mode, verifying elapsed time stays
+// near zero and the log contains a "SNOOZE ... IGNORED" message.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

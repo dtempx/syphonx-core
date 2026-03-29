@@ -1,3 +1,6 @@
+// Tests the replaceTag transform operator: replacing an element's tag while preserving
+// inner content, and merging new attributes with existing ones during the replacement.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

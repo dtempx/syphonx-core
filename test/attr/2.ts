@@ -1,3 +1,6 @@
+// Tests that format automatically defaults to "href" when a query uses attr:href or attr:src,
+// and that an explicit format override (e.g. format:"none") takes precedence over the default.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

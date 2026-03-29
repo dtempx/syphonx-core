@@ -1,3 +1,6 @@
+// Tests the union option merging results from multiple query branches, with map formulas
+// that reference the union index to tag each item with its source branch number.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

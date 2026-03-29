@@ -1,3 +1,6 @@
+// Tests a template URL built from params using a formula expression, navigating to a
+// dynamic Amazon product page and extracting the title.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

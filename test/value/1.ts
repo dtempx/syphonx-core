@@ -1,3 +1,6 @@
+// Tests the value option: static string, formula combining data fields, formula referencing
+// the url variable, post-query value transformation, and an inline object literal.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

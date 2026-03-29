@@ -1,3 +1,6 @@
+// Tests the error action with level:1 (non-fatal), verifying it appends an app-error but
+// does NOT halt execution — subsequent select actions still run.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

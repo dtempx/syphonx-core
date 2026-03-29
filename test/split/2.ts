@@ -1,3 +1,6 @@
+// Tests split with default (whitespace) delimiter, explicit newline delimiter, and a
+// limit argument that caps the number of resulting tokens.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests distinct with unwrap:false, verifying that the raw DataItem structure (with key, value,
+// and nodes arrays) is returned and that distinct correctly deduplicates node references.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

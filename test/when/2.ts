@@ -1,3 +1,6 @@
+// Tests the when condition when the guard evaluates to false: the first field is skipped
+// and the second (with negated condition) runs instead.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

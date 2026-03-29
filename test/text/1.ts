@@ -1,3 +1,7 @@
+// Tests comprehensive text extraction behaviour: default whitespace normalization,
+// the text/text-inline operators, format options (singleline, multiline, none, textcontent),
+// inline element spacing, and br-induced line breaks.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

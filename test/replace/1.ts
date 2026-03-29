@@ -1,3 +1,6 @@
+// Tests the replace operator with global and case-insensitive regex flags, verifying
+// that all pattern occurrences in the extracted text are replaced correctly.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

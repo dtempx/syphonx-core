@@ -1,3 +1,6 @@
+// Tests the formatHTML utility function, verifying that it trims whitespace inside tags
+// and collapses extra spaces around inline elements.
+
 import { expect } from "chai";
 import { formatHTML } from "../common.js";
 

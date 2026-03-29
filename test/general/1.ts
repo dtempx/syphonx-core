@@ -1,3 +1,6 @@
+// Tests general ExtractResult properties (url, domain, online flag) and basic text
+// extraction in offline mode against a full HTML document.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

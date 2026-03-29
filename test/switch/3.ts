@@ -1,3 +1,6 @@
+// Tests the switch action fallthrough: when no case query matches, the final case without
+// a query acts as a default and its actions execute.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

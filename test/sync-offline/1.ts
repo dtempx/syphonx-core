@@ -1,3 +1,6 @@
+// Tests the synchronous select() API directly with a cheerio root, verifying basic
+// text extraction without going through the full extract() pipeline.
+
 import { expect } from "chai";
 import * as cheerio from "cheerio";
 import * as syphonx from "../../package/index.js";

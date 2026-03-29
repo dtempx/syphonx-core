@@ -1,3 +1,6 @@
+// Tests boolean type with a regex filter applied to the node set before coercion,
+// confirming that negate inverts the boolean result when elements match or don't match.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

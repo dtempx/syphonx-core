@@ -1,3 +1,6 @@
+// Tests the IIFE script running a transform inside a live browser page via page.evaluate,
+// verifying that DOM mutations applied inside-out are reflected in the serialized HTML.
+
 import { expect } from "chai";
 import { browser, script } from "../../common/index.js";
 import { Transform } from "../../package/index.js";

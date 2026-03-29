@@ -1,3 +1,6 @@
+// Tests transform operators that set element attributes: addClass with a formula-derived
+// class name, and attr with a formula-derived attribute value.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests the filter transform operator with a regex pattern, verifying that only matching
+// elements are retained and the rest are removed from the DOM.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

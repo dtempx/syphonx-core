@@ -1,3 +1,6 @@
+// Tests pivot using a dynamic formula selector that references the pivot index variable
+// to correlate items in one DOM subtree with corresponding items in another.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

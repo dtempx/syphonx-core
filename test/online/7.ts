@@ -1,3 +1,6 @@
+// Tests paginating Hacker News with repeat + click + yield, accumulating articles
+// across two pages to verify that repeat correctly merges repeated select results.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests that a formula referencing an undefined variable inside a filter produces an
+// eval-error and returns null for the field.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests the keypress action in online mode, dispatching a keyboard event to the page
+// and verifying the key value is captured by the page's event listener.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 import * as fs from "fs";

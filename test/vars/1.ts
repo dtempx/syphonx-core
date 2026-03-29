@@ -1,3 +1,6 @@
+// Tests that pre-seeded vars are accessible in value formulas, allowing initial variable
+// values to flow into the extracted data without a query.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

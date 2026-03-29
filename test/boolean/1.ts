@@ -1,3 +1,6 @@
+// Tests boolean type selection: presence/absence of an element, negate option, value
+// formula override, fallback query ordering, and static boolean values.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

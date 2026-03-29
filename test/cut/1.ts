@@ -1,3 +1,6 @@
+// Tests the cut operator with positive and negative indices to extract tokens from a
+// delimited string, including coercion of string index arguments to numbers.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

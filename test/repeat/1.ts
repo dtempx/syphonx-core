@@ -1,3 +1,6 @@
+// Tests the repeat action paginating through a local HTML fixture by clicking a "next"
+// button and yielding each time, accumulating titles across all pages until none remain.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

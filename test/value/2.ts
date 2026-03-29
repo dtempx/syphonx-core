@@ -1,3 +1,6 @@
+// Tests type:"object" with only a value formula (no query), verifying that a static
+// object literal can be assigned directly as the result.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

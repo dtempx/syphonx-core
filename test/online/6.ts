@@ -1,3 +1,6 @@
+// Tests the scroll action in online mode: scrolling to bottom (increases scrollTop),
+// scrolling to a specific element (increases scrollTop further), and scrolling back to top.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests (skipped) that unpatch() restores a site's monkey-patched String.prototype.startsWith
+// back to the native implementation after injection.
+
 import { expect } from "chai";
 import { browser } from "../common.js";
 import { unpatch } from "../../package/lib/unpatch.js";

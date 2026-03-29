@@ -1,3 +1,6 @@
+// Tests the error action with a query condition: error fires only when the query yields
+// no nodes (element absent), and is suppressed when the element is present.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

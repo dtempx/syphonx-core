@@ -1,3 +1,6 @@
+// Tests the removeNulls option on repeated attr:href queries: default behaviour preserves
+// nulls, removeNulls:true strips them, and removeNulls:false explicitly retains them.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

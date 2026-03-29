@@ -1,3 +1,6 @@
+// Tests pivot with collate:true, which collapses multiple sibling nodes into a single
+// newline-joined string per group rather than producing one item per node.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

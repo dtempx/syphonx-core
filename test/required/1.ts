@@ -1,3 +1,6 @@
+// Tests required:true on a select field, verifying that a missing required element
+// produces a select-required error while non-required missing elements do not.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

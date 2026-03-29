@@ -1,3 +1,6 @@
+// Tests the blank transform operator, verifying that elements with whitespace-only text
+// are identified and removed from the DOM before selection.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

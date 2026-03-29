@@ -1,3 +1,5 @@
+// Tests that a minimal unnamed select with a single CSS query returns the matched text as a string.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

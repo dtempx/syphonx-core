@@ -1,3 +1,6 @@
+// Tests replaceText applied to multiple matched elements simultaneously, verifying
+// that the formula is evaluated per element and all are updated.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

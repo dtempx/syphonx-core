@@ -1,3 +1,6 @@
+// Tests the reverse operator, verifying that prevAll siblings (returned in reverse DOM order)
+// are re-ordered to document order by chaining reverse.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

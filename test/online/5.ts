@@ -1,3 +1,6 @@
+// Tests a required waitfor action that times out when the queried element is absent,
+// verifying that a waitfor-timeout error is produced and ok is false.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

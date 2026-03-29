@@ -1,3 +1,6 @@
+// Tests the split operator on a comma-delimited string, verifying it produces a trimmed
+// array of string values.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests (skipped) click with combined waitfor + yield:true in a single action causing
+// navigation — currently skipped because this combined mode is not yet working.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

@@ -1,3 +1,6 @@
+// Tests the hits option controlling how many query stages must match before stopping,
+// verifying that hits:1/2/3/null produce progressively larger merged result sets.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

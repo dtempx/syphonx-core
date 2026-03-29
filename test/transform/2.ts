@@ -1,3 +1,6 @@
+// Tests replaceText and replaceHTML transform operators with formula expressions that
+// reference extracted data and the current element's inner HTML.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

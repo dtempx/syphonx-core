@@ -1,3 +1,6 @@
+// Tests the each action iterating over a node set, using parent.index and parent.value
+// context variables inside a dynamic formula selector to correlate elements across two DOM subtrees.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

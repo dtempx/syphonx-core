@@ -1,3 +1,6 @@
+// Tests pivot producing one result object per pivot node, using nextUntil to gather
+// sibling elements and a parent query to attach the group heading to each item.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

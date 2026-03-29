@@ -1,3 +1,6 @@
+// Tests basic online extraction against a live URL, verifying url, domain, data, and
+// online flag on the ExtractResult.
+
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 

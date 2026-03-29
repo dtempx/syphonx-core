@@ -1,3 +1,6 @@
+// Tests that text content of a paragraph containing inline <span> elements is joined
+// with appropriate spacing to produce a natural sentence.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 

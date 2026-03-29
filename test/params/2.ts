@@ -1,3 +1,6 @@
+// Tests language-keyed params with a dynamic formula selector that uses params to build
+// the CSS selector at runtime, running against both English and Italian content.
+
 import { expect } from "chai";
 import { syphonx, offline } from "../common.js";
 
