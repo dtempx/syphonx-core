@@ -1,5 +1,4 @@
 break at root level doesn't end because it just returns and doesn't execute the last instructions in displatch
-add a scroll to the click action that scrolls to the element before clicking it
 
 fix build warnings...
 npm warn Unknown env config "version-commit-hooks". This will stop working in the next major version of npm.
@@ -26,7 +25,6 @@ always yield after a click, so we generally don't need to worry about yielding a
 make replace action take simple string search and replace in addition to requiring a regex
 distinct can only handle strings or numbers, not objects
 see workaround for setting limit in repeat (_page_count+3) in greenbergglusker/person.json
-make format=href default when attr=href
 file url in template doesn't seem to work
 document "query": [[".",["text","inline"]]] !!!
 

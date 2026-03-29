@@ -80,6 +80,7 @@ import {
     filterQueryResult,
     formatHTML,
     formatStringValue,
+    inferFormatFromQuery,
     isCoercibleTo,
     isEmpty,
     isFormula,
@@ -1770,9 +1771,11 @@ export class Controller {
         const $ = this.jquery;
         let subitem: DataItem | null = null;
         // if select type is unspecified then default to "object" if there is a subselect
-        if (select.type === undefined && select.select) {
+        if (select.type === undefined && select.select)
             select.type = "object";
-        }
+        // default format to "href" when query uses attr:href or attr:src and no explicit format is set
+        if (select.format === undefined && select.query)
+            select = { ...select, format: inferFormatFromQuery(select.query) };
         const result = this.query(select);
         if (result) {
             if (select.select) {

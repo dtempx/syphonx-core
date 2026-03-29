@@ -1,7 +1,7 @@
 import { combineUrl } from "./combineUrl.js";
 import { collapseWhitespace } from "./collapseWhitespace.js";
 import { isAbsoluteUrl } from "./is.js";
-import { SelectFormat } from "../index.js";
+import { SelectFormat, SelectQuery } from "../index.js";
 
 export function formatStringValue(value: string, format: SelectFormat, origin: string): unknown {
     if (format === "href" && typeof value === "string" && origin && !isAbsoluteUrl(value)) {
@@ -19,4 +19,15 @@ export function formatStringValue(value: string, format: SelectFormat, origin: s
     else {
         return value;
     }
+}
+
+export function inferFormatFromQuery(query: SelectQuery[]): SelectFormat | undefined {
+    for (const stage of query) {
+        for (let i = 1; i < stage.length; i++) {
+            const op = stage[i];
+            if (op instanceof Array && op[0] === "attr" && (op[1] === "href" || op[1] === "src"))
+                return "href";
+        }
+    }
+    return undefined;
 }

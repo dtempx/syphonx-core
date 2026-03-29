@@ -5,9 +5,8 @@ const test = {
     url: "https://www.example.com/",
     html: `
         <div>
-            <a href="1">one</a>
-            <a>two</a>
-            <a href="3">three</a>
+            <a href="foo">bar</a>
+            <img src="/baz">
         </div>
     `,
     actions: [
@@ -15,32 +14,34 @@ const test = {
             "select": [
                 {
                     "name": "a1",
-                    "query": [["a",["attr","href"]]],
-                    "repeated": true
+                    "query": [["a",["attr","href"]]]
+                },
+                {
+                    "name": "i1",
+                    "query": [["img",["attr","src"]]]
                 },
                 {
                     "name": "a2",
                     "query": [["a",["attr","href"]]],
-                    "repeated": true,
-                    "removeNulls": true
+                    "format": "href"
                 },
                 {
                     "name": "a3",
                     "query": [["a",["attr","href"]]],
-                    "repeated": true,
-                    "removeNulls": false
+                    "format": "none"
                 }
             ]
         }
     ] as syphonx.Action[]
 };
 
-describe("remove-nulls/1", () => {
+describe("attr/2", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
-    it("a1 has expected value", () => expect(result.data.a1).eql(["https://www.example.com/1", null, "https://www.example.com/3"]));
-    it("a2 has expected value", () => expect(result.data.a2).eql(["https://www.example.com/1", "https://www.example.com/3"]));
-    it("a3 has expected value", () => expect(result.data.a3).eql(["https://www.example.com/1", null, "https://www.example.com/3"]));
+    it("attr:href defaults format to href", () => expect(result.data.a1).to.be.equal("https://www.example.com/foo"));
+    it("attr:src defaults format to href", () => expect(result.data.i1).to.be.equal("https://www.example.com/baz"));
+    it("explicit format:href still resolves", () => expect(result.data.a2).to.be.equal("https://www.example.com/foo"));
+    it("explicit format:none returns raw value", () => expect(result.data.a3).to.be.equal("foo"));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);
 });

@@ -43,9 +43,9 @@ describe("attr/1", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await offline(test));
     it("a1 has expected value", () => expect(result.data.a1).to.be.equal("bar"));
-    it("a2 has expected value", () => expect(result.data.a2).to.be.equal("foo"));
+    it("a2 has expected value", () => expect(result.data.a2).to.be.equal("https://www.example.com/foo"));
     it("a3 has expected value", () => expect(result.data.a3).to.be.equal("https://www.example.com/foo"));
-    it("i1 has expected value", () => expect(result.data.i1).to.be.equal("/baz"));
+    it("i1 has expected value", () => expect(result.data.i1).to.be.equal("https://www.example.com/baz"));
     it("i2 has expected value", () => expect(result.data.i2).to.be.equal("https://www.example.com/baz"));
     it("ok is true", () => expect(result.ok).to.be.true);
     it("no errors", () => expect(result.errors).to.be.empty);

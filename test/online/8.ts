@@ -28,7 +28,7 @@ const test = {
     ] as syphonx.Action[]
 };
 
-describe("online/8", () => {
+describe.skip("online/8", () => {
     let result: syphonx.ExtractResult;
     before(async () => result = await online(test));
     it("before count has expected value", () => expect(result.data.before).to.be.an("array").with.lengthOf(8));

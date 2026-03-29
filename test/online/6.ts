@@ -4,7 +4,7 @@ import { syphonx, online } from "../common.js";
 const test = {
     url: "https://www.ycombinator.com/",
     //debug: true,
-    show: true,
+    //show: true,
     actions: [
         {
             "select": [
