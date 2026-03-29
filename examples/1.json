@@ -1,9 +1,9 @@
 {
-    "url": "https://www.example.com/",
     "actions": [
         {
             "select": [
-                { "query": [["h1"]] }
+                { "name": "title", "query": [["h1"]] },
+                { "name": "link", "query": [["a", ["attr", "href"]]] }
             ]
         }
     ]

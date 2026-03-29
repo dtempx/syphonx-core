@@ -2,7 +2,8 @@
     "$schema": "https://typedoc.org/schema.json",
     "entryPoints": ["./index.ts"],
     "gitRevision": "main",
-    "out": "docs",
+    "out": "docs/api",
+    "readme": "none",
     "plugin": [
         "typedoc-plugin-markdown"
     ]
