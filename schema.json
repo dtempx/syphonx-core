@@ -42,6 +42,9 @@
                 "retry": {
                     "type": "number"
                 },
+                "scroll": {
+                    "type": "boolean"
+                },
                 "waitfor": {},
                 "when": {},
                 "query": { "$ref": "#definitions/$$" }

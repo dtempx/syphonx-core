@@ -15,6 +15,7 @@ and `input` events instead of calling `.click()` directly.
 - [query](Click.md#query)
 - [required](Click.md#required)
 - [retry](Click.md#retry)
+- [scroll](Click.md#scroll)
 - [snooze](Click.md#snooze)
 - [waitUntil](Click.md#waituntil)
 - [waitfor](Click.md#waitfor)
@@ -74,6 +75,19 @@ Not implemented.
 
 ___
 
+### scroll
+
+• `Optional` **scroll**: `boolean`
+
+When `true` (default), scrolls the element into view before clicking.
+Set to `false` to skip scrolling and click immediately.
+
+#### Defined in
+
+[package/public/Click.ts:62](https://github.com/dtempx/syphonx-core/blob/main/package/public/Click.ts#L62)
+
+___
+
 ### snooze
 
 • `Optional` **snooze**: [`SnoozeInterval`](../README.md#snoozeinterval)
@@ -124,7 +138,7 @@ Expression that controls whether this action executes. Skips the click when fals
 
 #### Defined in
 
-[package/public/Click.ts:59](https://github.com/dtempx/syphonx-core/blob/main/package/public/Click.ts#L59)
+[package/public/Click.ts:65](https://github.com/dtempx/syphonx-core/blob/main/package/public/Click.ts#L65)
 
 ___
 

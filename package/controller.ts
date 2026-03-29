@@ -223,7 +223,7 @@ export class Controller {
         return false;
     }
 
-    private async click({ name, query, waitfor, snooze, required, retry, when, ...options }: Click): Promise<DispatchResult> {
+    private async click({ name, query, waitfor, snooze, required, retry, scroll, when, ...options }: Click): Promise<DispatchResult> {
         if (this.online) {
             if (this.when(when, `CLICK${name ? ` ${name}` : ""}`)) {
                 const mode = snooze ? snooze[2] || "before" : undefined;
@@ -235,7 +235,8 @@ export class Controller {
                 }
                 const result = this.query({ query });
                 if (result && result.nodes.length > 0) {
-                    if (this.clickElement(result.nodes[0], selectorStatements(query))) {
+                    const context = selectorStatements(query);
+                    if (this.clickElement(result.nodes[0], context, scroll)) {
                         if (waitfor) {
                             const code = await this.waitfor(waitfor, "CLICK");
                             if (!code) {
@@ -285,8 +286,10 @@ export class Controller {
         return null;
     }
 
-    private clickElement(element: unknown, context: string): boolean {
+    private clickElement(element: unknown, context: string, scroll?: boolean): boolean {
         if (element instanceof HTMLElement) {
+            if (scroll !== false)
+                element.scrollIntoView({ block: "center" });
             if (element instanceof HTMLOptionElement && element.parentElement instanceof HTMLSelectElement) {
                 this.log(`CLICK ${context} <select> "${element.parentElement.value}" -> "${element.value}"`);
                 element.parentElement.value = element.value;

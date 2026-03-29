@@ -55,6 +55,12 @@ export interface Click {
      */
     waitUntil?: DocumentLoadState;
 
+    /**
+     * When `true` (default), scrolls the element into view before clicking.
+     * Set to `false` to skip scrolling and click immediately.
+     */
+    scroll?: boolean;
+
     /** Expression that controls whether this action executes. Skips the click when falsy. */
     when?: When;
 }
