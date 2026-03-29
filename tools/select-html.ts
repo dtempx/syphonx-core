@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import playwright from "playwright";
 import { parseArgs } from "../common/index.js";
 

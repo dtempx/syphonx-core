@@ -32,6 +32,7 @@ Chain methods after the selector to transform the extracted value:
 | `is` | `[["a", ["is", ".active"]]]` | `$("a").is(".active")` | Boolean: matches selector? |
 | `filter` | `[["li", ["filter", "/^item/"]]]` | `$("li").filter("/^item/")` | Keep elements matching regex |
 | `json` | `[["script", ["json", "{value.data}"]]]` | `$("script").json("{value.data}")` | Parse JSON, extract path |
+| `text` | `[["p", ["text", "inline"]]]` | — | Direct text only, skipping child element text (see below) |
 
 ## Multiple Selectors
 
@@ -65,6 +66,35 @@ Set `"all": true` to run **every** selector and combine all results instead of s
 ```
 
 Equivalent to running both `$("nav a").attr("href")` and `$("footer a").attr("href")` and merging the results into a single array.
+
+## Inline Text Extraction
+
+By default, extracting text from an element returns all text content including text from child elements. Use `["text", "inline"]` to extract **only the direct text nodes** of an element, ignoring text inside child elements.
+
+```json
+{ "name": "label", "query": [["p", ["text", "inline"]]] }
+```
+
+Given this HTML:
+```html
+<p>Price: <strong>$19.99</strong> each</p>
+```
+
+| Query | Result |
+|---|---|
+| `[["p"]]` | `"Price: $19.99 each"` |
+| `[["p", ["text", "inline"]]]` | `"Price: each"` |
+
+This is useful when an element mixes label text with embedded values and you only want the surrounding text, not the value inside a child element. Another common use is targeting the current element's own text when nested elements would otherwise pollute the result:
+
+```json
+{ "name": "category", "query": [[".", ["text", "inline"]]] }
+```
+
+```html
+<li>Clothing <span class="count">(42)</span></li>
+```
+→ `"Clothing"`
 
 ## XPath Selectors
 

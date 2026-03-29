@@ -1,15 +1,3 @@
-break at root level doesn't end because it just returns and doesn't execute the last instructions in displatch
-
-fix build warnings...
-npm warn Unknown env config "version-commit-hooks". This will stop working in the next major version of npm.
-npm warn Unknown env config "version-tag-prefix". This will stop working in the next major version of npm.
-npm warn Unknown env config "version-git-message". This will stop working in the next major version of npm.
-npm warn Unknown env config "argv". This will stop working in the next major version of npm.
-npm warn Unknown env config "version-git-tag". This will stop working in the next major version of npm.
-
-navigate action evaluates selector twice which causes problems if using a formula to shift a list of urls
-implement nextPage behavior (see commented out test in online/7)
-rename autopaginate transform to nextPageAll
 evaluate extract arguments (see gtlaw)
 waitfor doesn't evaluate it's args --make sure all args are always evaluated everywhere!!
 
@@ -21,12 +9,9 @@ The distinct option is a boolean flag on a Select action. If enabled it will app
 
 "query": [["h3, p",["join"],["replace","/(\n)/gm",", "]]] (fenwick/person.json)
 
-always yield after a click, so we generally don't need to worry about yielding at all
-make replace action take simple string search and replace in addition to requiring a regex
 distinct can only handle strings or numbers, not objects
 see workaround for setting limit in repeat (_page_count+3) in greenbergglusker/person.json
 file url in template doesn't seem to work
-document "query": [[".",["text","inline"]]] !!!
 
 error retry handler in case script fails
 
@@ -37,7 +22,7 @@ calls to selectResolveValue need to be logged!!!!!! (2 places)
 compute remaining timeout time for all yield actions (navigate, goback, locate, etc.)
 json function should look for first and last {} or []
 
-master timeoutadd simple waitfor switch option on selects
+master timeout add simple waitfor switch option on selects
 keypress
 log context on every entry
 
@@ -47,12 +32,12 @@ basic input validation for template (is actions an array, is every action an obj
 allow a selector with no query and no value so long as there is a sub-select with a query or a value
 
 overall timeout limit
-format:href doesn't work with value defined selectors
+
 filter doesn't appear to be truthy, unless it returns a boolen it may not work as expected
 consider spreading data variables into evaluate so we can just do something like {name} instead of having to do {data.name}
     - unwrap new spread variables
     - leave data.variables wrapped as is for back-compat
-when returning a null or undefined value from a select with repeated=true, [null] is always returned where just null is expected
+
 intermediate _properties are being output
 
 
@@ -149,4 +134,11 @@ what is the difference between `"limit": null` and `"all": true`?
 consider adding support for capturing HTML tables
 fetching non-existant attr causes error Cannot read properties of undefined (reading 'length')
 refactor context so we can report output path at every step in the log output (reconsider context.name and keypath and when context.name is undefined)
+
+fix build warnings...
+npm warn Unknown env config "version-commit-hooks". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-tag-prefix". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-git-message". This will stop working in the next major version of npm.
+npm warn Unknown env config "argv". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-git-tag". This will stop working in the next major version of npm.
 

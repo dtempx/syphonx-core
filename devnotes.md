@@ -31,12 +31,12 @@ npm publish
 
 ## Useful troubleshooting commands
 ```bash
-node tools/online examples/1.json
-node tools/online examples/1.json --url=https://www.iana.org/
-node tools/online examples/1.json --out=log
-node tools/offline examples/1.json examples/1.html
-node tools/select-html --url=https://www.example.com
-node tools/select-html --url=https://www.example.com --selector=h1
+npx online example.json
+npx online examples/1.json --url=https://www.iana.org/
+npx online examples/1.json --out=log
+npx offline examples/1.json examples/1.html
+npx select-html --url=https://www.example.com
+npx select-html --url=https://www.example.com --selector=h1
 ```
 
 

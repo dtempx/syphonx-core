@@ -24,6 +24,11 @@
     "clean": "bash ./clean.sh",
     "test": "npx mocha -r ./mocha.js"
   },
+  "bin": {
+    "online": "tools/online.js",
+    "offline": "tools/offline.js",
+    "select": "tools/select-html.js"
+  },
   "keywords": [
     "scrape"
   ],

@@ -33,7 +33,7 @@ Multiple selector chains can be provided as fallbacks — the first one that mat
 { "name": "price", "query": [["#sale-price"], ["#retail-price"], [".price"]] }
 ```
 
-See [selectors.md](selectors.md) for the full selector reference including all methods, XPath support, and multi-selector behavior.
+See [selectors.md](selectors.md) for the full selector reference including all methods, XPath support, and multi-selector behavior. For a dedicated XPath guide, see [xpath.md](xpath.md).
 
 ## Dynamic Formulas
 
@@ -172,3 +172,4 @@ Beyond [**`select`**](api/interfaces/Select.md), templates support:
 
 ## More Info
 - [API Reference](api/README.md)
+- [Timeout Behavior](timeout.md)

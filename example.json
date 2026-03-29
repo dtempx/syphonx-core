@@ -1,0 +1,11 @@
+{
+    "url": "https://example.com",
+    "actions": [
+        {
+            "select": [
+                { "name": "title", "query": [["h1"]] },
+                { "name": "link", "query": [["a", ["attr", "href"]]] }
+            ]
+        }
+    ]
+}
