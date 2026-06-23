@@ -4,6 +4,20 @@
 import { expect } from "chai";
 import { syphonx, online } from "../common.js";
 
+/*
+const html = `
+<span class="titleline">
+    <a href="#a1">Article #1</a>
+</span>
+<span class="titleline">
+    <a href="#a2">Article #2</a>
+</span>
+<span class="titleline">
+    <a href="#a3">Article #3</a>
+</span>
+`;
+*/
+
 const test = {
     url: "https://news.ycombinator.com/",
     //debug: true,

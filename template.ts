@@ -49,8 +49,11 @@ export interface Template {
      */
     headers?: Record<string, string>;
     /**
-     * Timeout interval in seconds for page navigation, reload, and goback operations.
-     * Converted to milliseconds internally for Playwright navigation calls.
+     * Master timeout in seconds that caps the entire extraction run and is forwarded
+     * to Playwright for navigation, reload, and goback operations (converted to ms).
+     * Defaults to 30 seconds when omitted. Set to `0` to disable — the engine treats
+     * `0` as no master timeout (internally represented as `Infinity`) and Playwright
+     * treats `0` as no navigation timeout.
      */
     timeout?: number;
     /**
@@ -66,8 +69,11 @@ export interface Template {
     viewport?: { width: number, height: number };
     /**
      * Document load state to wait for during navigation operations.
-     * Controls when navigation is considered complete. Can be overridden per individual
-     * yield operation during extraction.
+     * Controls when navigation is considered complete and delegates to Playwright's
+     * `waitUntil` option. When omitted, Playwright's own default applies (`"load"`).
+     * Set to `"commit"` to effectively disable waiting — the engine returns as soon
+     * as the network response arrives. Can be overridden per individual yield or
+     * navigation-related action during extraction.
      */
     waitUntil?: DocumentLoadState;
 }

@@ -152,7 +152,8 @@ The build produces 5 formats in `dist/`:
 
 Selectors follow the pattern: `[["css-selector", ["method", "arg1"], ["method2"]]]`. Methods chain jQuery operations. Multiple stages in the outer array are tried as fallbacks — first match wins (unless `all: true`).
 
-- XPath selectors: prefix with `{xpath}` — e.g. `{xpath}//h1`
+- XPath selectors: prefix with `xpath:` — e.g. `xpath://h1`
+    - Alternatively, any selector that starts with a `/` is assumed to be an XPath selector
 - Special targets: `{document}` (document object), `{window}` (window object)
 - Dynamic selectors: wrap in `{...}` for JS expression — e.g. `{`#item-${index}`}`
 

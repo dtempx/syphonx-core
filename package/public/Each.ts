@@ -74,9 +74,9 @@ export interface Each {
     /**
      * One or more selector stages that identify the elements to iterate over.
      * Each stage is a `SelectQuery` (a CSS selector, jQuery expression, or
-     * `{xpath}…` XPath expression, optionally followed by chained method
-     * calls). The engine evaluates the stages in order and uses the first one
-     * that returns at least one node.
+     * XPath expression, optionally followed by chained method calls). The
+     * engine evaluates the stages in order and uses the first one that
+     * returns at least one node.
      *
      * All matched elements are collected up-front; the loop runs exactly
      * once per matched node.

@@ -64,6 +64,66 @@ only runs when `when` is truthy.
 **`Example`**
 
 ```ts
+// `on` option: wait until all query stages match before continuing.
+// With `on: "all"`, every stage must match (up to 10s) — here the wait
+// passes only once both `.header` and `.footer` are present.
+{
+  "waitfor": {
+    "query": [[".header"], [".footer"]],
+    "on": "all",
+    "timeout": 10
+  }
+}
+```
+
+**`Example`**
+
+```ts
+// `on` option: wait for a loading spinner to disappear before continuing.
+// `on: "none"` inverts the check, so the wait passes once the selector no
+// longer matches (up to 10s). Useful for waiting on an element to be removed.
+{
+  "waitfor": {
+    "query": [[".loading-spinner"]],
+    "on": "none",
+    "timeout": 10
+  }
+}
+```
+
+**`Example`**
+
+```ts
+// `pattern` option: wait until a status element's text matches a regex.
+// Polling continues until `#status` both matches and its text contains
+// "Complete". Halts with a `waitfor-timeout` error if it never does.
+{
+  "waitfor": {
+    "query": [["#status"]],
+    "pattern": "Complete",
+    "required": true,
+    "timeout": 10
+  }
+}
+```
+
+**`Example`**
+
+```ts
+// `when` option: only wait when a condition is truthy. Here the wait for
+// `.results` is skipped entirely unless a `search` param was supplied.
+{
+  "waitfor": {
+    "query": [[".results"]],
+    "when": "{params.search}",
+    "timeout": 5
+  }
+}
+```
+
+**`Example`**
+
+```ts
 // Per-select waitfor flag: each select polls the DOM until its element
 // appears, using the template-level timeout. A `waitfor-timeout` error
 // (code `"waitfor-timeout"`, key matching the select name) is recorded for
@@ -99,7 +159,7 @@ Optional label used in log output (e.g. `WAITFOR myCondition`).
 
 #### Defined in
 
-[package/public/WaitFor.ts:69](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L69)
+[package/public/WaitFor.ts:117](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L117)
 
 ___
 
@@ -113,7 +173,7 @@ Controls how multiple query stages or selects are aggregated.
 
 #### Defined in
 
-[package/public/WaitFor.ts:90](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L90)
+[package/public/WaitFor.ts:138](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L138)
 
 ___
 
@@ -127,7 +187,7 @@ the selector matches and the extracted text satisfies the pattern.
 
 #### Defined in
 
-[package/public/WaitFor.ts:104](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L104)
+[package/public/WaitFor.ts:152](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L152)
 
 ___
 
@@ -141,7 +201,7 @@ Optionally filtered by `pattern` for text content matching.
 
 #### Defined in
 
-[package/public/WaitFor.ts:76](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L76)
+[package/public/WaitFor.ts:124](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L124)
 
 ___
 
@@ -155,7 +215,7 @@ When `false` (default), a timeout is silently ignored.
 
 #### Defined in
 
-[package/public/WaitFor.ts:111](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L111)
+[package/public/WaitFor.ts:159](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L159)
 
 ___
 
@@ -169,7 +229,7 @@ Combined with `on` to control whether any or all must be satisfied.
 
 #### Defined in
 
-[package/public/WaitFor.ts:83](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L83)
+[package/public/WaitFor.ts:131](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L131)
 
 ___
 
@@ -183,7 +243,7 @@ If `required` is `true` and the timeout expires, a `waitfor-timeout` error is ap
 
 #### Defined in
 
-[package/public/WaitFor.ts:97](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L97)
+[package/public/WaitFor.ts:145](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L145)
 
 ___
 
@@ -198,4 +258,4 @@ the action is skipped entirely.
 
 #### Defined in
 
-[package/public/WaitFor.ts:119](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L119)
+[package/public/WaitFor.ts:167](https://github.com/dtempx/syphonx-core/blob/main/package/public/WaitFor.ts#L167)

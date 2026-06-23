@@ -190,7 +190,7 @@ ___
 
 • `Optional` **timeout**: `number`
 
-Master timeout for the entire extraction run, in seconds. Defaults to 30.
+Master timeout for the entire extraction run, in seconds. Defaults to 30. Set to `0` to disable.
 
 #### Defined in
 

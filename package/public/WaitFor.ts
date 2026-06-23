@@ -53,6 +53,54 @@ import { When } from "./When.js";
  * }
  *
  * @example
+ * // `on` option: wait until all query stages match before continuing.
+ * // With `on: "all"`, every stage must match (up to 10s) — here the wait
+ * // passes only once both `.header` and `.footer` are present.
+ * {
+ *   "waitfor": {
+ *     "query": [[".header"], [".footer"]],
+ *     "on": "all",
+ *     "timeout": 10
+ *   }
+ * }
+ *
+ * @example
+ * // `on` option: wait for a loading spinner to disappear before continuing.
+ * // `on: "none"` inverts the check, so the wait passes once the selector no
+ * // longer matches (up to 10s). Useful for waiting on an element to be removed.
+ * {
+ *   "waitfor": {
+ *     "query": [[".loading-spinner"]],
+ *     "on": "none",
+ *     "timeout": 10
+ *   }
+ * }
+ *
+ * @example
+ * // `pattern` option: wait until a status element's text matches a regex.
+ * // Polling continues until `#status` both matches and its text contains
+ * // "Complete". Halts with a `waitfor-timeout` error if it never does.
+ * {
+ *   "waitfor": {
+ *     "query": [["#status"]],
+ *     "pattern": "Complete",
+ *     "required": true,
+ *     "timeout": 10
+ *   }
+ * }
+ *
+ * @example
+ * // `when` option: only wait when a condition is truthy. Here the wait for
+ * // `.results` is skipped entirely unless a `search` param was supplied.
+ * {
+ *   "waitfor": {
+ *     "query": [[".results"]],
+ *     "when": "{params.search}",
+ *     "timeout": 5
+ *   }
+ * }
+ *
+ * @example
  * // Per-select waitfor flag: each select polls the DOM until its element
  * // appears, using the template-level timeout. A `waitfor-timeout` error
  * // (code `"waitfor-timeout"`, key matching the select name) is recorded for

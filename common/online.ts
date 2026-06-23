@@ -91,7 +91,8 @@ export async function online({ url, show = false, unwrap = true, timeout, ...opt
                 await page.screenshot({ ...options, path, clip, fullPage });
             },
             onYield: async ({ timeout, waitUntil }) => {
-                await page.waitForLoadState(waitUntil, { timeout });
+                if (waitUntil !== "commit")
+                    await page.waitForLoadState(waitUntil, { timeout });
             }
         });
 

@@ -1,4 +1,4 @@
-import { ExtractError } from "./ExtractError";
+import { ExtractError } from "./ExtractError.js";
 import { Action } from "./Action.js";
 import { YieldState } from "./Yield.js";
 
@@ -89,7 +89,7 @@ export interface ExtractState {
      */
     root?: unknown;
 
-    /** Master timeout for the entire extraction run, in seconds. Defaults to 30. */
+    /** Master timeout for the entire extraction run, in seconds. Defaults to 30. Set to `0` to disable. */
     timeout?: number;
 
     /**

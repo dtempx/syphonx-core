@@ -1,6 +1,6 @@
 # How SyphonX Templates Work
 
-A template is a JSON object with an `actions` array. The most common action is `select`, which defines fields to extract.
+A SyphonX template is a JSON document with an `actions` array. The most common action is `select`, which defines fields to extract.
 
 ```json
 {

@@ -36,8 +36,8 @@ A template is a JSON object with these top-level properties:
 | `url` | string | Default URL to navigate to before extraction; supports formula expansion |
 | `params` | object | Template-level parameters accessible in formulas as `params.<key>` |
 | `vars` | object | Initial variables merged into extraction state |
-| `timeout` | number | Navigation timeout in seconds |
-| `waitUntil` | string | Default page load state to wait for during navigation (`"load"`, `"domcontentloaded"`, `"networkidle"`, `"commit"`) |
+| `timeout` | number | Master timeout in seconds (default `30`; set to `0` to disable). See [timeout.md](./timeout.md#master-timeout). |
+| `waitUntil` | string | Default page load state to wait for during navigation (`"load"`, `"domcontentloaded"`, `"networkidle"`, `"commit"`). Delegates to Playwright's `waitUntil` option; defaults to Playwright's own default (`"load"`) when unset. Use `"commit"` to effectively disable waiting. See [timeout.md](./timeout.md#master-waituntil). |
 | `headers` | object | Custom HTTP headers for all page requests (online mode) |
 | `useragent` | string | Browser User-Agent string (online mode) |
 | `viewport` | object | Browser viewport dimensions `{ width, height }` (online mode) |
@@ -67,7 +67,7 @@ Extract named fields from the DOM. The core action for all data extraction.
 | `all` | boolean | `false` | Collect matches from all query chains, not just the first match |
 | `limit` | number | — | Maximum number of nodes to return |
 | `pattern` | string | — | Regex pattern for validating the extracted value |
-| `collate` | boolean | `false` | Process matched elements as a single unit |
+| `collate` | boolean | `false` | Process all matched elements as a single unit; forces `all: true` on every nested sub-select. See [Collating sibling elements](#collating-sibling-elements-with-collate). |
 | `context` | number | — | DOM context scope depth (1 = parent element, null = global) |
 | `union` | SelectQuery[] | — | Additional selectors whose results are merged into this field |
 | `value` | expression | — | Formula applied to the extracted value as post-processing |
@@ -317,10 +317,12 @@ Selectors follow the pattern `[["css-selector", ["method", "arg1"], ...]]`. Meth
 
 | Prefix | Description |
 |--------|-------------|
-| `{xpath}` | XPath selector — e.g. `{xpath}//h1` |
 | `{document}` | The document object |
 | `{window}` | The window object |
 | `{...}` | Dynamic JS expression — e.g. `` {`#item-${index}`} `` |
+| `xpath:` | XPath selector — e.g. `xpath://h1` |
+
+> Alternatively, any selector that starts with a `/` is assumed to be an XPath selector
 
 ### Query Methods (Operators)
 
@@ -494,3 +496,56 @@ Multiple selector chains are tried in order; the first match wins:
 ```json
 { "name": "price", "query": [["#sale-price"], ["#retail-price"], [".price"]] }
 ```
+
+### Collating sibling elements with `collate`
+
+A `repeated` select with a nested sub-select normally produces **one output item per matched node**. Setting `collate: true` reverses that — the sub-select runs **once across the whole match set**, and `all: true` is forced on every nested sub-field so each one collects from every matched node. Combined with the default `multiline` format, sibling text gets joined into a single newline-separated string instead of one row per element.
+
+This is most useful inside `pivot`, where the inner query selects a *variable* number of siblings under each outer anchor and you want them folded together rather than expanded.
+
+**Example — group `<p>` siblings under each `<h3>` header:**
+
+```html
+<div>
+    <h3>111</h3>
+    <p>abc</p>
+    <p>def</p>
+    <p>ghi</p>
+    <h3>222</h3>
+    <p>jkl</p>
+    <h3>333</h3>
+    <p>mno</p>
+    <p>pqr</p>
+</div>
+```
+
+```json
+{
+    "select": [{
+        "name": "groups",
+        "type": "object",
+        "repeated": true,
+        "query": [["h3"]],
+        "pivot": {
+            "query": [[".", ["nextUntil", "h3"]]],
+            "collate": true,
+            "select": [
+                { "name": "name",  "query": [["."]] },
+                { "name": "group", "query": [[".."]] }
+            ]
+        }
+    }]
+}
+```
+
+**Output:**
+
+```json
+[
+    { "name": "abc\ndef\nghi", "group": "111" },
+    { "name": "jkl",           "group": "222" },
+    { "name": "mno\npqr",      "group": "333" }
+]
+```
+
+Without `collate`, the inner `<p>` siblings would produce one row each (e.g. `{ name: "abc", group: "111" }`, `{ name: "def", group: "111" }`, …) rather than being folded into a single record per group.

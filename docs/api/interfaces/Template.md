@@ -86,12 +86,15 @@ ___
 
 • `Optional` **timeout**: `number`
 
-Timeout interval in seconds for page navigation, reload, and goback operations.
-Converted to milliseconds internally for Playwright navigation calls.
+Master timeout in seconds that caps the entire extraction run and is forwarded
+to Playwright for navigation, reload, and goback operations (converted to ms).
+Defaults to 30 seconds when omitted. Set to `0` to disable — the engine treats
+`0` as no master timeout (internally represented as `Infinity`) and Playwright
+treats `0` as no navigation timeout.
 
 #### Defined in
 
-[template.ts:55](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L55)
+[template.ts:58](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L58)
 
 ___
 
@@ -105,7 +108,7 @@ with extraction (e.g. `["Navigator.prototype.sendBeacon"]`).
 
 #### Defined in
 
-[template.ts:61](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L61)
+[template.ts:64](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L64)
 
 ___
 
@@ -165,7 +168,7 @@ Overrides the default viewport size (1366x768).
 
 #### Defined in
 
-[template.ts:66](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L66)
+[template.ts:69](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L69)
 
 ___
 
@@ -174,9 +177,12 @@ ___
 • `Optional` **waitUntil**: [`DocumentLoadState`](../README.md#documentloadstate)
 
 Document load state to wait for during navigation operations.
-Controls when navigation is considered complete. Can be overridden per individual
-yield operation during extraction.
+Controls when navigation is considered complete and delegates to Playwright's
+`waitUntil` option. When omitted, Playwright's own default applies (`"load"`).
+Set to `"commit"` to effectively disable waiting — the engine returns as soon
+as the network response arrives. Can be overridden per individual yield or
+navigation-related action during extraction.
 
 #### Defined in
 
-[template.ts:72](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L72)
+[template.ts:78](https://github.com/dtempx/syphonx-core/blob/main/template.ts#L78)

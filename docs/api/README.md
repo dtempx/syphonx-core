@@ -223,7 +223,7 @@ ___
 
 ### DocumentLoadState
 
-Ƭ **DocumentLoadState**: ``"load"`` \| ``"domcontentloaded"`` \| ``"networkidle"``
+Ƭ **DocumentLoadState**: ``"load"`` \| ``"domcontentloaded"`` \| ``"networkidle"`` \| ``"commit"``
 
 Specifies the document load state to wait for before proceeding.
 Based on Playwright's `waitUntil` option.
@@ -231,10 +231,11 @@ Based on Playwright's `waitUntil` option.
 - `"load"` — Waits for the `load` event, fired when all resources (stylesheets, images) have loaded.
 - `"domcontentloaded"` — Waits for the `DOMContentLoaded` event, fired when HTML is parsed and deferred scripts have executed.
 - `"networkidle"` — Waits until there are no network connections for at least 500ms.
+- `"commit"` — Returns as soon as the network response is received and the document begins loading, before any parsing or resource fetching. Effectively disables waiting for the page to settle.
 
 #### Defined in
 
-[package/public/DocumentLoadState.ts:9](https://github.com/dtempx/syphonx-core/blob/main/package/public/DocumentLoadState.ts#L9)
+[package/public/DocumentLoadState.ts:10](https://github.com/dtempx/syphonx-core/blob/main/package/public/DocumentLoadState.ts#L10)
 
 ___
 
@@ -672,7 +673,7 @@ Controls how extracted string values are formatted.
 
 #### Defined in
 
-[package/public/Select.ts:416](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L416)
+[package/public/Select.ts:453](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L453)
 
 ___
 
@@ -687,7 +688,7 @@ Determines how multiple query results are aggregated for boolean checks.
 
 #### Defined in
 
-[package/public/Select.ts:424](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L424)
+[package/public/Select.ts:461](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L461)
 
 ___
 
@@ -699,7 +700,7 @@ A selector query: a CSS/XPath selector string followed by zero or more chained o
 
 #### Defined in
 
-[package/public/Select.ts:396](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L396)
+[package/public/Select.ts:433](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L433)
 
 ___
 
@@ -711,7 +712,7 @@ A chained query operation: an operator name followed by its arguments (e.g. `["a
 
 #### Defined in
 
-[package/public/Select.ts:399](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L399)
+[package/public/Select.ts:436](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L436)
 
 ___
 
@@ -723,7 +724,7 @@ An operand value passed to a query operator.
 
 #### Defined in
 
-[package/public/Select.ts:405](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L405)
+[package/public/Select.ts:442](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L442)
 
 ___
 
@@ -735,7 +736,7 @@ The operator name in a query operation (e.g. `"attr"`, `"split"`, `"trim"`).
 
 #### Defined in
 
-[package/public/Select.ts:402](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L402)
+[package/public/Select.ts:439](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L439)
 
 ___
 
@@ -751,7 +752,7 @@ The data type that a selected value is coerced to.
 
 #### Defined in
 
-[package/public/Select.ts:393](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L393)
+[package/public/Select.ts:430](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L430)
 
 ___
 

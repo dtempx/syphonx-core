@@ -74,13 +74,53 @@ ___
 
 • `Optional` **collate**: `boolean`
 
-When `true`, processes the selector as a single unit rather than
-iterating over each matched node individually. Forces `all` to `true`
-for any nested sub-selects so all node values are included.
+When `true`, processes all matched nodes as a single unit rather than
+iterating over each node individually.
+
+Normally, a `repeated` select with a sub-select produces one output item
+per matched node. With `collate: true`, the sub-select runs once against
+the full set of matched nodes, and `all: true` is forced on every nested
+sub-select so each sub-field collects values from every node.
+
+Combined with the default `multiline` format, this joins text from sibling
+nodes into a single newline-separated string instead of producing one row
+per node. Most useful inside `pivot` when you want to fold a variable
+number of sibling elements (e.g. `<p>` tags between two `<h3>` headers)
+into a single grouped record.
+
+**`Example`**
+
+```ts
+// HTML:
+//   <h3>111</h3><p>abc</p><p>def</p><p>ghi</p>
+//   <h3>222</h3><p>jkl</p>
+//   <h3>333</h3><p>mno</p><p>pqr</p>
+//
+// Pivot the <p> siblings under each <h3> into one grouped record:
+{
+    name: "groups", type: "object", repeated: true, query: [["h3"]],
+    pivot: {
+        query: [[".", ["nextUntil", "h3"]]],
+        collate: true,
+        select: [
+            { name: "name",  query: [["."]] },
+            { name: "group", query: [[".."]] }
+        ]
+    }
+}
+// Result:
+//   [
+//     { name: "abc\ndef\nghi", group: "111" },
+//     { name: "jkl",           group: "222" },
+//     { name: "mno\npqr",      group: "333" }
+//   ]
+// Without collate, the <p> siblings would produce one item each rather
+// than being folded into a single newline-joined value per group.
+```
 
 #### Defined in
 
-[package/public/Select.ts:162](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L162)
+[package/public/Select.ts:199](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L199)
 
 ___
 
@@ -92,7 +132,7 @@ An optional comment for documentation purposes. Not used at runtime.
 
 #### Defined in
 
-[package/public/Select.ts:165](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L165)
+[package/public/Select.ts:202](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L202)
 
 ___
 
@@ -106,7 +146,7 @@ Specify `null` for global context (the entire document).
 
 #### Defined in
 
-[package/public/Select.ts:172](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L172)
+[package/public/Select.ts:209](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L209)
 
 ___
 
@@ -137,7 +177,7 @@ Uses reference equality (`indexOf`) for deduplication.
 
 #### Defined in
 
-[package/public/Select.ts:190](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L190)
+[package/public/Select.ts:227](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L227)
 
 ___
 
@@ -218,7 +258,7 @@ each individual value is negated.
 
 #### Defined in
 
-[package/public/Select.ts:196](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L196)
+[package/public/Select.ts:233](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L233)
 
 ___
 
@@ -308,7 +348,7 @@ When `true`, filters out `null` values from array results.
 
 #### Defined in
 
-[package/public/Select.ts:201](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L201)
+[package/public/Select.ts:238](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L238)
 
 ___
 
@@ -399,7 +439,7 @@ If the wait times out and `required` is `true`, returns a timeout error.
 
 #### Defined in
 
-[package/public/Select.ts:208](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L208)
+[package/public/Select.ts:245](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L245)
 
 ___
 
@@ -413,4 +453,4 @@ Actions that cannot execute in offline mode are logged as BYPASSED.
 
 #### Defined in
 
-[package/public/Select.ts:215](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L215)
+[package/public/Select.ts:252](https://github.com/dtempx/syphonx-core/blob/main/package/public/Select.ts#L252)

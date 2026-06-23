@@ -94,7 +94,7 @@ export interface Switch {
     /**
      * One or more selector stages evaluated as a **boolean** to determine
      * whether this case matches. Each stage is a `SelectQuery` (a CSS
-     * selector, jQuery expression, or `{xpath}…` XPath expression, optionally
+     * selector, jQuery expression, or XPath expression, optionally
      * followed by chained method calls). The engine evaluates the stages in
      * order and treats the result as `true` if at least one node is matched.
      *

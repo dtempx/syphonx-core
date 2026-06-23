@@ -155,9 +155,46 @@ export interface SelectTarget {
     pattern?: string;
 
     /**
-     * When `true`, processes the selector as a single unit rather than
-     * iterating over each matched node individually. Forces `all` to `true`
-     * for any nested sub-selects so all node values are included.
+     * When `true`, processes all matched nodes as a single unit rather than
+     * iterating over each node individually.
+     *
+     * Normally, a `repeated` select with a sub-select produces one output item
+     * per matched node. With `collate: true`, the sub-select runs once against
+     * the full set of matched nodes, and `all: true` is forced on every nested
+     * sub-select so each sub-field collects values from every node.
+     *
+     * Combined with the default `multiline` format, this joins text from sibling
+     * nodes into a single newline-separated string instead of producing one row
+     * per node. Most useful inside `pivot` when you want to fold a variable
+     * number of sibling elements (e.g. `<p>` tags between two `<h3>` headers)
+     * into a single grouped record.
+     *
+     * @example
+     * // HTML:
+     * //   <h3>111</h3><p>abc</p><p>def</p><p>ghi</p>
+     * //   <h3>222</h3><p>jkl</p>
+     * //   <h3>333</h3><p>mno</p><p>pqr</p>
+     * //
+     * // Pivot the <p> siblings under each <h3> into one grouped record:
+     * {
+     *     name: "groups", type: "object", repeated: true, query: [["h3"]],
+     *     pivot: {
+     *         query: [[".", ["nextUntil", "h3"]]],
+     *         collate: true,
+     *         select: [
+     *             { name: "name",  query: [["."]] },
+     *             { name: "group", query: [[".."]] }
+     *         ]
+     *     }
+     * }
+     * // Result:
+     * //   [
+     * //     { name: "abc\ndef\nghi", group: "111" },
+     * //     { name: "jkl",           group: "222" },
+     * //     { name: "mno\npqr",      group: "333" }
+     * //   ]
+     * // Without collate, the <p> siblings would produce one item each rather
+     * // than being folded into a single newline-joined value per group.
      */
     collate?: boolean;
 

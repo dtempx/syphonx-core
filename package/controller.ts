@@ -53,7 +53,7 @@ import {
     When,
     Yield,
     YieldAction
-} from "./public";
+} from "./public/index.js";
 
 import {
     DataItem,
@@ -67,7 +67,7 @@ import {
     ResolveQueryOpsParams,
     ResolveQueryParams,
     SelectContext
-} from "./private";
+} from "./private/index.js";
 
 import {
     autoPaginate,
@@ -145,7 +145,7 @@ export class Controller {
                 __metrics: {} as unknown,
                 __repeat: {},
                 __t0: Date.now(),
-                __timeout: state.timeout || defaultTimeoutSeconds,
+                __timeout: state.timeout === 0 ? Infinity : (state.timeout ?? defaultTimeoutSeconds),
 
                 ...state.vars,
 

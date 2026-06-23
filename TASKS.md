@@ -17,6 +17,12 @@
 - [ ] replace action accepts a simple string search and replace (in addition to a regex)
 - [ ] always yield after a click, so we generally don't need to worry about yielding at all
 - [ ] when returning a null or undefined value from a select with repeated=true, [null] is always returned where just null is expected
+- [ ] Start a master timeout in the host that kills the script if exceeded.
+    - Default master timeout to 5 minutes.
+    - Master timeout can be disabled.
+    - This is different from timeout in the template which controls timeout from the inside out.
+    - Master timeout can be set to default which makes it the same as the timeout in the template.
+- [x] Ability to disable top-level waitUntil and timeout settings
 
 ## New Features
 - [ ] analyze action that yields out to the host and runs an AI prompt
