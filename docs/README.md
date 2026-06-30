@@ -172,6 +172,8 @@ Beyond [**`select`**](api/interfaces/Select.md), templates support:
 
 Conditional execution via the `when` option is available on most actions and fields — see [dynamic-formulas.md](dynamic-formulas.md). For the complete action catalog (including `error`, `break`, `snooze`, `waitfor`, `goback`, `reload`, `yield`, `locator`), see [features.md](features.md).
 
+When the same named field is produced by more than one of these actions, the results **merge** rather than overwrite — a `repeated` field appends each step's results into one growing array. See [accumulation.md](accumulation.md) for this **field accumulation** behavior.
+
 ## Documentation Map
 
 This page is the introduction. The rest of the docs go deeper, grouped by topic:
@@ -183,6 +185,7 @@ This page is the introduction. The rest of the docs go deeper, grouped by topic:
 
 **Selectors**
 - [selectors.md](selectors.md) — the selector array format, methods, fallbacks, `all`, nested/list selectors, inline text
+- [unions.md](unions.md) — the `union` field operator: merging multiple selectors/regions into one field
 - [xpath.md](xpath.md) — XPath selector support and its limitations
 
 **Dynamic formulas** (`{...}` expressions)
@@ -195,6 +198,7 @@ This page is the introduction. The rest of the docs go deeper, grouped by topic:
 - [internal-state-variables.md](internal-state-variables.md) — `_`-prefixed variables that hold working state across actions
 
 **Runtime behavior**
+- [accumulation.md](accumulation.md) — how same-named fields merge across steps (`repeated` fields append into one array)
 - [timeouts.md](timeouts.md) — the layered timeout system and `waitUntil` (online mode)
 
 **API**

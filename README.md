@@ -2,7 +2,7 @@
 
 **Turn any web page into clean JSON — with a template, not a script.**
 
-You describe *what* you want with jQuery/CSS selectors in a small JSON template. SyphonX does the extracting. No imperative scraping code to write, debug, or babysit.
+You describe *what* you want by configuring selectors in a simple template. SyphonX handles all the extracting. No imperative scraping code to write, debug, or maintain. Best for when you need high speed, low cost, with rock solid precision and repeatability. Ideal for scaling out to hundreds or thousands of sites without the maintennence nighmare of maintaining a huge code base.
 
 ```json
 { "name": "title", "query": [["h1"]] }

@@ -26,6 +26,9 @@ A formula can read a handful of implicit variables. Which ones are meaningful de
 | `params` | Parameters passed into the template — chiefly columns reflected from an earlier list stage into a later detail run. | `{params.category}`, `{params.index}` |
 | `url` | The URL of the page currently loaded. | `{url.endsWith('#2')}` |
 | `__status` | The HTTP status of the current page (**two** leading underscores). Set by the host after navigation. | `{__status === 404}` |
+| `index` | The 0-based position of the current node within a repeated/object select or an `each` iteration. | `{index + 1}` |
+| `union` | The 0-based index of the current `union` entry — which alternative fired. Available in formulas inside a union entry. See [unions.md](unions.md). | `{`${value}-${union}`}` |
+| `parent` | The enclosing context when nested (e.g. inside `each` or a sub-select), exposing its `index`, `value`, and `url`. Chains outward via `parent.parent`. | `{parent.index}`, `{parent.value}` |
 | `_name` | Any **internal state variable** — a field whose `name` starts with a single `_`. Scratch values, not emitted to output, projected flat at the top level of every formula. See [internal-state-variables.md](internal-state-variables.md). | `{_city_us \|\| _city_uk}` |
 
 > **Note on `__status` vs `_name`.** `__status` (double underscore) is the built-in HTTP
