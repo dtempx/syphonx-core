@@ -1,31 +1,19 @@
 # SyphonX
 
-**Template-driven HTML to JSON extraction.** Define what you want with jQuery selectors in a declarative JSON template, get structured data back.
+**Turn any web page into clean JSON — with a template, not a script.**
 
-## Overview
+You describe *what* you want with jQuery/CSS selectors in a small JSON template. SyphonX does the extracting. No imperative scraping code to write, debug, or babysit.
 
-SyphonX takes a JSON template with CSS/jQuery selectors and extracts structured data from any HTML — live pages or offline files. No imperative code, just a declarative template.
-
-
-## Getting Started
-Here's a command that shows how to fetch a single element from a live page:
-
-```bash
-npx select --url=https://www.example.com --selector=h1
+```json
+{ "name": "title", "query": [["h1"]] }
 ```
 
-**OUTPUT**
-```
-<h1>Example Domain</h1>
-```
+That's the whole idea. Point selectors at a page, get structured data back — from live pages or HTML you've already saved.
 
-This fetches the page at the given URL and returns the raw HTML of the first element matching the CSS selector — useful for quickly checking what's on a page before writing a template.
+## See it in a glance
 
+A template says what to grab:
 
-## How it works
-Here's how it works in a little more detail...
-
-**SYPHONX TEMPLATE**
 ```json
 {
     "url": "https://www.example.com",
@@ -40,7 +28,8 @@ Here's how it works in a little more detail...
 }
 ```
 
-**HTML INPUT**
+Run it against this HTML…
+
 ```html
 <div>
     <h1>Example Domain</h1>
@@ -49,7 +38,8 @@ Here's how it works in a little more detail...
 </div>
 ```
 
-**SYPHONX OUTPUT**
+…and you get exactly the JSON you asked for:
+
 ```json
 {
     "title": "Example Domain",
@@ -57,14 +47,40 @@ Here's how it works in a little more detail...
 }
 ```
 
-Run the following command to produce the output described above...
+Notice the `link` came back as an absolute URL — SyphonX resolves `href`/`src` for you. That's the flavor of the whole library: the obvious thing usually just happens.
+
+## Try it
 
 ```bash
 npx online example.json
 ```
 
+`online` fetches the page, runs your template in a real browser, and prints the JSON. Want to peek at a page before writing anything? Pull a single element straight from a URL:
+
+```bash
+npx select --url=https://www.example.com --selector=h1
+```
+```html
+<h1>Example Domain</h1>
+```
+
+## Why a template instead of AI — or a custom scraper?
+
+- **Deterministic.** Same page in, same JSON out, every time. No probabilistic drift.
+- **Fast and cheap.** A selector engine runs in milliseconds with no per-call API bill — so it scales to thousands of pages.
+- **Resilient.** A field can list fallback selectors (`[["#sale-price"], [".price"]]`) and SyphonX takes the first that matches — so one template survives markup that varies across page types or site redesigns.
+- **No glass ceiling.** jQuery, regular expressions, and inline JavaScript formulas are all on tap when a selector alone isn't enough.
+
+And when selectors genuinely aren't enough, you can still layer AI on top for just those cases.
+
+## What makes it different under the hood
+
+Most scraping tools drive a browser *from the outside*. SyphonX flips that: it injects its **entire engine into the page** and runs there — with direct access to the live DOM and jQuery. When it needs the outside world to act (navigate, go back, screenshot), it hands control back to the host and picks up right where it left off. It can also run fully offline against saved HTML, no browser required.
+
 ## Want to know more?
-This example just scratches the surface, here's how to learn more...
+
+This barely scratches the surface.
+
 - [How SyphonX Templates Work](./docs/README.md)
 - [Key Features](./docs/key-features.md)
 - [Why not just use AI instead?](./docs/ai.md)
