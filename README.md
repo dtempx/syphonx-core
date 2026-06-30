@@ -67,4 +67,4 @@ npx online example.json
 This example just scratches the surface, here's how to learn more...
 - [How SyphonX Templates Work](./docs/README.md)
 - [Key Features](./docs/key-features.md)
-- [Why not just use AI instead?](why-not-ai.md)
+- [Why not just use AI instead?](./docs/ai.md)
