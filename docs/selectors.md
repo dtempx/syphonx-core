@@ -1,12 +1,20 @@
 # SyphonX Selector Format
 
-Selectors are condensed arrays that chain a CSS selector with jQuery-style operations:
+A `query` is a **double-nested array**, and the two levels of nesting are not arbitrary — each level represents a distinct dimension of selection:
 
 ```
-[["css-selector", ["method", "arg1", "arg2"], ["method2", "arg1"]]]
+query: [   ←──────────────── outer array: a chain of fallback stages, tried in order
+    ["css-selector", ["method", "arg1"], ["method2"]],   ←── one stage: a selector + its method chain
+    ["another-selector", ["method"]]                     ←── a fallback stage
+]
 ```
 
-The first element is always a CSS/jQuery selector string. Each subsequent array is a method call applied to the result.
+- The **inner array** is a single selector followed by an optional **method chain** — a CSS/jQuery/XPath selector string first, then zero or more `["method", ...args]` operations applied to its result in sequence.
+- The **outer array** is a **chain of fallback stages**. SyphonX tries each stage in order and, by default, **the first stage that matches wins**.
+
+This is the whole reason a `query` is doubly nested: the outer level lets you probe *several different places in the DOM* for the same field, while the inner level lets you *transform* whatever each place yields. The simplest query — one selector, no fallbacks — is still written `[["h1"]]` (an outer array of one stage), which is why even trivial queries carry two sets of brackets.
+
+The two dimensions are covered separately below: [method chaining](#methods) (the inner array) and [selector chains / fallback stages](#selector-chains-multiple-fallback-stages) (the outer array).
 
 ## Basic Selectors
 
@@ -30,36 +38,73 @@ Chain methods after the selector to transform the extracted value:
 | `cut` | `[["div", ["cut", ",", 0]]]` | `$("div").cut(",", 0)` | Split by delimiter, get Nth part |
 | `html` | `[["div", ["html"]]]` | `$("div").html()` | Inner HTML instead of text |
 | `is` | `[["a", ["is", ".active"]]]` | `$("a").is(".active")` | Boolean: matches selector? |
-| `filter` | `[["li", ["filter", "/^item/"]]]` | `$("li").filter("/^item/")` | Keep elements matching regex |
+| `filter` | `[["li", ["filter", "/^item/"]]]` | `$("li").filter("/^item/")` | Keep elements matching a selector or regex |
+| `not` | `[["li", ["not", ".ad"]]]` | `$("li").not(".ad")` | Drop elements matching a selector or regex |
 | `json` | `[["script", ["json", "{value.data}"]]]` | `$("script").json("{value.data}")` | Parse JSON, extract path |
 | `text` | `[["p", ["text", "inline"]]]` | — | Direct text only, skipping child element text (see below) |
+| `split` | `[["div", ["split", ","]]]` | `$("div").text().split(",")` | Split text into an array on a delimiter |
+| `map` | `[["a", ["map", "{value.toUpperCase()}"]]]` | — | Transform each matched node with a formula |
+| `reverse` | `[["h1", ["prevAll"], ["reverse"]]]` | — | Reverse the matched node order (e.g. restore document order after `prevAll`) |
+| `size` | `[["li", ["size"]]]` | `$("li").length` | Count of matched elements |
 
-## Multiple Selectors
+Beyond these, ordinary **jQuery traversal methods pass straight through** — e.g. `["eq", n]`, `["first"]`, `["last"]`, `["parent"]`, `["children"]`, `["prevAll"]`, `["nextUntil", "h3"]`, `["closest", "section"]`. Anything jQuery exposes on a selection is callable as a method stage.
 
-A `query` is an array of selectors. Each inner array is a separate jQuery selector chain:
+## Selector Chains (Multiple Fallback Stages)
+
+The outer array of a `query` is a **selector chain** — an ordered list of fallback stages. This is one of the most important and heavily used features in SyphonX. It lets a single field **probe several different places in the DOM** for the same value, trying each in turn:
 
 ```json
 { "name": "title", "query": [["h1"], ["h2"], [".title"]] }
 ```
 
-This is equivalent to defining three jQuery selectors:
-```
-$("h1")
-$("h2")
-$(".title")
-```
-
-By default, selectors run in order and **the first one that produces a result wins**. This is useful for fallback logic — try the most specific selector first, then fall back to alternatives:
+This tries each stage in order — `$("h1")`, then `$("h2")`, then `$(".title")` — and **the first stage that matches at least one element wins**; the rest are skipped.
 
 ```json
 { "name": "price", "query": [["#sale-price"], ["#retail-price"], [".price"]] }
 ```
 
-Equivalent to trying `$("#sale-price")`, then `$("#retail-price")`, then `$(".price")` — stopping at the first match.
+Tries `$("#sale-price")`, then `$("#retail-price")`, then `$(".price")`, stopping at the first match.
 
-### Gathering results from all selectors
+### Why this matters
 
-Set `"all": true` to run **every** selector and combine all results instead of stopping at the first match:
+The real power shows up on large, heterogeneous sites. A major retailer might render the *same* logical field — a price, a product title, a spec table — with **completely different DOM** across page types, brands, departments, or generations of the site. One template can absorb all of that variation by listing each known location as a fallback stage:
+
+```json
+{
+    "name": "price",
+    "type": "number",
+    "query": [
+        ["[data-testid='product-price'] .value"],   // current platform
+        [".pdp-price .sale"],                         // older product pages
+        ["#priceblock_ourprice"],                     // legacy generation
+        ["xpath://*[contains(@class,'price')][1]"]    // last-resort heuristic
+    ]
+}
+```
+
+Because each stage can be any selector — CSS, jQuery, or XPath — and can carry its own method chain, a single field definition stays resilient as a site evolves or as you point the same template at structurally different pages. Order the stages from **most specific/most trusted to most general**, so the cleanest source wins whenever it's present and the heuristics only kick in as a safety net.
+
+### The lighter-weight alternative: the CSS comma operator
+
+For the simple case, you don't always need separate stages. CSS's built-in **comma operator** (selector list) groups several selectors into one, so a single stage can match any of them:
+
+```json
+{ "name": "title", "query": [["h1, h2, .title"]] }
+```
+
+This is more compact, but the semantics differ in an important way:
+
+| | Comma operator (`"h1, h2, .title"`) | Fallback stages (`[["h1"], ["h2"], [".title"]]`) |
+|---|---|---|
+| Match order | **Document order** — returns whichever matches first *in the page* | **Priority order** — tries `h1` first regardless of position, falls back only if absent |
+| Per-stage method chains | No — one chain applies to the combined match | Yes — each stage has its own method chain |
+| Best for | Interchangeable equivalents where position doesn't matter | Ranked alternatives where you want the *preferred* source to win |
+
+Reach for the comma operator when the candidates are interchangeable and you just want "whichever exists." Reach for fallback stages when one source is genuinely preferred over another, or when each candidate needs different post-processing. The two compose freely — a stage can itself use a comma group.
+
+### Gathering results from all stages
+
+Set `"all": true` to run **every** stage and combine the results instead of stopping at the first match — useful when the same kind of value lives in multiple places and you want all of them:
 
 ```json
 { "name": "links", "repeated": true, "all": true, "query": [["nav a", ["attr", "href"]], ["footer a", ["attr", "href"]]] }

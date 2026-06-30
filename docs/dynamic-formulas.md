@@ -2,7 +2,37 @@
 
 SyphonX supports dynamic formulas — JavaScript expressions embedded inside JSON string values, wrapped in curly braces `{...}`. These formulas are evaluated at runtime and have access to contextual variables such as `value`, `data`, `url`, `params`, and internal state variables (prefixed with `_`).
 
-This document provides a conceptual overview of the different ways dynamic formulas are used.
+This document provides a conceptual overview of the different ways dynamic formulas are used. For an in-depth field-guide — the full pattern catalog, state-machine iteration, and gotchas — see [complex-formulas.md](complex-formulas.md). For the escaping rules that apply to every formula, see [escaping.md](escaping.md).
+
+**Related references:**
+> - **Complex formulas** — the deep-dive field-guide: the by-intent pattern catalog (using the JavaScript standard library, coalesce, branch, normalize, parse, encode/decode, array ops, IIFE), worklist/pager state machines, and conventions. See [complex-formulas.md](complex-formulas.md).
+> - **Escaping (the "JSON tax")** — formulas live inside JSON strings, so every backslash must be doubled (`\\n`, `\\d`); literal quotes are `\"`. See [escaping.md](escaping.md).
+> - **Internal state variables** (names prefixed with `_`, e.g. `_page_num`, `_h1`, `_ok`) appear throughout the examples below. They are kept out of the final output and are always projected at the top level of every formula's scope. See [internal-state-variables.md](internal-state-variables.md).
+> - **The `data` context** — how the `data` variable is rooted at the top-level output and what is visible to a formula when. See [data-context.md](data-context.md).
+> - **Value post-processing** — when a field has both a `query` and a `value`, the query runs first and the `value` formula post-processes its result (available as `value`). See [value-postprocessing.md](value-postprocessing.md).
+> - **Wrapped values in array post-processing** — on a `repeated` object select, `value` is the raw captured array whose row fields carry a `.value` sub-field (read `obj.href.value`, not `obj.href`), while `data` is unwrapped. See [value-wrappers.md](value-wrappers.md).
+
+---
+
+## Variables in scope
+
+A formula can read a handful of implicit variables. Which ones are meaningful depends on
+*where* the formula sits.
+
+| Variable | Meaning | Example |
+|---|---|---|
+| `value` | The value the field's `query` just produced (before the formula). `undefined` if there is no `query`. See [value-postprocessing.md](value-postprocessing.md). | `{value.trim()}` |
+| `data` | The accumulated output object so far, rooted at the top level. Within a repeated/object select, sibling fields are visible too. At the top level of a list template `data` is the captured **array** (so `data.length`). See [data-context.md](data-context.md). | `{data.state}`, `{data.length < 100}` |
+| `params` | Parameters passed into the template — chiefly columns reflected from an earlier list stage into a later detail run. | `{params.category}`, `{params.index}` |
+| `url` | The URL of the page currently loaded. | `{url.endsWith('#2')}` |
+| `__status` | The HTTP status of the current page (**two** leading underscores). Set by the host after navigation. | `{__status === 404}` |
+| `_name` | Any **internal state variable** — a field whose `name` starts with a single `_`. Scratch values, not emitted to output, projected flat at the top level of every formula. See [internal-state-variables.md](internal-state-variables.md). | `{_city_us \|\| _city_uk}` |
+
+> **Note on `__status` vs `_name`.** `__status` (double underscore) is the built-in HTTP
+> status, distinct from your own single-underscore scratch variables. There is **no**
+> built-in page/iteration counter — if you need one, maintain your own internal variable
+> (e.g. `_page_num`) across a `repeat` loop. See
+> [complex-formulas.md](complex-formulas.md#state-machine-iteration-with-select--repeat).
 
 ---
 
@@ -129,7 +159,7 @@ In multi-stage extractions, values captured in an earlier stage can be accessed 
 
 ## 7. Value Transformation
 
-Formulas on the `"value"` property can clean, reshape, or reformat extracted data. The variable `value` refers to the raw extracted result.
+Formulas on the `"value"` property can clean, reshape, or reformat extracted data. The variable `value` refers to the raw extracted result. When a field defines both a `query` and a `value`, the query runs first and the formula post-processes its result — see [value-postprocessing.md](value-postprocessing.md) for a full treatment.
 
 **Trimming whitespace:**
 
@@ -148,6 +178,8 @@ Formulas on the `"value"` property can clean, reshape, or reformat extracted dat
 ```json
 { "value": "{value.filter(obj => !data.professionals.map(({ href }) => href).includes(obj.href.value))}" }
 ```
+
+Note the mix of `href` (from the unwrapped `data`) and `obj.href.value` (from the wrapped `value` of a repeated select) — see [value-wrappers.md](value-wrappers.md) for why these differ.
 
 **Reformatting HTML structure:**
 

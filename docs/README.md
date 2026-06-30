@@ -27,13 +27,13 @@ For example, to get the `href` attribute of the first link:
 { "name": "url", "query": [["a", ["attr", "href"]]] }
 ```
 
-Multiple selector chains can be provided as fallbacks — the first one that matches wins:
+The `query` is a *double-nested* array for a reason: the **inner** array is one selector plus a chain of methods, and the **outer** array is a **selector chain** — an ordered list of fallback stages. SyphonX tries each stage in order and the first that matches wins. This lets one field probe several different places in the DOM, which is essential on large sites where the same value appears in different markup across page types, brands, or site generations:
 
 ```json
 { "name": "price", "query": [["#sale-price"], ["#retail-price"], [".price"]] }
 ```
 
-See [selectors.md](selectors.md) for the full selector reference including all methods, XPath support, and multi-selector behavior. For a dedicated XPath guide, see [xpath.md](xpath.md).
+See [selectors.md](selectors.md) for the full selector reference — methods, XPath, fallback selector chains (and the lighter-weight CSS comma alternative), `all: true`, and nested/list selectors. For a dedicated XPath guide, see [xpath.md](xpath.md).
 
 ## Dynamic Formulas
 
@@ -49,7 +49,7 @@ Formulas have access to `value` (the extracted result), `data` (accumulated outp
 { "break": { "when": "{_page_num >= _page_count}" } }
 ```
 
-See [dynamic-formulas.md](dynamic-formulas.md) for the full reference.
+See [dynamic-formulas.md](dynamic-formulas.md) for the full reference (and the variables-in-scope table), [complex-formulas.md](complex-formulas.md) for the in-depth field-guide (using built-in JavaScript, pattern catalog, worklist state machines, gotchas), [escaping.md](escaping.md) for the backslash/quote "JSON tax", [data-context.md](data-context.md) for how the `data` variable is rooted and resolved, [value-postprocessing.md](value-postprocessing.md) for combining a `query` with a `value` formula, [value-wrappers.md](value-wrappers.md) for the `obj.href.value` quirk when post-processing a repeated array, and [internal-state-variables.md](internal-state-variables.md) for how `_`-prefixed variables hold working state across actions.
 
 ## Field Options
 
@@ -72,7 +72,7 @@ Each field in a `select` action can have these options:
 | `query` | array | — | Selector chain(s) |
 | `repeated` | boolean | `false` | Return an array of all matches |
 | `required` | boolean | `false` | Error if nothing found |
-| `format` | string | `"multiline"` | `"singleline"`, `"href"`, `"none"` |
+| `format` | string | `"multiline"` | `"multiline"`, `"singleline"`, `"href"`, `"innertext"`, `"textcontent"`, `"none"` |
 | `distinct` | boolean | `false` | Remove duplicates from arrays |
 | `negate` | boolean | `false` | Invert boolean result |
 | `all` | boolean | `false` | Include matches from all query chains |
@@ -165,11 +165,37 @@ Beyond [**`select`**](api/interfaces/Select.md), templates support:
 - [**`transform`**](api/interfaces/Transform.md) — Modify the DOM before selecting (remove elements, replace text)
 - [**`navigate`**](api/interfaces/Navigate.md) — Go to another URL
 - [**`each`**](api/interfaces/Each.md) — Loop over elements, running nested actions per element
-- [**`when`**](api/interfaces/When.md) — Conditional execution
 - [**`repeat`**](api/interfaces/Repeat.md) — Loop with break conditions
+- [**`switch`**](api/interfaces/Switch.md) — Run the first matching case
 - [**`scroll`**](api/interfaces/Scroll.md) — Scroll the page
-- [**`keypress`**](api/interfaces/Keypress.md) — Simulate keyboard input
+- [**`keypress`**](api/interfaces/KeyPress.md) — Simulate keyboard input
 
-## More Info
-- [API Reference](api/README.md)
-- [Timeout Behavior](timeout.md)
+Conditional execution via the `when` option is available on most actions and fields — see [dynamic-formulas.md](dynamic-formulas.md). For the complete action catalog (including `error`, `break`, `snooze`, `waitfor`, `goback`, `reload`, `yield`, `locator`), see [features.md](features.md).
+
+## Documentation Map
+
+This page is the introduction. The rest of the docs go deeper, grouped by topic:
+
+**Overview**
+- [features.md](features.md) — the comprehensive reference: every action, field option, output interface, error code, and metric in one place
+- [key-features.md](key-features.md) — what makes SyphonX different, at a glance
+- [why-not-ai.md](why-not-ai.md) — when selector-based extraction beats an LLM
+
+**Selectors**
+- [selectors.md](selectors.md) — the selector array format, methods, fallbacks, `all`, nested/list selectors, inline text
+- [xpath.md](xpath.md) — XPath selector support and its limitations
+
+**Dynamic formulas** (`{...}` expressions)
+- [dynamic-formulas.md](dynamic-formulas.md) — the hub and quick reference, including the variables-in-scope table
+- [complex-formulas.md](complex-formulas.md) — the deep-dive field-guide: pattern catalog, state-machine iteration, gotchas
+- [escaping.md](escaping.md) — the "JSON tax": doubling backslashes, quotes in regex
+- [data-context.md](data-context.md) — how the `data` variable is rooted and what is visible when
+- [value-postprocessing.md](value-postprocessing.md) — combining a `query` with a `value` formula
+- [value-wrappers.md](value-wrappers.md) — the `obj.field.value` quirk when post-processing a repeated array
+- [internal-state-variables.md](internal-state-variables.md) — `_`-prefixed variables that hold working state across actions
+
+**Runtime behavior**
+- [timeouts.md](timeouts.md) — the layered timeout system and `waitUntil` (online mode)
+
+**API**
+- [API Reference](api/README.md) — generated TypeDoc for all public interfaces
